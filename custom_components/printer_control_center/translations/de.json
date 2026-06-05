@@ -123,7 +123,7 @@
     },
     "install_dashboards": {
       "name": "Standard-Dashboards installieren oder reparieren",
-      "description": "Erstellt oder repariert die drei Standard-Dashboards des 3D-Printer Control Centers."
+      "description": "Erstellt oder repariert die zwei verwalteten Standard-Dashboards: 3D-Druck mit integrierter Warteschlange und 3D-Drucker-Dateimanager/Galerie."
     }
   }
 }

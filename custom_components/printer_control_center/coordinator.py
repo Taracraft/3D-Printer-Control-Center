@@ -64,8 +64,18 @@ class PrinterControlCenterCoordinator(DataUpdateCoordinator[PrinterSnapshot]):
         self._rescan_scheduled = False
         self.camera_client: NativePrinterCameraClient | None = None
 
-        self.active_host = str(self.config.get(CONF_HOST, ""))
+        self.active_host = str(self.config.get(CONF_HOST, "")).strip()
         self.last_scan_report: ScanReport | None = None
+
+    @property
+    def manual_host(self) -> str:
+        """Return the explicitly configured LAN IP. Manual configuration always wins."""
+        return str(self.config.get(CONF_HOST, "")).strip()
+
+    @property
+    def camera_host(self) -> str:
+        """Return the camera endpoint without allowing a scan to override manual IP."""
+        return self.manual_host or self.active_host
 
     async def _async_create_client(self, **kwargs) -> PrinterMqttClient:
         return await self.hass.async_add_executor_job(
@@ -108,10 +118,15 @@ class PrinterControlCenterCoordinator(DataUpdateCoordinator[PrinterSnapshot]):
 
         self.last_scan_report = report
 
-        if report.selected_host:
+        if self.manual_host:
+            # An explicitly configured LAN IP is authoritative. Discovery may
+            # report candidates for diagnostics, but it must never override the
+            # endpoint used for MQTT, camera or SD-card access.
+            self.active_host = self.manual_host
+        elif report.selected_host:
             self.active_host = report.selected_host
 
-            if persist_host and report.selected_host != str(self.config.get(CONF_HOST, "")):
+            if persist_host:
                 options = {**self.entry.options, CONF_HOST: report.selected_host}
                 self.hass.config_entries.async_update_entry(self.entry, options=options)
 
@@ -124,7 +139,7 @@ class PrinterControlCenterCoordinator(DataUpdateCoordinator[PrinterSnapshot]):
         if mode not in (MODE_LAN, MODE_HYBRID):
             return
 
-        self.active_host = str(self.config.get(CONF_HOST, ""))
+        self.active_host = self.manual_host
 
         # Manual IP always wins. Automatic discovery is an optional fallback
         # because broadcast/route scans are not reliable in every VLAN or VPN.
@@ -184,9 +199,10 @@ class PrinterControlCenterCoordinator(DataUpdateCoordinator[PrinterSnapshot]):
         for client in self._clients:
             await self.hass.async_add_executor_job(client.start)
 
-        if mode in (MODE_LAN, MODE_HYBRID) and self.active_host:
+        camera_host = self.camera_host
+        if mode in (MODE_LAN, MODE_HYBRID) and camera_host:
             self.camera_client = NativePrinterCameraClient(
-                host=self.active_host,
+                host=camera_host,
                 access_code=str(self.config[CONF_ACCESS_CODE]),
                 tls_insecure=tls_insecure,
                 on_state_change=self._camera_state_from_thread,
@@ -284,6 +300,8 @@ class PrinterControlCenterCoordinator(DataUpdateCoordinator[PrinterSnapshot]):
         if (
             transport == "lan"
             and bool(self.config.get(CONF_RESCAN_ON_DISCONNECT, True))
+            and bool(self.config.get(CONF_AUTO_DISCOVER_IP, False))
+            and not self.manual_host
             and not self._rescan_scheduled
         ):
             self._rescan_scheduled = True

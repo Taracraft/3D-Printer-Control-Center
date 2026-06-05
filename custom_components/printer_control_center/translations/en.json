@@ -123,7 +123,7 @@
     },
     "install_dashboards": {
       "name": "Install or repair default dashboards",
-      "description": "Create or repair the three default 3D-Printer Control Center dashboards."
+      "description": "Creates or repairs the two managed default dashboards: 3D printing with integrated queue and 3D printer file manager/gallery."
     }
   }
 }

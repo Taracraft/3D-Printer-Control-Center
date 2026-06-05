@@ -1,5 +1,7 @@
 # 3D-Printer Control Center for Home Assistant
 
+<p align="center"><img src="brand/logo.png" alt="3D-Printer Control Center" width="180"></p>
+
 [Deutsche Dokumentation](README.de.md) · [Changelog](CHANGELOG.md) · [Setup guide](docs/SETUP.md) · [Migration](docs/MIGRATION.md) · [Privacy and security](docs/PRIVACY.md)
 
 A local-first Home Assistant custom integration for compatible Bambu Lab 3D printers. It provides MQTT telemetry, native camera support where available, responsive Lovelace cards, a local 3MF archive, SD-card file management and a persistent print-planning queue.
@@ -14,7 +16,7 @@ A local-first Home Assistant custom integration for compatible Bambu Lab 3D prin
 - German and English setup translations
 - selectable dashboard language: `Automatic`, `Deutsch`, `English`
 - native Home Assistant camera entity where the compatible camera protocol is available
-- responsive Lovelace cards including **File manager / gallery** and **3D print queue**
+- responsive Lovelace cards including **3D printer file manager/gallery** and an integrated **3D print queue**
 - local 3MF archive with ZIP export and ZIP import preserving folder structure
 - SD-card access through printer FTPS where supported
 - direct Bambu Studio handoff using unchanged original 3MF files
@@ -64,12 +66,13 @@ The export contains every 3MF model and the complete folder structure. The impor
 
 Never post LAN access codes, Cloud tokens or unredacted diagnostics in public issues.
 
-## Automatic dashboards
+## Managed dashboards
 
-During setup, the integration creates three Lovelace dashboards by default:
+The integration creates two Lovelace dashboards by default:
 
-- **3D-Drucker**
-- **Dateimanager / Galerie**
-- **3D-Druck-Warteschlange**
+- **3D print** with the printer card on the left and the queue on the right
+- **3D printer file manager/gallery** as a full-width view
 
-This can be disabled in the setup assistant or changed later in the integration options. The service `printer_control_center.install_dashboards` recreates or repairs the integration-owned dashboards.
+This can be disabled in the setup assistant and changed later in the integration options. The `printer_control_center.install_dashboards` service recreates or repairs the integration dashboards.
+
+Gallery ZIP imports and normal 3MF uploads continue as a compact expandable browser background task while switching dashboards. The task shows progress, transfer speed, extraction status and verification. After a full browser reload, an existing upload fragment can be resumed by selecting the same local file again. Stale fragments are cleaned automatically.

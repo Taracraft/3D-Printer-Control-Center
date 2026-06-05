@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 2.0.1 */
+/* 3D-Printer Control Center - HACS Release 2.0.2 */
 (() => {
-  const VERSION = "2.0.1";
+  const VERSION = "2.0.2";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -82,6 +82,21 @@
     ["3MF hochladen", "Upload 3MF"],
     ["Galerie-ZIP exportieren", "Export gallery ZIP"],
     ["Galerie-ZIP importieren", "Import gallery ZIP"],
+    ["3D-Drucker-Dateimanager/Galerie", "3D printer file manager/gallery"],
+    ["Hintergrund-Upload", "Background upload"],
+    ["Upload läuft im Hintergrund weiter", "Upload continues in the background"],
+    ["Entpacken und gegenprüfen", "Extracting and verifying"],
+    ["Gegenprüfung erfolgreich", "Verification successful"],
+    ["Vorbereiten", "Preparing"],
+    ["Hochladen", "Uploading"],
+    ["Abgebrochen", "Cancelled"],
+    ["Phase", "Phase"],
+    ["Geschwindigkeit", "Speed"],
+    ["Übertragen", "Transferred"],
+    ["Upload fortsetzen", "Resume upload"],
+    ["Upload abbrechen", "Cancel upload"],
+    ["Details anzeigen", "Show details"],
+    ["Details ausblenden", "Hide details"],
     ["ZIP-Import erfolgreich", "ZIP import successful"],
     ["Vorhandene Galerie-Dateien überschreiben?", "Overwrite existing gallery files?"],
     ["Dateien auswählen", "Select files"],
@@ -277,7 +292,7 @@
     network: "Netzwerkdiagnose",
     firmware: "Firmware",
     brand: "Logo / Branding",
-    templates: "Dateimanager / Galerie",
+    templates: "3D-Drucker-Dateimanager/Galerie",
     makerworld: "MakerWorld Explorer",
     media: "Kamera / Modellvorschau",
     queue: "3D-Druck-Warteschlange",
@@ -412,6 +427,204 @@
     }
     return btoa(result);
   }
+
+
+  class PrinterControlCenterBackgroundUploadManager {
+    constructor(){
+      this.hass=null;
+      this.task=null;
+      this.expanded=false;
+      this.listeners=new Set();
+      this.overlay=null;
+      this.cleanupDone=false;
+      this._lastEmit=0;
+      this._emitTimer=null;
+    }
+    setHass(hass){
+      if(hass)this.hass=hass;
+      this.ensureOverlay();
+      if(!this.cleanupDone&&this.hass?.callWS){
+        this.cleanupDone=true;
+        this.hass.callWS({type:"printer_control_center/upload/cleanup",remove_orphans:false}).catch(()=>{});
+      }
+    }
+    subscribe(listener){this.listeners.add(listener);try{listener(this.snapshot())}catch(_error){}return()=>this.listeners.delete(listener)}
+    emit(force=false){
+      const run=()=>{
+        this._emitTimer=null;
+        this._lastEmit=performance.now();
+        this.renderOverlay();
+        const snapshot=this.snapshot();
+        for(const listener of this.listeners){try{listener(snapshot)}catch(_error){}}
+      };
+      const wait=220-(performance.now()-this._lastEmit);
+      if(!force&&wait>0){
+        if(!this._emitTimer)this._emitTimer=window.setTimeout(run,wait);
+        return;
+      }
+      if(this._emitTimer){window.clearTimeout(this._emitTimer);this._emitTimer=null}
+      run();
+    }
+    snapshot(){return this.task?{...this.task,details:[...(this.task.details||[])]}:null}
+    speedLabel(task=this.task){return task?.speed?`${bytesLabel(task.speed)}/s`:"—"}
+    phaseLabel(task=this.task){
+      const phase=task?.phase||"";
+      return tr(({preparing:"Vorbereiten",uploading:"Hochladen",resuming:"Upload fortsetzen",processing:"Entpacken und gegenprüfen",verified:"Gegenprüfung erfolgreich",failed:"Fehler",cancelled:"Abgebrochen"})[phase]||phase);
+    }
+    taskDetailsHtml(){
+      const task=this.task;if(!task)return"";
+      const lines=[...(task.details||[])];
+      if(task.uploadId)lines.unshift(`Session: ${task.uploadId}`);
+      lines.unshift(`${tr("Phase")}: ${this.phaseLabel(task)}`);
+      lines.unshift(`${tr("Geschwindigkeit")}: ${this.speedLabel(task)}`);
+      lines.unshift(`${tr("Übertragen")}: ${bytesLabel(task.offset||0)} ${tr("von")} ${bytesLabel(task.size||0)}`);
+      return lines.map((line)=>`<div>${esc(line)}</div>`).join("");
+    }
+    ensureOverlay(){
+      if(this.overlay?.isConnected)return;
+      let overlay=document.getElementById("printer-control-center-background-upload");
+      if(!overlay){overlay=document.createElement("div");overlay.id="printer-control-center-background-upload";document.body.appendChild(overlay)}
+      this.overlay=overlay;
+      if(!overlay.dataset.pccBound){
+        overlay.dataset.pccBound="1";
+        overlay.addEventListener("click",(event)=>{
+          const action=event.target.closest?.("[data-pcc-upload-action]")?.dataset?.pccUploadAction;
+          if(action==="toggle"){this.expanded=!this.expanded;this.renderOverlay()}
+          if(action==="abort")this.abort().catch(()=>{});
+          if(action==="dismiss"){this.task=null;this.emit(true)}
+        });
+      }
+    }
+    renderOverlay(){
+      this.ensureOverlay();
+      const task=this.task;
+      if(!task){this.overlay.innerHTML="";this.overlay.style.display="none";return}
+      const progress=Math.max(0,Math.min(100,Number(task.progress||0)));
+      const done=["verified","failed","cancelled"].includes(task.phase);
+      this.overlay.style.display="block";
+      this.overlay.innerHTML=`<style>
+        #printer-control-center-background-upload{position:fixed;z-index:2147483600;right:16px;bottom:16px;width:min(440px,calc(100vw - 32px));font:13px Arial,sans-serif;color:#eefaff}
+        #printer-control-center-background-upload .pcc-bg{border:1px solid rgba(0,195,255,.75);border-radius:12px;background:rgba(8,21,28,.96);box-shadow:0 12px 38px rgba(0,0,0,.45);overflow:hidden}
+        #printer-control-center-background-upload .head,#printer-control-center-background-upload .line{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:9px 11px}
+        #printer-control-center-background-upload .line{padding-top:0;color:#b9d4df;font-size:12px}.track{height:5px;background:#263942}.fill{height:100%;background:#08b8e8}.details{padding:0 11px 10px;color:#bfd7df;font-size:11px;line-height:1.55;max-height:210px;overflow:auto}
+        #printer-control-center-background-upload button{cursor:pointer;border:1px solid #167ca4;border-radius:7px;background:#102934;color:#eefaff;padding:5px 7px;font-size:11px}.danger{border-color:#a43d45!important;background:#51242a!important}
+      </style><div class="pcc-bg"><div class="head"><strong>⬆ ${tr("Hintergrund-Upload")} · ${esc(this.phaseLabel(task))}</strong><div><button data-pcc-upload-action="toggle">${tr(this.expanded?"Details ausblenden":"Details anzeigen")}</button>${done?` <button data-pcc-upload-action="dismiss">×</button>`:` <button class="danger" data-pcc-upload-action="abort">${tr("Abbrechen")}</button>`}</div></div><div class="line"><span>${esc(task.filename||"")}</span><span>${esc(progress)} % · ${esc(this.speedLabel(task))}</span></div><div class="track"><div class="fill" style="width:${progress}%"></div></div>${this.expanded?`<div class="details">${this.taskDetailsHtml()}</div>`:""}</div>`;
+    }
+    async abort(){
+      const task=this.task;if(!task)return;
+      task.cancelRequested=true;
+      if(task.uploadId&&this.hass?.callWS){try{await this.hass.callWS({type:"printer_control_center/upload/abort",upload_id:task.uploadId})}catch(_error){}}
+      task.phase="cancelled";task.details=[...(task.details||[]),"Upload abgebrochen; temporäre Fragmente wurden entfernt."];this.emit(true);
+    }
+    async findResumableSession({serial,source,file,folder=""}){
+      if(!this.hass?.callWS)return null;
+      try{
+        const listing=await this.hass.callWS({type:"printer_control_center/upload/list"});
+        return (listing.sessions||[]).find((item)=>
+          String(item.serial||"")===String(serial||"")&&
+          String(item.source||"")===String(source||"")&&
+          String(item.filename||"")===String(file.name||"")&&
+          Number(item.size||0)===Number(file.size||0)&&
+          String(item.folder||"")===String(folder||"")
+        )||null;
+      }catch(_error){return null}
+    }
+    async openSession({serial,source,file,folder="",overwrite=false}){
+      const resumable=await this.findResumableSession({serial,source,file,folder});
+      const payload={type:"printer_control_center/upload/start",serial,source,filename:file.name,folder,size:file.size,overwrite:Boolean(overwrite)};
+      if(resumable?.upload_id)payload.resume_upload_id=resumable.upload_id;
+      const session=await this.hass.callWS(payload);
+      return {session,resumed:Boolean(resumable?.upload_id)&&Number(session.received||0)>0};
+    }
+    async sendFile({serial,source,file,folder="",overwrite=false,baseOffset=0,totalSize=file.size,started=performance.now()}){
+      const task=this.task;
+      const opened=await this.openSession({serial,source,file,folder,overwrite});
+      const session=opened.session;
+      task.uploadId=session.upload_id;
+      task.filename=file.name;
+      task.offset=baseOffset+Number(session.received||0);
+      task.phase=opened.resumed?"resuming":"uploading";
+      if(opened.resumed)task.details=[...(task.details||[]),`Vorhandene Session erkannt: ${bytesLabel(session.received||0)} werden fortgesetzt.`];
+      this.emit(true);
+      const chunkBytes=Number(session.chunk_bytes||128*1024);
+      let current=Number(session.received||0);
+      let retries=0;
+      while(current<file.size){
+        if(task.cancelRequested)throw new Error("Upload wurde abgebrochen.");
+        const slice=file.slice(current,Math.min(current+chunkBytes,file.size));
+        try{
+          const content_base64=arrayBufferToBase64(await slice.arrayBuffer());
+          const result=await this.hass.callWS({type:"printer_control_center/upload/chunk",upload_id:task.uploadId,offset:current,content_base64});
+          current=Number(result.received||current+slice.size);retries=0;
+        }catch(error){
+          retries+=1;if(retries>6)throw error;
+          task.phase="resuming";task.details=[...(task.details||[]),`Verbindung unterbrochen; Fortsetzung ${retries}/6 wird geprüft.`];this.emit(true);
+          await new Promise((resolve)=>setTimeout(resolve,Math.min(5000,700*retries)));
+          const status=await this.hass.callWS({type:"printer_control_center/upload/status",upload_id:task.uploadId});
+          current=Number(status.received||0);task.phase="uploading";
+        }
+        task.offset=baseOffset+current;
+        const seconds=Math.max(.25,(performance.now()-started)/1000);
+        task.speed=Math.round(task.offset/seconds);
+        task.progress=totalSize?Math.min(96,Math.round((task.offset/totalSize)*96)):0;
+        this.emit();
+      }
+      if(source==="archive_zip"){
+        task.phase="processing";task.progress=97;task.details=[...(task.details||[]),"Upload vollständig empfangen.","ZIP wird entpackt und gegen das Archiv geprüft …"];this.emit(true);
+      }
+      return await this.hass.callWS({type:"printer_control_center/upload/finish",upload_id:task.uploadId});
+    }
+    async startGalleryZip({hass,serial,file,overwrite=false}){
+      this.setHass(hass);
+      if(this.task&&!['verified','failed','cancelled'].includes(this.task.phase))throw new Error("Es läuft bereits ein Hintergrund-Upload.");
+      const started=performance.now();
+      const task=this.task={filename:file.name,size:file.size,offset:0,progress:0,speed:0,phase:"preparing",details:["Upload läuft im Hintergrund weiter, auch wenn du das Dashboard wechselst.","Nach einem Browser-Neuladen dieselbe Datei erneut auswählen, um eine vorhandene Session fortzusetzen."],cancelRequested:false,uploadId:""};
+      this.emit(true);
+      try{
+        const result=await this.sendFile({serial,source:"archive_zip",file,folder:"",overwrite,baseOffset:0,totalSize:file.size,started});
+        task.progress=100;task.phase="verified";
+        task.details=[...(task.details||[]),`Entpacken: OK · ${Number(result.imported||0)} Modelle`, `Ordner: ${Number(result.folders||0)} · Überschrieben: ${Number(result.overwritten||0)}`, `Gegenprüfung: ${result.verification==="ok"?"OK":"unbekannt"} · ${Number(result.verified_files||0)} Modelle · ${bytesLabel(result.verified_bytes||0)}`];
+        this.emit(true);return result;
+      }catch(error){
+        const message=String(error?.message||error);
+        const keepStaged=/existing files|overwrite/i.test(message);
+        if(task.uploadId&&task.phase!=="cancelled"&&!keepStaged){try{await this.hass.callWS({type:"printer_control_center/upload/abort",upload_id:task.uploadId})}catch(_error){}}
+        if(task.phase!=="cancelled"){task.phase="failed";task.details=[...(task.details||[]),`Fehler: ${message}`,keepStaged?"Vollständig empfangene ZIP bleibt bis zur Bestätigung temporär erhalten.":"Temporäre Fragmente wurden entfernt."];this.emit(true)}
+        throw error;
+      }
+    }
+    async startFiles({hass,serial,files,source,folder=""}){
+      this.setHass(hass);
+      if(this.task&&!['verified','failed','cancelled'].includes(this.task.phase))throw new Error("Es läuft bereits ein Hintergrund-Upload.");
+      const queue=[...(files||[])];
+      if(!queue.length)return {uploaded:0,errors:[]};
+      const totalSize=queue.reduce((sum,file)=>sum+Number(file.size||0),0);
+      const started=performance.now();
+      const task=this.task={filename:queue[0].name,size:totalSize,offset:0,progress:0,speed:0,phase:"preparing",details:[`${queue.length} Datei(en) werden im Hintergrund hochgeladen.`,"Beim Dashboard-Wechsel läuft der Upload weiter."],cancelRequested:false,uploadId:""};
+      this.emit(true);
+      let completed=0;
+      const errors=[];
+      for(let index=0;index<queue.length;index+=1){
+        const file=queue[index];
+        try{
+          task.details=[...(task.details||[]),`Datei ${index+1}/${queue.length}: ${file.name}`];this.emit(true);
+          await this.sendFile({serial,source,file,folder,baseOffset:completed,totalSize,started});
+          completed+=Number(file.size||0);task.offset=completed;
+        }catch(error){
+          if(task.uploadId){try{await this.hass.callWS({type:"printer_control_center/upload/abort",upload_id:task.uploadId})}catch(_error){}}
+          errors.push({filename:file.name,message:String(error?.message||error)});
+          if(task.cancelRequested)break;
+        }
+      }
+      if(errors.length){
+        task.phase="failed";task.details=[...(task.details||[]),...errors.map((item)=>`Fehler ${item.filename}: ${item.message}`)];this.emit(true);
+        throw new Error(errors.map((item)=>`${item.filename}: ${item.message}`).join(" | "));
+      }
+      task.phase="verified";task.progress=100;task.details=[...(task.details||[]),`${queue.length} Datei(en) erfolgreich gespeichert.`];this.emit(true);
+      return {uploaded:queue.length,errors:[]};
+    }
+  }
+  const PCC_UPLOADS=window.PrinterControlCenterBackgroundUploadManager||(window.PrinterControlCenterBackgroundUploadManager=new PrinterControlCenterBackgroundUploadManager());
 
   function discoverPrinters(hass) {
     const result = [];
@@ -2067,7 +2280,7 @@
       });
     }
     setConfig(config) { this._config = { ...commonStub(), ...(config || {}) }; this.render(); }
-    set hass(hass) { this._hass = hass; activateUiLanguage(hass, resolveMap(hass, this._config)); this.render(); }
+    set hass(hass) { this._hass = hass; PCC_UPLOADS.setHass(hass); activateUiLanguage(hass, resolveMap(hass, this._config)); this.render(); }
     map() { const map=resolveMap(this._hass, this._config); activateUiLanguage(this._hass,map); return map; }
     getCardSize() { return 5; }
     getGridOptions() {
@@ -2282,7 +2495,7 @@
   }
   class TemplatesCard extends BaseCard {
     static getConfigElement(){return editorFor("templates")}
-    static getStubConfig(){return {...commonStub(),title:"Dateimanager / Galerie",card_size:"xl"}}
+    static getStubConfig(){return {...commonStub(),title:"3D-Drucker-Dateimanager/Galerie",card_size:"xl"}}
 
     constructor(){
       super();
@@ -2322,11 +2535,31 @@
       this._portal=null;
       this._dialogUiState=null;
       this._lastUiSerial="";
+      this._backgroundUploadTask=PCC_UPLOADS.snapshot();
+      this._backgroundUploadUnsubscribe=null;
+    }
+
+    connectedCallback(){
+      this.ensureBackgroundUploadSubscription();
+    }
+
+    disconnectedCallback(){
+      if(this._backgroundUploadUnsubscribe){this._backgroundUploadUnsubscribe();this._backgroundUploadUnsubscribe=null}
+    }
+
+    ensureBackgroundUploadSubscription(){
+      if(this._backgroundUploadUnsubscribe)return;
+      this._backgroundUploadUnsubscribe=PCC_UPLOADS.subscribe((task)=>{
+        this._backgroundUploadTask=task;
+        if(this.isConnected&&this._config)this.render();
+      });
     }
 
     set hass(hass){
       const first=!this._hass;
       this._hass=hass;
+      PCC_UPLOADS.setHass(hass);
+      this.ensureBackgroundUploadSubscription();
       if(!this._config)return;
       const map=this.map();
       const serial=map?this.serial(map):"";
@@ -2487,188 +2720,67 @@
 
     async upload(map){
       const files=[...(this._selectedFiles||[])];
-      if(!files.length||this._uploadActive)return;
-
+      if(!files.length)return;
       const invalid=files.filter((file)=>!String(file.name||"").toLowerCase().endsWith(".3mf"));
       if(invalid.length){
         this._error=`Nur .3mf-Dateien sind zulässig. Nicht verwendbar: ${invalid.map((file)=>file.name).join(", ")}`;
-        this.render();
-        return;
+        this.render();return;
       }
-
-      this._uploadActive=true;
-      this._uploadProgress=0;
-      this._uploadCompletedFiles=0;
-      this._uploadTotalFiles=files.length;
-      this._uploadQueueErrors=[];
       this._error="";
-      this.render();
-
-      const serial=this.serial(map);
-      const source=this._source;
-      const folder=source==="sd"?"/":this._folder;
-      const totalBytes=files.reduce((sum,file)=>sum+Number(file.size||0),0);
-      let completedBytes=0;
-
-      for(let fileIndex=0;fileIndex<files.length;fileIndex+=1){
-        const file=files[fileIndex];
-        const fileNumber=fileIndex+1;
-
-        try{
-          this._uploadLabel=`Datei ${fileNumber} von ${files.length}: ${file.name} wird vorbereitet …`;
-          this.render();
-
-          const session=await this.ws({
-            type:"printer_control_center/upload/start",
-            serial,
-            source,
-            filename:file.name,
-            folder,
-            size:file.size,
-          });
-
-          const chunkBytes=Number(session.chunk_bytes||262144);
-          let offset=0;
-
-          while(offset<file.size){
-            const slice=file.slice(offset,Math.min(offset+chunkBytes,file.size));
-            const payload=arrayBufferToBase64(await slice.arrayBuffer());
-
-            const result=await this.ws({
-              type:"printer_control_center/upload/chunk",
-              upload_id:session.upload_id,
-              content_base64:payload,
-            });
-
-            offset=Number(result.received||offset+slice.size);
-            const queueBytes=completedBytes+offset;
-            this._uploadProgress=totalBytes
-              ? Math.min(96,Math.round((queueBytes/totalBytes)*96))
-              : 0;
-            this._uploadLabel=`Datei ${fileNumber} von ${files.length}: ${file.name} · ${bytesLabel(offset)} von ${bytesLabel(file.size)}`;
-            this.render();
-          }
-
-          this._uploadLabel=source==="sd"
-            ? `Datei ${fileNumber} von ${files.length}: ${file.name} wird auf die Drucker-SD-Karte geschrieben …`
-            : `Datei ${fileNumber} von ${files.length}: ${file.name} wird im lokalen Archiv gespeichert …`;
-          this.render();
-
-          await this.ws({
-            type:"printer_control_center/upload/finish",
-            upload_id:session.upload_id,
-          });
-
-          completedBytes+=Number(file.size||0);
-          this._uploadCompletedFiles+=1;
-          this._uploadProgress=totalBytes
-            ? Math.min(99,Math.round((completedBytes/totalBytes)*99))
-            : 99;
-          this.render();
-        }catch(error){
-          this._uploadQueueErrors.push({
-            name:file.name,
-            message:String(error?.message||error),
-          });
-        }
-      }
-
-      const successful=this._uploadCompletedFiles;
-      const failed=this._uploadQueueErrors.length;
-
-      this._uploadProgress=100;
-      this._uploadLabel=failed
-        ? `${successful} Datei(en) hochgeladen, ${failed} fehlgeschlagen.`
-        : `${successful} Datei(en) erfolgreich hochgeladen.`;
-      this.render();
-
-      if(failed){
-        this._error=`Upload-Fehler: ${this._uploadQueueErrors.map((item)=>`${item.name}: ${item.message}`).join(" | ")}`;
-      }
-
-      this._selectedFiles=[];
-      await new Promise((resolve)=>window.setTimeout(resolve,650));
-
       try{
+        const source=this._source;
+        const folder=source==="sd"?"/":this._folder;
+        const result=await PCC_UPLOADS.startFiles({hass:this._hass,serial:this.serial(map),files,source,folder});
+        this._selectedFiles=[];
+        this._notice=`${Number(result.uploaded||0)} Datei(en) erfolgreich hochgeladen.`;
         await this.load(map,true);
-      }finally{
-        this._uploadActive=false;
-        this._uploadProgress=0;
-        this._uploadLabel="";
-        this._uploadCompletedFiles=0;
-        this._uploadTotalFiles=0;
+      }catch(error){
+        this._error=`Upload-Fehler: ${String(error?.message||error)}`;
         this.render();
       }
     }
 
-    exportGalleryZip(map){
+    async exportGalleryZip(map){
       if(this._source!=="archive")return;
       const serial=encodeURIComponent(this.serial(map));
-      this.triggerHomeAssistantDownload(`/api/printer_control_center/archive_export/${serial}`);
-      this._notice="Galerie-ZIP wird erstellt und heruntergeladen.";
+      this._notice="Galerie-ZIP wird erstellt. Der Download startet im Hintergrund …";
+      this.render();
+      try{
+        const response=await fetch(`/api/printer_control_center/archive_export/${serial}`,{headers:authHeaders(this._hass),credentials:"same-origin"});
+        if(!response.ok)throw new Error(`${response.status} ${await response.text()}`);
+        const blob=await response.blob();
+        const disposition=String(response.headers.get("Content-Disposition")||"");
+        const match=disposition.match(/filename="?([^";]+)"?/i);
+        const filename=match?.[1]||`3d-printer-control-center-gallery-${Date.now()}.zip`;
+        const objectUrl=URL.createObjectURL(blob);
+        this.triggerHomeAssistantDownload(objectUrl,filename);
+        window.setTimeout(()=>URL.revokeObjectURL(objectUrl),60_000);
+        this._notice=`Galerie-ZIP exportiert: ${filename} · ${bytesLabel(blob.size)}`;
+      }catch(error){this._error=`Galerie-ZIP-Export fehlgeschlagen: ${String(error?.message||error)}`}
       this.render();
     }
 
     async importGalleryZip(map,file){
-      if(!file||this._uploadActive)return;
+      if(!file)return;
       if(this._source!=="archive"){
-        this._error="Galerie-ZIP-Import ist nur im lokalen Archiv verfügbar.";
-        this.render();
-        return;
+        this._error="Galerie-ZIP-Import ist nur im lokalen Archiv verfügbar.";this.render();return;
       }
       if(!String(file.name||"").toLowerCase().endsWith(".zip")){
-        this._error="Bitte eine ZIP-Datei auswählen.";
-        this.render();
-        return;
+        this._error="Bitte eine ZIP-Datei auswählen.";this.render();return;
       }
-      const overwrite=window.confirm(tr("Vorhandene Galerie-Dateien überschreiben?"));
-      this._uploadActive=true;
-      this._zipImportActive=true;
-      this._uploadProgress=0;
-      this._uploadLabel=`Galerie-ZIP ${file.name} wird vorbereitet …`;
-      this._error="";
-      this.render();
       try{
-        const session=await this.ws({
-          type:"printer_control_center/upload/start",
-          serial:this.serial(map),
-          source:"archive_zip",
-          filename:file.name,
-          folder:"",
-          size:file.size,
-          overwrite,
-        });
-        const chunkBytes=Number(session.chunk_bytes||131072);
-        let offset=0;
-        while(offset<file.size){
-          const slice=file.slice(offset,Math.min(offset+chunkBytes,file.size));
-          const payload=arrayBufferToBase64(await slice.arrayBuffer());
-          const result=await this.ws({
-            type:"printer_control_center/upload/chunk",
-            upload_id:session.upload_id,
-            content_base64:payload,
-          });
-          offset=Number(result.received||offset+slice.size);
-          this._uploadProgress=file.size?Math.min(96,Math.round((offset/file.size)*96)):0;
-          this._uploadLabel=`Galerie-ZIP ${file.name} · ${bytesLabel(offset)} von ${bytesLabel(file.size)}`;
-          this.render();
+        let result;
+        try{
+          result=await PCC_UPLOADS.startGalleryZip({hass:this._hass,serial:this.serial(map),file,overwrite:false});
+        }catch(error){
+          const message=String(error?.message||error);
+          if(!/existing files|overwrite/i.test(message))throw error;
+          if(!window.confirm(tr("Vorhandene Galerie-Dateien überschreiben?"))){await PCC_UPLOADS.abort();throw error}
+          result=await PCC_UPLOADS.startGalleryZip({hass:this._hass,serial:this.serial(map),file,overwrite:true});
         }
-        const result=await this.ws({
-          type:"printer_control_center/upload/finish",
-          upload_id:session.upload_id,
-        });
-        this._uploadProgress=100;
-        this._notice=`ZIP-Import erfolgreich: ${Number(result.imported||0)} Modelle · ${Number(result.folders||0)} Ordner · ${Number(result.overwritten||0)} überschrieben.`;
+        this._notice=`ZIP-Import erfolgreich: ${Number(result.imported||0)} Modelle · ${Number(result.folders||0)} Ordner · ${Number(result.overwritten||0)} überschrieben · Gegenprüfung ${result.verification==="ok"?"OK":"unbekannt"}`;
         await this.load(map,true);
-      }catch(error){
-        this._error=`Galerie-ZIP konnte nicht importiert werden: ${String(error?.message||error)}`;
-      }finally{
-        this._uploadActive=false;
-        this._zipImportActive=false;
-        this._uploadProgress=0;
-        this._uploadLabel="";
-        this.render();
-      }
+      }catch(error){this._error=`Galerie-ZIP konnte nicht importiert werden: ${String(error?.message||error)}`;this.render()}
     }
 
     triggerHomeAssistantDownload(url,filename=""){
@@ -3187,7 +3299,7 @@
         "bulk-delete":"Mehrere Einträge löschen",
         print:"Druckauftrag vorbereiten",
         plan:"Druckauftrag planen",
-      }[dialog.type]||"Dateimanager / Galerie";
+      }[dialog.type]||"3D-Drucker-Dateimanager/Galerie";
 
       let body="";
 
@@ -3650,7 +3762,7 @@
             <div class="archive-library-header">
               <div class="archive-library-heading">
                 <div class="row">
-                  <h2>Dateimanager / Galerie</h2>
+                  <h2>3D-Drucker-Dateimanager/Galerie</h2>
                   <span class="badge">${this._source==="sd"?"SD-Karte":"Archiv"}</span>
                 </div>
                 <span class="archive-library-summary">
@@ -3663,7 +3775,7 @@
                 <span class="badge" title="Kein Zusatzhelfer erforderlich. Bambu Studio prüft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.">HA-only · Original-3MF an Bambu Studio</span>
                 <button class="primary" data-action="choose-upload">⬆ 3MF hochladen</button>
                 ${this._source==="archive"?`<button data-action="gallery-export">⇩ Galerie-ZIP exportieren</button><button data-action="choose-zip-import">⇧ Galerie-ZIP importieren</button>`:""}
-                <button data-action="template-refresh" title="Dateimanager / Galerie aktualisieren">↻ Aktualisieren</button>
+                <button data-action="template-refresh" title="3D-Drucker-Dateimanager/Galerie aktualisieren">↻ Aktualisieren</button>
               </div>
             </div>
 
@@ -3703,6 +3815,16 @@
 
             <input id="tc-upload" class="visually-hidden" type="file" accept=".3mf" multiple>
             <input id="pcc-zip-import" class="visually-hidden" type="file" accept=".zip">
+            ${this._backgroundUploadTask?`
+              <div class="upload-progress">
+                <div class="row between">
+                  <strong>⬆ Hintergrund-Upload · ${esc(PCC_UPLOADS.phaseLabel(this._backgroundUploadTask))}</strong>
+                  <span>${esc(this._backgroundUploadTask.progress||0)} % · ${esc(PCC_UPLOADS.speedLabel(this._backgroundUploadTask))}</span>
+                </div>
+                <div class="upload-progress-track"><div class="upload-progress-fill" style="width:${esc(this._backgroundUploadTask.progress||0)}%"></div></div>
+                <small>${esc(this._backgroundUploadTask.filename||"")}</small>
+              </div>
+            `:""}
             ${selectedCountForUpload||this._uploadActive?`
               <div class="archive-upload ${selectedCountForUpload?"has-selection":"is-idle"}">
                 <div class="archive-upload-file">
@@ -3726,7 +3848,7 @@
                 <div class="upload-progress">
                   <div class="row between">
                     <strong>${esc(this._uploadLabel)}</strong>
-                    <span>${esc(this._uploadProgress)} %</span>
+                    <span>${esc(this._uploadProgress)} % · ${esc(bytesLabel(this._uploadSpeed||0))}/s</span>
                   </div>
                   <div class="upload-progress-track">
                     <div class="upload-progress-fill" style="width:${esc(this._uploadProgress)}%"></div>
@@ -4386,7 +4508,7 @@
     [TYPES.firmware,"3D-Printer Control Center · Firmware","Firmwarestatus ohne Auto-Update"],
     [TYPES.header,"3D-Printer Control Center · Header und Status","Kompakter Druckerstatus"],
     [TYPES.brand,"3D-Printer Control Center · Logo und Branding","Branding-Modul"],
-    [TYPES.templates,"3D-Printer Control Center · Dateimanager / Galerie","HA-only Vollbreiten-Dateimanager mit Body-Overlay, direktem Bambu-Studio-Import und SD-Karten-Verwaltung"],
+    [TYPES.templates,"3D-Printer Control Center · 3D-Drucker-Dateimanager/Galerie","HA-only Vollbreiten-Dateimanager mit Body-Overlay, direktem Bambu-Studio-Import und SD-Karten-Verwaltung"],
     [TYPES.queue,"3D-Printer Control Center · 3D-Druck-Warteschlange","Persistente Druckplanung mit Galerie-Popup, Mehrfachauswahl, Stückzahl und Bambu-Studio-Druckübergabe"],
     [TYPES.makerworld,"3D-Printer Control Center · MakerWorld Explorer","MakerWorld-Websuche"],
     [TYPES.frame,"3D-Printer Control Center · Glow-Rahmen","Separater Glow-Rahmen"],

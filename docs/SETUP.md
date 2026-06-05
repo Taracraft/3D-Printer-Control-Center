@@ -6,9 +6,9 @@
 2. Open the menu and select **Custom repositories**.
 3. Add `https://github.com/Taracraft/3D-Printer-Control-Center`.
 4. Select **Integration**.
-5. Install **PrinterControlCenter 3D-Printer Control Center**.
+5. Install **3D-Printer Control Center**.
 6. Restart Home Assistant.
-7. Open **Settings → Devices & services → Add integration** and search for `PrinterControlCenter`.
+7. Open **Settings → Devices & services → Add integration** and search for `3D-Printer Control Center`.
 
 ## Recommended LAN setup
 
@@ -20,4 +20,4 @@ On the printer, open **Settings → LAN Only**. Depending on printer model and f
 
 ## Automatic dashboards
 
-The setup assistant creates **3D-Drucker**, **Dateimanager / Galerie** and **3D-Druck-Warteschlange** by default. Disable this only when you prefer manual Lovelace configuration. Use `printer_control_center.install_dashboards` to recreate or repair them.
+The setup assistant creates two dashboards by default: **3D print** with the printer card on the left and the queue on the right, plus **3D printer file manager/gallery** as a full-width view. Disable this only when you prefer manual Lovelace configuration. Use `printer_control_center.install_dashboards` to recreate or repair them.

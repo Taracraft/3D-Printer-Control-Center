@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import base64
 from functools import partial
+import json
 import logging
 from pathlib import Path
 import secrets
@@ -43,26 +44,111 @@ def _decode_upload(value: str) -> bytes:
     return payload
 
 
-def _uploads(hass: HomeAssistant) -> dict[str, dict]:
-    data = hass.data.setdefault(DOMAIN, {})
-    sessions = data.setdefault("_upload_sessions", {})
-    _upload_root(hass)
+def _session_json_path(root: Path, upload_id: str) -> Path:
+    return root / f"{upload_id}.json"
 
-    now = time.time()
-    stale = [
-        upload_id
-        for upload_id, session in sessions.items()
-        if now - float(session.get("created", 0)) > _UPLOAD_TTL_SECONDS
-    ]
 
-    for upload_id in stale:
-        session = sessions.pop(upload_id, {})
+def _public_session(session: dict) -> dict:
+    return {
+        "upload_id": str(session["upload_id"]),
+        "serial": str(session["serial"]),
+        "source": str(session["source"]),
+        "filename": str(session["filename"]),
+        "folder": str(session.get("folder", "")),
+        "size": int(session["size"]),
+        "received": int(session.get("received", 0)),
+        "created": float(session.get("created", 0)),
+        "updated": float(session.get("updated", session.get("created", 0))),
+        "overwrite": bool(session.get("overwrite", False)),
+        "chunk_bytes": _UPLOAD_CHUNK_BYTES,
+    }
+
+
+def _persist_session(session: dict) -> None:
+    root = Path(session["tmp_path"]).parent
+    path = _session_json_path(root, str(session["upload_id"]))
+    tmp = path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(_public_session(session), ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(path)
+
+
+def _remove_session_files(session: dict) -> int:
+    removed_bytes = 0
+    tmp_path = Path(str(session.get("tmp_path", "")))
+    try:
+        if tmp_path.is_file():
+            removed_bytes += tmp_path.stat().st_size
+        tmp_path.unlink(missing_ok=True)
+    except Exception:
+        pass
+    try:
+        _session_json_path(tmp_path.parent, str(session.get("upload_id", ""))).unlink(missing_ok=True)
+    except Exception:
+        pass
+    return removed_bytes
+
+
+def _restore_persisted_sessions(root: Path, sessions: dict[str, dict]) -> None:
+    for meta_path in root.glob("*.json"):
+        upload_id = meta_path.stem
+        if upload_id in sessions:
+            continue
         try:
-            Path(session.get("tmp_path", "")).unlink(missing_ok=True)
+            session = json.loads(meta_path.read_text(encoding="utf-8"))
+            tmp_path = root / f"{upload_id}.part"
+            if not tmp_path.is_file():
+                meta_path.unlink(missing_ok=True)
+                continue
+            session["upload_id"] = upload_id
+            session["tmp_path"] = str(tmp_path)
+            session["received"] = tmp_path.stat().st_size
+            sessions[upload_id] = session
         except Exception:
-            pass
+            _LOGGER.warning("Discarding invalid upload metadata: %s", meta_path, exc_info=True)
+            meta_path.unlink(missing_ok=True)
 
-    return sessions
+
+def _cleanup_staging(hass: HomeAssistant, *, remove_orphans: bool = False) -> dict:
+    data = hass.data.setdefault(DOMAIN, {})
+    sessions: dict[str, dict] = data.setdefault("_upload_sessions", {})
+    root = _upload_root(hass)
+    _restore_persisted_sessions(root, sessions)
+    now = time.time()
+    removed_sessions = 0
+    removed_orphans = 0
+    removed_bytes = 0
+
+    for upload_id, session in list(sessions.items()):
+        updated = float(session.get("updated", session.get("created", 0)))
+        if now - updated <= _UPLOAD_TTL_SECONDS:
+            continue
+        sessions.pop(upload_id, None)
+        removed_bytes += _remove_session_files(session)
+        removed_sessions += 1
+
+    active_parts = {Path(str(session["tmp_path"])).resolve() for session in sessions.values()}
+    for tmp_path in root.glob("*.part"):
+        if tmp_path.resolve() in active_parts:
+            continue
+        age = now - tmp_path.stat().st_mtime
+        if not remove_orphans and age <= _UPLOAD_TTL_SECONDS:
+            continue
+        removed_bytes += tmp_path.stat().st_size
+        tmp_path.unlink(missing_ok=True)
+        _session_json_path(root, tmp_path.stem).unlink(missing_ok=True)
+        removed_orphans += 1
+
+    return {
+        "active": len(sessions),
+        "removed_sessions": removed_sessions,
+        "removed_orphans": removed_orphans,
+        "removed_bytes": removed_bytes,
+    }
+
+
+def _uploads(hass: HomeAssistant) -> dict[str, dict]:
+    _cleanup_staging(hass)
+    return hass.data.setdefault(DOMAIN, {}).setdefault("_upload_sessions", {})
 
 
 def _new_upload(
@@ -74,6 +160,7 @@ def _new_upload(
     folder: str,
     size: int,
     overwrite: bool = False,
+    resume_upload_id: str = "",
 ) -> dict:
     if source not in {"archive", "sd", "archive_zip"}:
         raise ValueError("Unknown upload source")
@@ -91,73 +178,119 @@ def _new_upload(
         raise ValueError("Upload exceeds the allowed size")
 
     sessions = _uploads(hass)
+    if resume_upload_id:
+        existing = sessions.get(resume_upload_id)
+        if existing is not None:
+            expected = (str(serial), str(source), str(filename), int(size))
+            actual = (
+                str(existing.get("serial", "")), str(existing.get("source", "")),
+                str(existing.get("filename", "")), int(existing.get("size", 0)),
+            )
+            if expected != actual:
+                raise ValueError("Upload resume metadata does not match")
+            existing["overwrite"] = bool(overwrite)
+            existing["updated"] = time.time()
+            _persist_session(existing)
+            return _public_session(existing)
+
     upload_id = secrets.token_urlsafe(18)
     tmp_path = _upload_root(hass) / f"{upload_id}.part"
-    tmp_path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path.write_bytes(b"")
-
-    _LOGGER.info("Prepared upload staging file: %s", tmp_path)
-
-    sessions[upload_id] = {
+    now = time.time()
+    session = {
+        "upload_id": upload_id,
         "serial": serial,
         "source": source,
         "filename": filename,
         "folder": folder,
         "size": size,
         "received": 0,
-        "created": time.time(),
+        "created": now,
+        "updated": now,
         "tmp_path": str(tmp_path),
         "overwrite": bool(overwrite),
     }
-
-    return {
-        "upload_id": upload_id,
-        "chunk_bytes": _UPLOAD_CHUNK_BYTES,
-        "size": size,
-    }
+    sessions[upload_id] = session
+    _persist_session(session)
+    _LOGGER.info("Prepared resumable upload staging file: %s", tmp_path)
+    return _public_session(session)
 
 
-def _append_chunk(hass: HomeAssistant, upload_id: str, payload: bytes) -> dict:
+def _append_chunk(hass: HomeAssistant, upload_id: str, payload: bytes, offset: int | None = None) -> dict:
     sessions = _uploads(hass)
     session = sessions.get(upload_id)
     if session is None:
         raise ValueError("Upload session not found or expired")
-
     received = int(session["received"])
     expected = int(session["size"])
-
+    if offset is not None and int(offset) != received:
+        return {**_public_session(session), "resume_required": True}
     if received + len(payload) > expected:
         raise ValueError("Upload exceeds announced size")
-
     with Path(session["tmp_path"]).open("ab") as handle:
         handle.write(payload)
-
     session["received"] = received + len(payload)
+    session["updated"] = time.time()
+    _persist_session(session)
+    return _public_session(session)
 
+
+def _upload_status(hass: HomeAssistant, upload_id: str) -> dict:
+    session = _uploads(hass).get(upload_id)
+    if session is None:
+        raise ValueError("Upload session not found or expired")
+    return _public_session(session)
+
+
+def _abort_upload(hass: HomeAssistant, upload_id: str) -> dict:
+    sessions = _uploads(hass)
+    session = sessions.pop(upload_id, None)
+    if session is None:
+        return {"ok": True, "removed_bytes": 0}
+    removed_bytes = _remove_session_files(session)
+    return {"ok": True, "removed_bytes": removed_bytes}
+
+
+def _list_uploads(hass: HomeAssistant) -> dict:
+    sessions = _uploads(hass)
+    root = _upload_root(hass)
+    active = [_public_session(session) for session in sessions.values()]
+    active_parts = {Path(str(session["tmp_path"])).resolve() for session in sessions.values()}
+    orphan_parts = [path for path in root.glob("*.part") if path.resolve() not in active_parts]
     return {
-        "received": session["received"],
-        "size": expected,
+        "sessions": sorted(active, key=lambda item: item["updated"], reverse=True),
+        "orphan_parts": len(orphan_parts),
+        "orphan_bytes": sum(path.stat().st_size for path in orphan_parts),
     }
 
 
-def _consume_upload(hass: HomeAssistant, upload_id: str) -> tuple[dict, bytes]:
-    sessions = _uploads(hass)
-    session = sessions.pop(upload_id, None)
-
+def _read_upload(hass: HomeAssistant, upload_id: str) -> tuple[dict, bytes]:
+    """Read a complete staged upload without removing its resumable files."""
+    session = _uploads(hass).get(upload_id)
     if session is None:
         raise ValueError("Upload session not found or expired")
-
     tmp_path = Path(session["tmp_path"])
+    if int(session["received"]) != int(session["size"]):
+        raise ValueError("Upload is incomplete")
+    payload = tmp_path.read_bytes()
+    if len(payload) != int(session["size"]):
+        raise ValueError("Stored upload size mismatch")
+    return session, payload
 
-    try:
-        if int(session["received"]) != int(session["size"]):
-            raise ValueError("Upload is incomplete")
-        payload = tmp_path.read_bytes()
-        if len(payload) != int(session["size"]):
-            raise ValueError("Stored upload size mismatch")
-        return session, payload
-    finally:
-        tmp_path.unlink(missing_ok=True)
+
+def _finalize_upload(hass: HomeAssistant, upload_id: str) -> dict:
+    """Remove a successfully processed staging upload and its metadata."""
+    session = _uploads(hass).pop(upload_id, None)
+    if session is None:
+        return {"ok": True, "removed_bytes": 0}
+    return {"ok": True, "removed_bytes": _remove_session_files(session)}
+
+
+def _consume_upload(hass: HomeAssistant, upload_id: str) -> tuple[dict, bytes]:
+    """Read and remove a non-ZIP staged upload."""
+    session, payload = _read_upload(hass, upload_id)
+    _finalize_upload(hass, upload_id)
+    return session, payload
 
 
 
@@ -457,6 +590,7 @@ async def websocket_sd_move(hass, connection, msg) -> None:
         vol.Optional("folder", default=""): str,
         vol.Required("size"): int,
         vol.Optional("overwrite", default=False): bool,
+        vol.Optional("resume_upload_id", default=""): str,
     }
 )
 @websocket_api.async_response
@@ -479,6 +613,7 @@ async def websocket_upload_start(hass, connection, msg) -> None:
             folder=msg["folder"],
             size=msg["size"],
             overwrite=msg["overwrite"],
+            resume_upload_id=msg["resume_upload_id"],
         )
     )
     connection.send_result(msg["id"], result)
@@ -489,6 +624,7 @@ async def websocket_upload_start(hass, connection, msg) -> None:
         vol.Required("type"): "printer_control_center/upload/chunk",
         vol.Required("upload_id"): str,
         vol.Required("content_base64"): str,
+        vol.Optional("offset"): int,
     }
 )
 @websocket_api.async_response
@@ -502,6 +638,7 @@ async def websocket_upload_chunk(hass, connection, msg) -> None:
         hass,
         msg["upload_id"],
         payload,
+        msg.get("offset"),
     )
     connection.send_result(msg["id"], result)
 
@@ -514,11 +651,18 @@ async def websocket_upload_chunk(hass, connection, msg) -> None:
 )
 @websocket_api.async_response
 async def websocket_upload_finish(hass, connection, msg) -> None:
-    session, payload = await hass.async_add_executor_job(
-        _consume_upload,
-        hass,
-        msg["upload_id"],
-    )
+    upload_id = msg["upload_id"]
+    staged_session = _uploads(hass).get(upload_id)
+    if staged_session is None:
+        raise ValueError("Upload session not found or expired")
+
+    # Keep a complete gallery ZIP staged when conflict detection asks for an
+    # overwrite confirmation. The browser can resume the same server-side
+    # payload without transferring hundreds of megabytes for a second time.
+    if staged_session["source"] == "archive_zip":
+        session, payload = await hass.async_add_executor_job(_read_upload, hass, upload_id)
+    else:
+        session, payload = await hass.async_add_executor_job(_consume_upload, hass, upload_id)
 
     coordinator = _find_coordinator(hass, session["serial"])
 
@@ -545,6 +689,9 @@ async def websocket_upload_finish(hass, connection, msg) -> None:
             session["folder"] or "/",
         )
 
+    if session["source"] == "archive_zip":
+        await hass.async_add_executor_job(_finalize_upload, hass, upload_id)
+
     _LOGGER.info(
         "Completed upload session: source=%s filename=%s size=%s serial=%s",
         session["source"],
@@ -554,6 +701,55 @@ async def websocket_upload_finish(hass, connection, msg) -> None:
     )
     connection.send_result(msg["id"], result)
 
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "printer_control_center/upload/status",
+        vol.Required("upload_id"): str,
+    }
+)
+@websocket_api.async_response
+async def websocket_upload_status(hass, connection, msg) -> None:
+    result = await hass.async_add_executor_job(_upload_status, hass, msg["upload_id"])
+    connection.send_result(msg["id"], result)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "printer_control_center/upload/list",
+    }
+)
+@websocket_api.async_response
+async def websocket_upload_list(hass, connection, msg) -> None:
+    result = await hass.async_add_executor_job(_list_uploads, hass)
+    connection.send_result(msg["id"], result)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "printer_control_center/upload/abort",
+        vol.Required("upload_id"): str,
+    }
+)
+@websocket_api.async_response
+async def websocket_upload_abort(hass, connection, msg) -> None:
+    result = await hass.async_add_executor_job(_abort_upload, hass, msg["upload_id"])
+    connection.send_result(msg["id"], result)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "printer_control_center/upload/cleanup",
+        vol.Optional("remove_orphans", default=True): bool,
+    }
+)
+@websocket_api.async_response
+async def websocket_upload_cleanup(hass, connection, msg) -> None:
+    result = await hass.async_add_executor_job(
+        partial(_cleanup_staging, hass, remove_orphans=msg["remove_orphans"])
+    )
+    connection.send_result(msg["id"], result)
 
 
 @websocket_api.websocket_command(
@@ -756,6 +952,10 @@ def async_register_websocket_commands(hass: HomeAssistant) -> None:
         websocket_upload_start,
         websocket_upload_chunk,
         websocket_upload_finish,
+        websocket_upload_status,
+        websocket_upload_list,
+        websocket_upload_abort,
+        websocket_upload_cleanup,
         websocket_project_link,
         websocket_studio_link,
         websocket_queue_list,

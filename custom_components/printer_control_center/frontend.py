@@ -25,8 +25,9 @@ _DATA_REGISTRAR = "_frontend_registrar"
 _DATA_PATHS_REGISTERED = "_frontend_paths_registered"
 _DATA_RESOURCE_REGISTERED = "_frontend_resource_registered"
 _MAX_RETRIES = 48
+_LEGACY_DOMAIN = "taracraft" "_3d_printer"
 _LEGACY_FRONTEND_JS_PATHS = {
-    "/taracraft_3d_printer/taracraft-3d-printer-cards.js",
+    f"/{_LEGACY_DOMAIN}/taracraft-3d-printer-cards.js",
 }
 
 

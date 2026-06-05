@@ -1,5 +1,7 @@
 # 3D-Printer Control Center für Home Assistant
 
+<p align="center"><img src="brand/logo.png" alt="3D-Printer Control Center" width="180"></p>
+
 [English documentation](README.md) · [Changelog](CHANGELOG.md) · [Einrichtungsanleitung](docs/SETUP.de.md) · [Migration](docs/MIGRATION.de.md) · [Datenschutz und Sicherheit](docs/PRIVACY.de.md)
 
 Eine lokal ausgerichtete Home-Assistant-Custom-Integration für kompatible Bambu-Lab-3D-Drucker. Sie stellt MQTT-Telemetrie, native Kameraunterstützung soweit verfügbar, responsive Lovelace-Karten, ein lokales 3MF-Archiv, SD-Karten-Dateiverwaltung und eine persistente Druckplanung bereit.
@@ -14,7 +16,7 @@ Eine lokal ausgerichtete Home-Assistant-Custom-Integration für kompatible Bambu
 - deutsche und englische Übersetzungen des Einrichtungsassistenten
 - auswählbare Dashboard-Sprache: `Automatisch`, `Deutsch`, `English`
 - natives Home-Assistant-Kamera-Entity, wenn der Drucker das kompatible Kameraprotokoll bereitstellt
-- responsive Lovelace-Karten einschließlich **Dateimanager / Galerie** und **3D-Druck-Warteschlange**
+- responsive Lovelace-Karten einschließlich **3D-Drucker-Dateimanager/Galerie** sowie integrierter **3D-Druck-Warteschlange**
 - lokales 3MF-Archiv mit ZIP-Export und ZIP-Import inklusive Ordnerstruktur
 - SD-Karten-Zugriff per FTPS, sofern vom Drucker bereitgestellt
 - direkte Bambu-Studio-Übergabe unveränderter Original-3MF-Dateien
@@ -36,7 +38,7 @@ https://github.com/Taracraft/3D-Printer-Control-Center
 
 ## Galerie sichern und wiederherstellen
 
-Im **Dateimanager / Galerie** stehen im lokalen Archiv zwei Buttons bereit:
+Im **3D-Drucker-Dateimanager/Galerie** stehen im lokalen Archiv zwei Buttons bereit:
 
 ```text
 Galerie-ZIP exportieren
@@ -64,12 +66,13 @@ Der Export enthält alle 3MF-Modelle und die vollständige Ordnerstruktur. Beim 
 
 LAN-Access-Codes, Cloud-Token und nicht bereinigte Diagnosedaten niemals in öffentlichen Issues veröffentlichen.
 
-## Automatische Dashboards
+## Automatisch verwaltete Dashboards
 
-Bei der Einrichtung legt die Integration standardmäßig drei Lovelace-Dashboards an:
+Die Integration erstellt standardmäßig zwei Lovelace-Dashboards:
 
-- **3D-Drucker**
-- **Dateimanager / Galerie**
-- **3D-Druck-Warteschlange**
+- **3D-Druck** mit Druckerkarte links und Warteschlange rechts
+- **3D-Drucker-Dateimanager/Galerie** als Vollbreitenansicht
 
 Das lässt sich im Einrichtungsassistenten deaktivieren und später in den Integrationsoptionen ändern. Der Dienst `printer_control_center.install_dashboards` erstellt oder repariert die integrationsbezogenen Dashboards erneut.
+
+Galerie-ZIP-Importe und normale 3MF-Uploads laufen als kompakter aufklappbarer Browser-Hintergrundtask weiter, wenn zwischen Dashboards gewechselt wird. Die Anzeige enthält Fortschritt, Übertragungsgeschwindigkeit, Entpackstatus und Gegenprüfung. Nach einem vollständigen Browser-Neuladen lässt sich ein noch vorhandenes Upload-Fragment fortsetzen, indem dieselbe lokale Datei erneut ausgewählt wird. Veraltete Fragmente werden automatisch bereinigt.

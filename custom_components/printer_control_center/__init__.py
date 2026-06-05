@@ -62,7 +62,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_register_frontend(hass)
     current_config = {**entry.data, **entry.options}
     if current_config.get(CONF_AUTO_CREATE_DASHBOARDS, True):
-        await async_ensure_default_dashboards(hass)
+        await async_ensure_default_dashboards(hass, force_config=True)
 
     coordinator = PrinterControlCenterCoordinator(hass, entry)
     await coordinator.async_start()

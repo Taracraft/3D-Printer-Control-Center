@@ -1,3 +1,4 @@
 {
-  "name": "3D-Printer Control Center"
+  "name": "3D-Printer Control Center",
+  "homeassistant": "2026.3.0"
 }

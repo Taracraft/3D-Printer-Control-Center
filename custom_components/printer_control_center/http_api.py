@@ -65,12 +65,13 @@ def _find_coordinator(hass: HomeAssistant, serial: str) -> PrinterControlCenterC
 
 def _browser(hass: HomeAssistant, coordinator: PrinterControlCenterCoordinator) -> SdTemplateBrowser:
     browsers = hass.data.setdefault(DOMAIN, {}).setdefault(_DATA_BROWSERS, {})
-    key = (coordinator.serial, coordinator.active_host, str(coordinator.config.get(CONF_ACCESS_CODE, "")))
+    endpoint_host = coordinator.manual_host or coordinator.active_host
+    key = (coordinator.serial, endpoint_host, str(coordinator.config.get(CONF_ACCESS_CODE, "")))
 
     browser = browsers.get(key)
     if browser is None:
         browser = SdTemplateBrowser(
-            host=coordinator.active_host,
+            host=endpoint_host,
             access_code=str(coordinator.config[CONF_ACCESS_CODE]),
         )
         browsers.clear()

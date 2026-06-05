@@ -8,6 +8,6 @@ scan_network:
 install_dashboards:
   name: Install default dashboards
   description: >
-    Create or repair the three default 3D-Printer Control Center Lovelace dashboards.
+    Create or repair the two default 3D-Printer Control Center Lovelace dashboards.
     Existing integration-owned dashboard configurations are replaced only when this
     repair service is called explicitly.

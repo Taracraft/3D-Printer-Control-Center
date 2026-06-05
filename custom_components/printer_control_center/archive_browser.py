@@ -384,11 +384,32 @@ class LocalArchiveRepository:
                     raise FileExistsError(relative.as_posix())
                 target.write_bytes(archive.read(info))
                 imported += 1
+        verified_files = 0
+        verified_bytes = 0
+        with zipfile.ZipFile(BytesIO(payload)) as archive:
+            for info in archive.infolist():
+                raw_name = str(info.filename or "").replace("\\", "/")
+                if not raw_name or raw_name == _EXPORT_METADATA_FILENAME or info.is_dir() or raw_name.endswith("/"):
+                    continue
+                relative = _safe_relative(raw_name, allow_root=False)
+                target = _real_path(self.root, relative)
+                if not target.is_file():
+                    raise RuntimeError(f"Imported model is missing after extraction: {relative.as_posix()}")
+                actual_size = target.stat().st_size
+                if actual_size != int(info.file_size):
+                    raise RuntimeError(f"Imported model size mismatch: {relative.as_posix()}")
+                verified_files += 1
+                verified_bytes += actual_size
+        if verified_files != imported:
+            raise RuntimeError("ZIP import verification count mismatch")
         result = dict(summary)
         result.update({
             "imported": imported,
             "created_folders": len(created_folders),
             "overwritten": len(conflicts) if overwrite else 0,
+            "verified_files": verified_files,
+            "verified_bytes": verified_bytes,
+            "verification": "ok",
         })
         return result
 

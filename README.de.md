@@ -1,7 +1,5 @@
 # 3D-Printer Control Center für Home Assistant
 
-[Vollständiger Changelog](CHANGELOG.de.md) · [English changelog](CHANGELOG.md)
-
 <p align="center"><img src="brand/logo.png" alt="3D-Printer Control Center" width="180"></p>
 
 <p align="center">

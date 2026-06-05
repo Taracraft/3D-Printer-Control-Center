@@ -6,14 +6,6 @@
 
 A local-first Home Assistant custom integration for compatible Bambu Lab 3D printers. It provides MQTT telemetry, native camera support where available, responsive Lovelace cards, a local 3MF archive, SD-card file management and a persistent print-planning queue.
 
-<img width="1600" height="974" alt="WhatsApp Image 2026-06-05 at 12 10 38" src="https://github.com/user-attachments/assets/6cbc227a-b9b3-4595-b3ff-d8902ba98c61" />
-<img width="805" height="432" alt="WhatsApp Image 2026-06-05 at 12 10 38 (6)" src="https://github.com/user-attachments/assets/e0f3805d-ca1e-434e-b18e-a4ffd5e74ec5" />
-<img width="816" height="725" alt="WhatsApp Image 2026-06-05 at 12 10 38 (5)" src="https://github.com/user-attachments/assets/5df16605-0653-45a1-b9ac-c7e23f3ed144" />
-<img width="1206" height="912" alt="WhatsApp Image 2026-06-05 at 12 10 38 (4)" src="https://github.com/user-attachments/assets/e6a12617-d601-4b03-b83b-642e7797c93c" />
-<img width="1247" height="820" alt="WhatsApp Image 2026-06-05 at 12 10 38 (3)" src="https://github.com/user-attachments/assets/24dcb4d1-f24c-4db8-a7db-08f11e7d6b4e" />
-<img width="794" height="556" alt="WhatsApp Image 2026-06-05 at 12 10 38 (2)" src="https://github.com/user-attachments/assets/219deed4-f592-4b52-ae89-af2d35beeb72" />
-<img width="1307" height="920" alt="WhatsApp Image 2026-06-05 at 12 10 38 (1)" src="https://github.com/user-attachments/assets/4d66af97-3562-4f6e-a844-bcf939d327d1" />
-
 ## Highlights
 
 - HACS-compatible repository structure

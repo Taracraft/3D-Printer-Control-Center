@@ -63,3 +63,13 @@ Der Export enthält alle 3MF-Modelle und die vollständige Ordnerstruktur. Beim 
 ## Sicherheit
 
 LAN-Access-Codes, Cloud-Token und nicht bereinigte Diagnosedaten niemals in öffentlichen Issues veröffentlichen.
+
+## Automatische Dashboards
+
+Bei der Einrichtung legt die Integration standardmäßig drei Lovelace-Dashboards an:
+
+- **3D-Drucker**
+- **Dateimanager / Galerie**
+- **3D-Druck-Warteschlange**
+
+Das lässt sich im Einrichtungsassistenten deaktivieren und später in den Integrationsoptionen ändern. Der Dienst `printer_control_center.install_dashboards` erstellt oder repariert die integrationsbezogenen Dashboards erneut.

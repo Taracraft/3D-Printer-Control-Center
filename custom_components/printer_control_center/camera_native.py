@@ -96,7 +96,7 @@ class NativePrinterCameraClient:
         self._stop_event.clear()
         self._thread = threading.Thread(
             target=self._run,
-            name=f"taracraft-native-camera-{self.host}",
+            name=f"printer-control-center-native-camera-{self.host}",
             daemon=True,
         )
         self._thread.start()

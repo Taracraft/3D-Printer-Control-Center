@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.1] - 2026-06-05
+
+### Fixed
+
+- corrected the translated integration title
+- proactively removed the stale pre-v2 Lovelace resource
+- loaded Lovelace resource storage safely before modifying it
+- registered backward-compatible aliases for the three former dashboard card types
+
+### Added
+
+- automatic creation of three default Lovelace dashboards after setup
+- setup and options toggle for automatic dashboard creation
+- `printer_control_center.install_dashboards` repair service
+
+
 ## [2.0.0] - 2026-06-05
 
 ### Breaking change

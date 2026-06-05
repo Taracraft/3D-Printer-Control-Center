@@ -19,4 +19,5 @@ if grep -RIn 'Path("/config\|/config/printer_control_center' "$COMP" --exclude='
 fi
 test -f "$ROOT/brand/icon.png"
 test -f "$COMP/brand/icon.png"
+test -f "$COMP/dashboards.py"
 echo "OK: release validation passed"

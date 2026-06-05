@@ -7,7 +7,8 @@
   "config_flow": true,
   "dependencies": [
     "frontend",
-    "http"
+    "http",
+    "lovelace"
   ],
   "documentation": "https://github.com/Taracraft/3D-Printer-Control-Center",
   "iot_class": "local_push",
@@ -15,5 +16,5 @@
   "requirements": [
     "paho-mqtt==2.1.0"
   ],
-  "version": "2.0.0"
+  "version": "2.0.1"
 }

@@ -54,7 +54,7 @@ class PrinterMqttClient:
 
         self._client = mqtt.Client(
             callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
-            client_id=f"taracraft-ha-{transport_name}-{uuid.uuid4().hex[:8]}",
+            client_id=f"printer-control-center-ha-{transport_name}-{uuid.uuid4().hex[:8]}",
             protocol=mqtt.MQTTv311,
         )
         self._client.username_pw_set(username, password)

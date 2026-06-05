@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 2.0.0 */
+/* 3D-Printer Control Center - HACS Release 2.0.1 */
 (() => {
-  const VERSION = "2.0.0";
+  const VERSION = "2.0.1";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4366,6 +4366,14 @@
     [TYPES.media]:MediaCard,[TYPES.queue]:PrintQueueCard,
   };
   for(const [type,klass] of Object.entries(cards)) if(!customElements.get(type)) customElements.define(type,klass);
+
+  // Keep existing dashboards working while installations migrate from the old domain.
+  const legacyCards = {
+    "taracraft-3d-printer-card": CompleteCard,
+    "taracraft-3d-printer-templates-card": TemplatesCard,
+    "taracraft-3d-printer-queue-card": PrintQueueCard,
+  };
+  for(const [type,klass] of Object.entries(legacyCards)) if(!customElements.get(type)) customElements.define(type,klass);
 
   const picker = [
     [TYPES.complete,"3D-Printer Control Center · Komplettkarte","Responsive Gesamtansicht mit Kamera, Steuerung und AMS"],

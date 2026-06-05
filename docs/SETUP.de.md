@@ -17,3 +17,7 @@ Eine manuell eingetragene Drucker-IP wird empfohlen. Die automatische Erkennung 
 ### Wo finde ich meinen Gerätecode?
 
 Am Drucker **Einstellungen → LAN Only** öffnen. Je nach Druckermodell und Firmware kann die Seite unter **WLAN** oder **Netzwerk** liegen. Den Nur-LAN-Modus aktivieren und die angezeigte **IP-Adresse** sowie den **Access-Code** verwenden. Keine sechsstellige Konto-PIN verwenden.
+
+## Automatische Dashboards
+
+Der Einrichtungsassistent erstellt standardmäßig **3D-Drucker**, **Dateimanager / Galerie** und **3D-Druck-Warteschlange**. Deaktiviere dies nur bei bewusst manueller Lovelace-Konfiguration. Mit `printer_control_center.install_dashboards` lassen sie sich erneut erstellen oder reparieren.

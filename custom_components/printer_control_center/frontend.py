@@ -25,6 +25,9 @@ _DATA_REGISTRAR = "_frontend_registrar"
 _DATA_PATHS_REGISTERED = "_frontend_paths_registered"
 _DATA_RESOURCE_REGISTERED = "_frontend_resource_registered"
 _MAX_RETRIES = 48
+_LEGACY_FRONTEND_JS_PATHS = {
+    "/taracraft_3d_printer/taracraft-3d-printer-cards.js",
+}
 
 
 class PrinterControlCenterFrontendRegistration:
@@ -101,8 +104,13 @@ class PrinterControlCenterFrontendRegistration:
             return
 
         if not resources.loaded:
-            await self._async_retry("Lovelace resources are not loaded")
-            return
+            try:
+                await resources.async_load()
+                resources.loaded = True
+            except Exception:
+                _LOGGER.exception("Unable to load Lovelace resources before registration")
+                await self._async_retry("Lovelace resources could not be loaded")
+                return
 
         await self._async_create_or_update_resources(resources)
 
@@ -124,6 +132,16 @@ class PrinterControlCenterFrontendRegistration:
     async def _async_create_or_update_resources(self, resources: Any) -> None:
         expected_url = FRONTEND_JS_URL
         expected_path = FRONTEND_JS_PATH
+
+        for item in list(resources.async_items()):
+            current_path = str(item.get("url", "")).split("?", 1)[0]
+            if current_path not in _LEGACY_FRONTEND_JS_PATHS:
+                continue
+            try:
+                await resources.async_delete_item(item["id"])
+                _LOGGER.info("Removed legacy 3D-Printer Control Center resource: %s", item.get("url"))
+            except Exception:
+                _LOGGER.exception("Unable to remove legacy 3D-Printer Control Center resource")
 
         existing = [
             item

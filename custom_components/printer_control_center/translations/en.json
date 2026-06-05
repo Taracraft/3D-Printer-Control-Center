@@ -1,5 +1,5 @@
 {
-  "title": "3D-Printer Control Center by 3D-Printer Control Center",
+  "title": "3D-Printer Control Center",
   "config": {
     "step": {
       "user": {
@@ -7,7 +7,8 @@
         "description": "Choose how the printer is connected and which language the 3D-Printer Control Center dashboard cards should use. Automatic language follows the Home Assistant UI language.",
         "data": {
           "connection_mode": "Connection mode",
-          "ui_language": "Dashboard language"
+          "ui_language": "Dashboard language",
+          "auto_create_dashboards": "Create default dashboards automatically"
         }
       },
       "cloud_login": {
@@ -109,7 +110,8 @@
           "scan_neighbors": "Use ARP neighbors",
           "scan_connections": "Use already connected TCP endpoints",
           "scan_routes": "Use small visible routed networks",
-          "rescan_on_disconnect": "Rescan automatically after LAN disconnect"
+          "rescan_on_disconnect": "Rescan automatically after LAN disconnect",
+          "auto_create_dashboards": "Create default dashboards automatically"
         }
       }
     }
@@ -118,6 +120,10 @@
     "scan_network": {
       "name": "Scan printer network endpoints",
       "description": "Scan configured endpoints, active TCP peers, ARP neighbors, local discovery, explicit hosts, VLAN CIDRs and small visible route networks. If exactly one valid MQTT endpoint is selected, store it as the active printer IP address."
+    },
+    "install_dashboards": {
+      "name": "Install or repair default dashboards",
+      "description": "Create or repair the three default 3D-Printer Control Center dashboards."
     }
   }
 }

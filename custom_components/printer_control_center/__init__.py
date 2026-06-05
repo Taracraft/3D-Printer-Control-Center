@@ -12,8 +12,15 @@ from homeassistant.core import (
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN, PLATFORMS, SERVICE_SCAN_NETWORK
+from .const import (
+    CONF_AUTO_CREATE_DASHBOARDS,
+    DOMAIN,
+    PLATFORMS,
+    SERVICE_INSTALL_DASHBOARDS,
+    SERVICE_SCAN_NETWORK,
+)
 from .coordinator import PrinterControlCenterCoordinator
+from .dashboards import async_ensure_default_dashboards
 from .frontend import async_register_frontend
 from .http_api import async_register_http_views
 from .websocket_api import async_register_websocket_commands
@@ -29,6 +36,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     await async_register_http_views(hass)
     async_register_websocket_commands(hass)
 
+    if not hass.services.has_service(DOMAIN, SERVICE_INSTALL_DASHBOARDS):
+        async def async_install_dashboards(_call: ServiceCall) -> None:
+            await async_ensure_default_dashboards(hass, force_config=True)
+
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_INSTALL_DASHBOARDS,
+            async_install_dashboards,
+        )
+
     async def _setup_frontend(_event=None) -> None:
         await async_register_frontend(hass)
 
@@ -43,6 +60,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up one printer entry."""
     await async_register_frontend(hass)
+    current_config = {**entry.data, **entry.options}
+    if current_config.get(CONF_AUTO_CREATE_DASHBOARDS, True):
+        await async_ensure_default_dashboards(hass)
+
     coordinator = PrinterControlCenterCoordinator(hass, entry)
     await coordinator.async_start()
 

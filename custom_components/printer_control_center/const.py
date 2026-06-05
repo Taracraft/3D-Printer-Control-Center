@@ -1,7 +1,7 @@
 """Constants for 3D-Printer Control Center."""
 DOMAIN = "printer_control_center"
 NAME = "3D-Printer Control Center"
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 
 PLATFORMS = ["sensor", "binary_sensor", "light", "button", "select", "switch", "camera"]
 
@@ -20,6 +20,7 @@ CONF_SHOW_MANUAL_FW_BUTTON = "show_manual_firmware_update_button"
 CONF_TLS_INSECURE = "tls_insecure"
 
 CONF_UI_LANGUAGE = "ui_language"
+CONF_AUTO_CREATE_DASHBOARDS = "auto_create_dashboards"
 UI_LANGUAGE_AUTO = "auto"
 UI_LANGUAGE_DE = "de"
 UI_LANGUAGE_EN = "en"
@@ -98,6 +99,7 @@ SCAN_BALANCED = "balanced"
 SCAN_DEEP = "deep"
 
 SERVICE_SCAN_NETWORK = "scan_network"
+SERVICE_INSTALL_DASHBOARDS = "install_dashboards"
 
 
 FRONTEND_URL_BASE = f"/{DOMAIN}"

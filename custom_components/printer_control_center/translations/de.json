@@ -1,5 +1,5 @@
 {
-  "title": "3D-Printer Control Center by 3D-Printer Control Center",
+  "title": "3D-Printer Control Center",
   "config": {
     "step": {
       "user": {
@@ -7,7 +7,8 @@
         "description": "Wähle die Verbindung zum Drucker und die Sprache der 3D-Printer Control Center-Dashboard-Karten. Bei Automatisch wird die Sprache der Home-Assistant-Oberfläche übernommen.",
         "data": {
           "connection_mode": "Verbindungsart",
-          "ui_language": "Dashboard-Sprache"
+          "ui_language": "Dashboard-Sprache",
+          "auto_create_dashboards": "Standard-Dashboards automatisch erstellen"
         }
       },
       "cloud_login": {
@@ -109,7 +110,8 @@
           "scan_neighbors": "ARP-Nachbarn verwenden",
           "scan_connections": "Bereits verbundene TCP-Endpunkte verwenden",
           "scan_routes": "Kleine sichtbare Routing-Netze verwenden",
-          "rescan_on_disconnect": "Bei LAN-Abbruch automatisch erneut suchen"
+          "rescan_on_disconnect": "Bei LAN-Abbruch automatisch erneut suchen",
+          "auto_create_dashboards": "Standard-Dashboards automatisch erstellen"
         }
       }
     }
@@ -118,6 +120,10 @@
     "scan_network": {
       "name": "Drucker-Netzwerkendpunkte scannen",
       "description": "Konfigurierte Endpunkte, aktive TCP-Gegenstellen, ARP-Nachbarn, lokale Erkennung, explizite Hosts, VLAN-CIDRs und kleine sichtbare Routing-Netze prüfen. Wenn genau ein gültiger MQTT-Endpunkt ausgewählt wird, wird er als aktive Drucker-IP-Adresse gespeichert."
+    },
+    "install_dashboards": {
+      "name": "Standard-Dashboards installieren oder reparieren",
+      "description": "Erstellt oder repariert die drei Standard-Dashboards des 3D-Printer Control Centers."
     }
   }
 }

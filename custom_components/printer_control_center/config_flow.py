@@ -20,6 +20,7 @@ from .const import (
     CONF_ACCESS_CODE,
     CONF_ACCESS_TOKEN,
     CONF_AMS_TYPE,
+    CONF_AUTO_CREATE_DASHBOARDS,
     CONF_AUTO_DISCOVER_IP,
     CONF_CLOUD_UID,
     CONF_DISCOVERY_HOSTS,
@@ -101,6 +102,7 @@ class PrinterControlCenterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._data[CONF_MODE] = user_input[CONF_MODE]
             self._data[CONF_UI_LANGUAGE] = user_input.get(CONF_UI_LANGUAGE, UI_LANGUAGE_AUTO)
+            self._data[CONF_AUTO_CREATE_DASHBOARDS] = _bool(user_input.get(CONF_AUTO_CREATE_DASHBOARDS), True)
             if user_input[CONF_MODE] == MODE_LAN:
                 return await self.async_step_lan()
             return await self.async_step_cloud_login()
@@ -117,6 +119,7 @@ class PrinterControlCenterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         }
                     ),
                     vol.Required(CONF_UI_LANGUAGE, default=UI_LANGUAGE_AUTO): vol.In(UI_LANGUAGE_OPTIONS),
+                    vol.Optional(CONF_AUTO_CREATE_DASHBOARDS, default=True): bool,
                 }
             ),
         )
@@ -461,6 +464,7 @@ class PrinterControlCenterOptionsFlow(config_entries.OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_UI_LANGUAGE, default=current.get(CONF_UI_LANGUAGE, UI_LANGUAGE_AUTO)): vol.In(UI_LANGUAGE_OPTIONS),
+                    vol.Optional(CONF_AUTO_CREATE_DASHBOARDS, default=_bool(current.get(CONF_AUTO_CREATE_DASHBOARDS), True)): bool,
                     vol.Required(CONF_AMS_TYPE, default=current.get(CONF_AMS_TYPE, AMS_AUTO)): vol.In(
                         _ams_options(current.get(CONF_UI_LANGUAGE), self.hass.config.language)
                     ),

@@ -1,6 +1,6 @@
 # Migration auf den Domainnamen `printer_control_center`
 
-Version `2.0.0` verwendet den technischen Home-Assistant-Domainnamen `printer_control_center`. Eine bestehende Installation mit einem älteren Domainnamen muss einmalig neu eingerichtet werden.
+Version `2.0.1` verwendet den technischen Home-Assistant-Domainnamen `printer_control_center`. Eine bestehende Installation mit einem älteren Domainnamen muss einmalig neu eingerichtet werden.
 
 ## Sichere Reihenfolge
 

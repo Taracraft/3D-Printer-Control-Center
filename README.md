@@ -63,3 +63,13 @@ The export contains every 3MF model and the complete folder structure. The impor
 ## Security
 
 Never post LAN access codes, Cloud tokens or unredacted diagnostics in public issues.
+
+## Automatic dashboards
+
+During setup, the integration creates three Lovelace dashboards by default:
+
+- **3D-Drucker**
+- **Dateimanager / Galerie**
+- **3D-Druck-Warteschlange**
+
+This can be disabled in the setup assistant or changed later in the integration options. The service `printer_control_center.install_dashboards` recreates or repairs the integration-owned dashboards.

@@ -1,0 +1,43 @@
+name: Bug report
+about: Report a reproducible problem
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Taracraft version
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: ha
+    attributes:
+      label: Home Assistant version and installation type
+      placeholder: 2026.x, HA OS / Container / Core / Supervised
+    validations:
+      required: true
+  - type: input
+    id: printer
+    attributes:
+      label: Printer model
+      placeholder: A1, P1S, X1C, ...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Remove LAN access codes, tokens and personal data.
+      render: text

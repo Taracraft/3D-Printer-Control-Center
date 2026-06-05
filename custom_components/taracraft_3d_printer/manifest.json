@@ -1,0 +1,19 @@
+{
+  "domain": "taracraft_3d_printer",
+  "name": "3D-Printer Control Center by Taracraft",
+  "codeowners": [
+    "@Taracraft"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "frontend",
+    "http"
+  ],
+  "documentation": "https://github.com/Taracraft/3D-Printer-Control-Center",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/Taracraft/3D-Printer-Control-Center/issues",
+  "requirements": [
+    "paho-mqtt==2.1.0"
+  ],
+  "version": "1.0.0"
+}

@@ -1,0 +1,42 @@
+name: Network discovery issue
+about: Report automatic printer discovery problems; manual IP is the recommended workaround
+labels: ["bug", "network-discovery"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Automatic network discovery is a known limitation in routed VLAN, VPN and broadcast-restricted environments. Please test a manual printer IP first under **Settings → Devices & services → Taracraft → Configure**.
+  - type: input
+    id: printer
+    attributes:
+      label: Bambu Lab printer model
+      placeholder: A1, A1 mini, P1S, X1C, ...
+    validations:
+      required: true
+  - type: input
+    id: ha
+    attributes:
+      label: Home Assistant version and installation type
+      placeholder: 2026.x, HA OS / Container / Core / Supervised
+    validations:
+      required: true
+  - type: textarea
+    id: network
+    attributes:
+      label: Network topology
+      description: Describe VLANs, routed networks, VPNs, firewall rules and whether broadcast is filtered.
+    validations:
+      required: true
+  - type: input
+    id: manual_ip
+    attributes:
+      label: Does a manual printer IP work?
+      placeholder: Yes / No; include the tested IP range only, never the LAN access code
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Remove secrets, LAN access codes, tokens and personal data before posting.
+      render: text

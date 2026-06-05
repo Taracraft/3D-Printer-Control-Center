@@ -137,7 +137,7 @@ class LocalArchiveRepository:
 
     def list_items(self, folder: str = "") -> dict[str, Any]:
         relative = _safe_relative(folder)
-        current = _real_path(relative)
+        current = _real_path(self.root, relative)
         if not current.exists():
             raise FileNotFoundError(folder)
         if not current.is_dir():

@@ -8,4 +8,3 @@ __pycache__/
 dist/
 *.zip
 *.sha256
-.venv/

@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .entity import TaracraftPrinterEntity
+from .entity import PrinterControlCenterPrinterEntity
 
 
 @dataclass(frozen=True)
@@ -47,13 +47,13 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
         [
-            TaracraftCameraRecordingSwitch(coordinator, entry, description)
+            PrinterControlCenterCameraRecordingSwitch(coordinator, entry, description)
             for description in SWITCHES
         ]
     )
 
 
-class TaracraftCameraRecordingSwitch(TaracraftPrinterEntity, SwitchEntity):
+class PrinterControlCenterCameraRecordingSwitch(PrinterControlCenterPrinterEntity, SwitchEntity):
     def __init__(self, coordinator, entry, description: CameraSwitchDescription) -> None:
         super().__init__(coordinator, entry)
         self.description = description

@@ -6,7 +6,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import AMS_OPTIONS, AMS_OPTIONS_EN, CONF_AMS_TYPE, CONF_UI_LANGUAGE, DOMAIN
-from .entity import TaracraftPrinterEntity
+from .entity import PrinterControlCenterPrinterEntity
 
 
 SPEEDS = {"silent": 1, "standard": 2, "sport": 3, "ludicrous": 4}
@@ -26,13 +26,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
         [
-            TaracraftSpeedSelect(coordinator, entry),
-            TaracraftAmsTypeSelect(coordinator, entry),
+            PrinterControlCenterSpeedSelect(coordinator, entry),
+            PrinterControlCenterAmsTypeSelect(coordinator, entry),
         ]
     )
 
 
-class TaracraftSpeedSelect(TaracraftPrinterEntity, SelectEntity):
+class PrinterControlCenterSpeedSelect(PrinterControlCenterPrinterEntity, SelectEntity):
     _attr_name = "Printing speed"
     _attr_options = list(SPEEDS)
 
@@ -55,7 +55,7 @@ class TaracraftSpeedSelect(TaracraftPrinterEntity, SelectEntity):
         )
 
 
-class TaracraftAmsTypeSelect(TaracraftPrinterEntity, SelectEntity):
+class PrinterControlCenterAmsTypeSelect(PrinterControlCenterPrinterEntity, SelectEntity):
     _attr_name = "AMS configuration"
 
     @property
@@ -67,7 +67,7 @@ class TaracraftAmsTypeSelect(TaracraftPrinterEntity, SelectEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, f"{self.serial}_ams")},
             name=f"{self.serial} AMS",
-            manufacturer="Taracraft / Bambu-compatible",
+            manufacturer="Bambu Lab compatible",
             model="AMS configuration",
             via_device=(DOMAIN, self.serial),
             configuration_url="https://github.com/Taracraft/3D-Printer-Control-Center",

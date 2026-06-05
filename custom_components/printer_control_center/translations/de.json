@@ -1,10 +1,10 @@
 {
-  "title": "3D-Printer Control Center by Taracraft",
+  "title": "3D-Printer Control Center by 3D-Printer Control Center",
   "config": {
     "step": {
       "user": {
         "title": "Verbindungsart und Sprache",
-        "description": "Wähle die Verbindung zum Drucker und die Sprache der Taracraft-Dashboard-Karten. Bei Automatisch wird die Sprache der Home-Assistant-Oberfläche übernommen.",
+        "description": "Wähle die Verbindung zum Drucker und die Sprache der 3D-Printer Control Center-Dashboard-Karten. Bei Automatisch wird die Sprache der Home-Assistant-Oberfläche übernommen.",
         "data": {
           "connection_mode": "Verbindungsart",
           "ui_language": "Dashboard-Sprache"

@@ -5,15 +5,15 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_SERIAL, DOMAIN
-from .entity import TaracraftPrinterEntity
+from .entity import PrinterControlCenterPrinterEntity
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([TaracraftOnlineSensor(coordinator, entry)])
+    async_add_entities([PrinterControlCenterOnlineSensor(coordinator, entry)])
 
 
-class TaracraftOnlineSensor(TaracraftPrinterEntity, BinarySensorEntity):
+class PrinterControlCenterOnlineSensor(PrinterControlCenterPrinterEntity, BinarySensorEntity):
     _attr_name = "Online"
 
     def __init__(self, coordinator, entry) -> None:

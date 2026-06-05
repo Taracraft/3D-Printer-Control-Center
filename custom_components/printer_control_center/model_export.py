@@ -251,7 +251,7 @@ def _walk_object(
         )
 
 
-def export_binary_stl(payload: bytes, *, label: str = "Taracraft model") -> bytes:
+def export_binary_stl(payload: bytes, *, label: str = "3D-Printer Control Center model") -> bytes:
     """Return a geometry-only binary STL representation of a 3MF payload."""
     root = _read_model_xml(payload)
     objects = _parse_objects(root)
@@ -333,7 +333,7 @@ def _geometry_triangles(payload: bytes) -> list[tuple[
     return triangles
 
 
-def export_geometry_only_3mf(payload: bytes, *, label: str = "Taracraft model") -> bytes:
+def export_geometry_only_3mf(payload: bytes, *, label: str = "3D-Printer Control Center model") -> bytes:
     """Return a minimal geometry-only 3MF container suitable for slicer import."""
     triangles = _geometry_triangles(payload)
 

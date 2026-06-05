@@ -1,4 +1,4 @@
-"""3D-Printer Control Center by Taracraft."""
+"""3D-Printer Control Center."""
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -13,7 +13,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .const import DOMAIN, PLATFORMS, SERVICE_SCAN_NETWORK
-from .coordinator import TaracraftCoordinator
+from .coordinator import PrinterControlCenterCoordinator
 from .frontend import async_register_frontend
 from .http_api import async_register_http_views
 from .websocket_api import async_register_websocket_commands
@@ -43,7 +43,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up one printer entry."""
     await async_register_frontend(hass)
-    coordinator = TaracraftCoordinator(hass, entry)
+    coordinator = PrinterControlCenterCoordinator(hass, entry)
     await coordinator.async_start()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
@@ -52,7 +52,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if not hass.data[DOMAIN].get(_DATA_SERVICE_REGISTERED):
         async def async_scan_network(call: ServiceCall) -> None:
             for current in list(hass.data.get(DOMAIN, {}).values()):
-                if isinstance(current, TaracraftCoordinator):
+                if isinstance(current, PrinterControlCenterCoordinator):
                     await current.async_scan_and_reload()
 
         hass.services.async_register(
@@ -68,7 +68,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    coordinator: TaracraftCoordinator = hass.data[DOMAIN].pop(entry.entry_id)
+    coordinator: PrinterControlCenterCoordinator = hass.data[DOMAIN].pop(entry.entry_id)
     await coordinator.async_stop()
     return unloaded
 

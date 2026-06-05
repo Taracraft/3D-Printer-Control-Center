@@ -8,7 +8,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_PRINTER_NAME, CONF_SERIAL, DOMAIN
-from .coordinator import TaracraftCoordinator
+from .coordinator import PrinterControlCenterCoordinator
 
 
 async def async_setup_entry(
@@ -17,24 +17,24 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Expose one autarkic native camera per printer."""
-    coordinator: TaracraftCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([TaracraftNativeCamera(coordinator, entry)])
+    coordinator: PrinterControlCenterCoordinator = hass.data[DOMAIN][entry.entry_id]
+    async_add_entities([PrinterControlCenterNativeCamera(coordinator, entry)])
 
 
-class TaracraftNativeCamera(Camera):
+class PrinterControlCenterNativeCamera(Camera):
     """Serve cached frames read directly from printer TCP 6000."""
 
     _attr_has_entity_name = True
     _attr_name = "Native live camera"
     _attr_icon = "mdi:camera"
-    _attr_brand = "Taracraft"
+    _attr_brand = "3D-Printer Control Center"
     _attr_model = "Native Bambu-compatible TLS JPEG camera"
     _attr_frame_interval = 0.8
     _attr_should_poll = False
 
     def __init__(
         self,
-        coordinator: TaracraftCoordinator,
+        coordinator: PrinterControlCenterCoordinator,
         entry: ConfigEntry,
     ) -> None:
         super().__init__()
@@ -48,7 +48,7 @@ class TaracraftNativeCamera(Camera):
         return DeviceInfo(
             identifiers={(DOMAIN, self.serial)},
             name=str(self.entry.data.get(CONF_PRINTER_NAME) or self.serial),
-            manufacturer="Taracraft / Bambu-compatible",
+            manufacturer="Bambu Lab compatible",
             model="3D Printer",
             configuration_url="https://github.com/Taracraft/3D-Printer-Control-Center",
         )

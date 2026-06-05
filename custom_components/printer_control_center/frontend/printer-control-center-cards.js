@@ -1,10 +1,10 @@
-/* 3D-Printer Control Center by Taracraft - HACS Release 1.0.0 */
+/* 3D-Printer Control Center - HACS Release 2.0.0 */
 (() => {
-  const VERSION = "1.0.0";
-  const LOGO = "/taracraft_3d_printer/logo-3d-printer-control-center.png";
-  const DEFAULT_OFFLINE = "/taracraft_3d_printer/default-offline.png";
-  const DEFAULT_IDLE = "/taracraft_3d_printer/default-idle.png";
-  const DEFAULT_PREVIEW = "/taracraft_3d_printer/default-preview.png";
+  const VERSION = "2.0.0";
+  const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
+  const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
+  const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
+  const DEFAULT_PREVIEW = "/printer_control_center/default-preview.png";
   const DOCS = "https://github.com/Taracraft/3D-Printer-Control-Center";
 
   let ACTIVE_LANGUAGE = String(navigator.language || "de").toLowerCase().startsWith("de") ? "de" : "en";
@@ -34,7 +34,7 @@
     ["Persistente Druckplanung mit Galerie-Popup, Mehrfachauswahl, Stückzahl und Bambu-Studio-Druckübergabe", "Persistent print planning with gallery popup, multi-selection, quantity and Bambu Studio handoff"],
     ["MakerWorld-Websuche", "MakerWorld web search"],
     ["Separater Glow-Rahmen", "Separate glow frame"],
-    ["Kein Taracraft-Drucker gefunden.", "No Taracraft printer found."],
+    ["Kein Drucker gefunden.", "No printer found."],
     ["Kein aktiver Druckauftrag", "No active print job"],
     ["Schicht", "Layer"],
     ["Düse", "Nozzle"],
@@ -52,7 +52,7 @@
     ["Abbrechen", "Cancel"],
     ["Druck wirklich abbrechen?", "Really cancel the print?"],
     ["Keine automatischen Firmware-Updates.", "No automatic firmware updates."],
-    ["Konfigurierbarer Taracraft Glow-Rahmen", "Configurable Taracraft glow frame"],
+    ["Konfigurierbarer Glow-Rahmen", "Configurable glow frame"],
     ["Extern", "External"],
     ["Aktiv", "Active"],
     ["leer", "empty"],
@@ -80,6 +80,10 @@
     ["Neueste zuerst", "Newest first"],
     ["Größte zuerst", "Largest first"],
     ["3MF hochladen", "Upload 3MF"],
+    ["Galerie-ZIP exportieren", "Export gallery ZIP"],
+    ["Galerie-ZIP importieren", "Import gallery ZIP"],
+    ["ZIP-Import erfolgreich", "ZIP import successful"],
+    ["Vorhandene Galerie-Dateien überschreiben?", "Overwrite existing gallery files?"],
     ["Dateien auswählen", "Select files"],
     ["Ausgewählte 3MF hochladen", "Upload selected 3MF"],
     ["Keine passenden Dateien oder Ordner vorhanden.", "No matching files or folders."],
@@ -148,7 +152,7 @@
     ["Galerie wird geladen …", "Loading gallery …"],
     ["Keine 3MF-Modelle in diesem Ordner gefunden.", "No 3MF models found in this folder."],
     ["Bambu Studio wird mit der unveränderten Original-3MF-Datei geöffnet.", "Bambu Studio opens the unchanged original 3MF file."],
-    ["MakerWorld-Modell suchen oder einen Modell-Link öffnen. Die 3MF-Datei kann anschließend direkt in die Taracraft-Archivkarte hochgeladen werden.", "Search for a MakerWorld model or open a model link. The 3MF file can then be uploaded directly to the Taracraft archive card."],
+    ["MakerWorld-Modell suchen oder einen Modell-Link öffnen. Die 3MF-Datei kann anschließend direkt in die Archivkarte hochgeladen werden.", "Search for a MakerWorld model or open a model link. The 3MF file can then be uploaded directly to the local archive card."],
     ["Suchbegriff oder MakerWorld-Link", "Search term or MakerWorld link"],
     ["MakerWorld öffnen", "Open MakerWorld"],
     ["Kein verdeckter Direktimport über undokumentierte Community-Endpunkte. Der Workflow bleibt nachvollziehbar und veröffentlichbar.", "No hidden direct import through undocumented community endpoints. The workflow remains transparent and publishable."],
@@ -157,7 +161,7 @@
     ["Aktion fehlgeschlagen", "Action failed"],
     ["Download-Link wurde für fünf Minuten in die Zwischenablage kopiert.", "Download link was copied to the clipboard for five minutes."],
     ["Diese Funktion ist als sichere Erweiterungsstufe vorbereitet, aber noch nicht freigeschaltet.", "This function is prepared as a safe extension but is not enabled yet."],
-    ["Kein Taracraft-Helfer erforderlich. Bambu Studio prüft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.", "No Taracraft helper required. Bambu Studio intentionally checks self-hosted URLs with an origin dialog."],
+    ["Kein Zusatzhelfer erforderlich. Bambu Studio prüft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.", "No additional helper is required. Bambu Studio intentionally checks self-hosted URLs with an origin dialog."],
     ["HA-only · Original-3MF an Bambu Studio", "HA-only · Original 3MF to Bambu Studio"],
     ["geladen", "loaded"],
     ["Drucker offline", "Printer offline"],
@@ -166,10 +170,10 @@
     ["Native Kamera-Snapshot", "Native camera snapshot"],
     ["Modellvorschau", "Model preview"],
     ["Native Live-Kamera startet …", "Starting native live camera …"],
-    ["Taracraft verbindet Home Assistant direkt mit TCP 6000. Keine externen Dienste erforderlich.", "Taracraft connects Home Assistant directly to TCP 6000. No external services are required."],
-    ["Taracraft Live-Kamera", "Taracraft live camera"],
-    ["Taracraft Kamera-Stream", "Taracraft camera stream"],
-    ["Die native Taracraft-Kamera wird automatisch direkt über TCP 6000 bereitgestellt. Die folgenden Felder sind nur optionale Überschreibungen.", "The native Taracraft camera is provided automatically through TCP 6000. The following fields are optional overrides only."],
+    ["Das 3D-Printer Control Center verbindet Home Assistant direkt mit TCP 6000. Keine externen Dienste erforderlich.", "3D-Printer Control Center connects Home Assistant directly to TCP 6000. No external services are required."],
+    ["3D-Printer Control Center Live-Kamera", "3D-Printer Control Center live camera"],
+    ["3D-Printer Control Center Kamera-Stream", "3D-Printer Control Center camera stream"],
+    ["Die native Druckerkamera wird automatisch direkt über TCP 6000 bereitgestellt. Die folgenden Felder sind nur optionale Überschreibungen.", "The native printer camera is provided automatically through TCP 6000. The following fields are optional overrides only."],
     ["Andere Kamera-Entity optional", "Optional alternative camera entity"],
     ["Modellvorschau-Entity optional", "Optional model-preview entity"],
     ["Für Mehrfachaktion auswählen", "Select for bulk action"],
@@ -181,7 +185,7 @@
     ["Datei(en) für den Upload ausgewählt", "file(s) selected for upload"],
     ["Upload-Ziel", "Upload target"],
     ["SD-Karte des Druckers", "Printer SD card"],
-    ["Taracraft-Archiv", "Taracraft archive"],
+    ["Lokales Archiv", "local archive"],
     ["Upload wird vorbereitet …", "Preparing upload …"],
     ["Dateien hochladen", "Upload files"],
     ["Diese Karte benötigt für die übersichtliche Dateimanager-Ansicht einen eigenen Abschnitt über die volle Dashboard-Breite.", "For a clear file-manager view, this card needs its own full-width dashboard section."],
@@ -203,7 +207,7 @@
     ["Nur .3mf-Dateien sind zulässig. Nicht verwendbar:", "Only .3mf files are allowed. Not usable:"],
     ["wird vorbereitet …", "is being prepared …"],
     ["wird auf die Drucker-SD-Karte geschrieben …", "is being written to the printer SD card …"],
-    ["wird im Taracraft-Archiv gespeichert …", "is being saved to the Taracraft archive …"],
+    ["wird im lokalen Archiv gespeichert …", "is being saved to the local archive …"],
     ["Datei", "File"],
     ["von", "of"],
     ["fehlgeschlagen", "failed"],
@@ -248,20 +252,20 @@
   function activateUiLanguage(hass, map) { ACTIVE_LANGUAGE = resolveUiLanguage(hass, map); }
 
   const TYPES = {
-    complete: "taracraft-3d-printer-card",
-    brand: "taracraft-3d-printer-brand-card",
-    header: "taracraft-3d-printer-header-card",
-    progress: "taracraft-3d-printer-progress-card",
-    telemetry: "taracraft-3d-printer-telemetry-card",
-    controls: "taracraft-3d-printer-controls-card",
-    ams: "taracraft-3d-printer-ams-card",
-    network: "taracraft-3d-printer-network-card",
-    firmware: "taracraft-3d-printer-firmware-card",
-    frame: "taracraft-glow-frame-card",
-    templates: "taracraft-3d-printer-templates-card",
-    makerworld: "taracraft-makerworld-card",
-    media: "taracraft-3d-printer-media-card",
-    queue: "taracraft-3d-printer-queue-card",
+    complete: "printer-control-center-card",
+    brand: "printer-control-center-brand-card",
+    header: "printer-control-center-header-card",
+    progress: "printer-control-center-progress-card",
+    telemetry: "printer-control-center-telemetry-card",
+    controls: "printer-control-center-controls-card",
+    ams: "printer-control-center-ams-card",
+    network: "printer-control-center-network-card",
+    firmware: "printer-control-center-firmware-card",
+    frame: "printer-control-center-glow-frame-card",
+    templates: "printer-control-center-templates-card",
+    makerworld: "printer-control-center-makerworld-card",
+    media: "printer-control-center-media-card",
+    queue: "printer-control-center-queue-card",
   };
 
   const MODULE_LABELS = {
@@ -1874,7 +1878,7 @@
         <div class="media-empty">
           <div>
             <strong>Native Live-Kamera startet …</strong>
-            <small>Taracraft verbindet Home Assistant direkt mit TCP 6000. Keine externen Dienste erforderlich.</small>
+            <small>Das 3D-Printer Control Center verbindet Home Assistant direkt mit TCP 6000. Keine externen Dienste erforderlich.</small>
           </div>
         </div>
       `;
@@ -1895,12 +1899,12 @@
     if (!native.stream) return;
 
     const still = native.still || native.stream;
-    const popup = window.open("", `taracraft-camera-${map.prefix}`, "width=1280,height=820,resizable=yes,scrollbars=no");
+    const popup = window.open("", `printer-control-center-camera-${map.prefix}`, "width=1280,height=820,resizable=yes,scrollbars=no");
     if (!popup) return;
 
     const streamHtml = esc(native.stream);
     const stillJson = JSON.stringify(still);
-    const title = esc(`Taracraft Live-Kamera · ${stateValue(hass, map.serial, map.prefix)}`);
+    const title = esc(`3D-Printer Control Center Live-Kamera · ${stateValue(hass, map.serial, map.prefix)}`);
 
     popup.document.open();
     popup.document.write(`<!doctype html>
@@ -1927,7 +1931,7 @@
     <button onclick="window.close()">Schließen</button>
   </div>
 </header>
-<main><img id="stream" alt="Taracraft Kamera-Stream" src="${streamHtml}"></main>
+<main><img id="stream" alt="3D-Printer Control Center Kamera-Stream" src="${streamHtml}"></main>
 <script>
   document.getElementById("snapshot").addEventListener("click",()=>window.open(${stillJson} + (${stillJson}.includes("?") ? "&" : "?") + "t=" + Date.now(),"_blank","noopener"));
   document.getElementById("fullscreen").addEventListener("click",()=>document.getElementById("stream").requestFullscreen?.());
@@ -1953,7 +1957,7 @@
     };
   }
 
-  class TaracraftEditor extends HTMLElement {
+  class PrinterControlCenterEditor extends HTMLElement {
     set hass(hass) { const first=!this._hass; this._hass = hass; if(first||!this.innerHTML)this.render(); }
     setConfig(config) { this._config = { ...(config || {}) }; this.render(); }
     set kind(value) { this._kind = value; this.render(); }
@@ -2015,7 +2019,7 @@
             <label>Eckenradius<input id="radius" type="number" min="0" max="36" value="${esc(this._config?.radius ?? 16)}"></label>
           </div>
           ${showMedia ? `
-            <small>Die native Taracraft-Kamera wird automatisch direkt über TCP 6000 bereitgestellt. Die folgenden Felder sind nur optionale Überschreibungen.</small>
+            <small>Die native Druckerkamera wird automatisch direkt über TCP 6000 bereitgestellt. Die folgenden Felder sind nur optionale Überschreibungen.</small>
             <label>Andere Kamera-Entity optional<input id="camera_entity" placeholder="camera.mein_drucker" value="${esc(this._config?.camera_entity || "")}"></label>
             <label>Modellvorschau-Entity optional<input id="preview_entity" placeholder="image.mein_drucker_cover_image" value="${esc(this._config?.preview_entity || "")}"></label>
             <label>Andere MJPEG-URL optional<input id="camera_url" placeholder="Nur für bewusste Überschreibung der nativen Kamera" value="${esc(this._config?.camera_url || "")}"></label>
@@ -2089,7 +2093,7 @@
 
       Promise.resolve()
         .then(callback)
-        .catch((error) => console.error(`Taracraft action failed: ${action}`, error))
+        .catch((error) => console.error(`3D-Printer Control Center action failed: ${action}`, error))
         .finally(() => {
           window.setTimeout(() => {
             const current = this.shadowRoot.querySelector(`[data-action="${action}"]`);
@@ -2116,10 +2120,10 @@
       this.shadowRoot.querySelector("[data-select='speed']")?.addEventListener("change", (event) => this.call("select","select_option",map.speed,{option:event.target.value}));
       this.shadowRoot.querySelector("[data-select='ams']")?.addEventListener("change", (event) => this.call("select","select_option",map.amsConfiguration,{option:event.target.value}));
     }
-    empty() { this.shadowRoot.innerHTML = frame(this._config, `<p>Kein Taracraft-Drucker gefunden.</p>`); }
+    empty() { this.shadowRoot.innerHTML = frame(this._config, `<p>Kein Drucker gefunden.</p>`); }
   }
 
-  const editorFor = (kind) => { const editor=document.createElement("taracraft-3d-printer-card-editor"); editor.kind=kind; return editor; };
+  const editorFor = (kind) => { const editor=document.createElement("printer-control-center-card-editor"); editor.kind=kind; return editor; };
 
   class CompleteCard extends BaseCard {
     static getConfigElement(){return editorFor("complete")}
@@ -2143,7 +2147,7 @@
       const header=`
         <div class="row between">
           <div class="row">
-            <img class="brand" src="${LOGO}" alt="Taracraft">
+            <img class="brand" src="${LOGO}" alt="3D-Printer Control Center">
             <div>
               <h2>${esc(this._config.title)}</h2>
               <div class="row">
@@ -2166,7 +2170,7 @@
             ${metric("Bett",formatTemp(stateValue(this._hass,map.bed)))}
           </div>
           ${basicButtons}
-          <div class="footer"><span>Taracraft · ${VERSION}</span></div>
+          <div class="footer"><span>3D-Printer Control Center · ${VERSION}</span></div>
         `);
         this.bind(map); return;
       }
@@ -2186,7 +2190,7 @@
             </div>
           </div>
           ${basicButtons}
-          <div class="footer"><span>Taracraft · ${VERSION}</span><a href="${DOCS}" target="_blank">${DOCS}</a></div>
+          <div class="footer"><span>3D-Printer Control Center · ${VERSION}</span><a href="${DOCS}" target="_blank">${DOCS}</a></div>
         `);
         this.bind(map); return;
       }
@@ -2226,7 +2230,7 @@
             <span class="badge">Transport: ${esc(stateValue(this._hass,map.activeMode))}</span>
             <span class="badge">IP: ${esc(stateValue(this._hass,map.activeHost))}</span>
           </div>`:""}
-        <div class="footer"><span>3D-Printer Control Center by Taracraft · ${VERSION}</span><a href="${DOCS}" target="_blank">${DOCS}</a></div>
+        <div class="footer"><span>3D-Printer Control Center ${VERSION}</span><a href="${DOCS}" target="_blank">${DOCS}</a></div>
       `);
       this.bind(map);
     }
@@ -2270,11 +2274,11 @@
   }
   class BrandCard extends BaseCard {
     static getConfigElement(){return editorFor("brand")} static getStubConfig(){return commonStub()}
-    render(){if(!this._config)return;this.shadowRoot.innerHTML=frame(this._config,`<div class="row"><img class="brand" src="${LOGO}"><div><h2>${esc(this._config.title)}</h2><small>by Taracraft · ${DOCS}</small></div></div>`)}
+    render(){if(!this._config)return;this.shadowRoot.innerHTML=frame(this._config,`<div class="row"><img class="brand" src="${LOGO}"><div><h2>${esc(this._config.title)}</h2><small>${DOCS}</small></div></div>`)}
   }
   class GlowFrameCard extends BaseCard {
     static getConfigElement(){return editorFor("frame")} static getStubConfig(){return {...commonStub(),title:"Glow-Rahmen"}}
-    render(){if(!this._config)return;this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><p class="muted">Konfigurierbarer Taracraft Glow-Rahmen</p>`)}
+    render(){if(!this._config)return;this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><p class="muted">Konfigurierbarer Glow-Rahmen</p>`)}
   }
   class TemplatesCard extends BaseCard {
     static getConfigElement(){return editorFor("templates")}
@@ -2297,6 +2301,7 @@
       this._uploadCompletedFiles=0;
       this._uploadTotalFiles=0;
       this._uploadQueueErrors=[];
+      this._zipImportActive=false;
       this._previewItem=null;
       this._dialog=null;
       this._folders=[];
@@ -2345,7 +2350,7 @@
       if(!force&&this._treeSource===this._source&&this._treeFolders.length)return;
       try{
         const data=await this.ws({
-          type:`taracraft_3d_printer/${this._source}/tree`,
+          type:`printer_control_center/${this._source}/tree`,
           serial:this.serial(map),
         });
         this._treeFolders=data.folders||[];
@@ -2366,8 +2371,8 @@
       try{
         const serial=this.serial(map);
         const data=this._source==="sd"
-          ? await this.ws({type:"taracraft_3d_printer/sd/list",serial,folder:this._folder||"/",force:Boolean(force)})
-          : await this.ws({type:"taracraft_3d_printer/archive/list",serial,folder:this._folder});
+          ? await this.ws({type:"printer_control_center/sd/list",serial,folder:this._folder||"/",force:Boolean(force)})
+          : await this.ws({type:"printer_control_center/archive/list",serial,folder:this._folder});
 
         this._items=data.items||[];
         this._stats=data.stats||{files:0,folders:0,bytes:0};
@@ -2514,7 +2519,7 @@
           this.render();
 
           const session=await this.ws({
-            type:"taracraft_3d_printer/upload/start",
+            type:"printer_control_center/upload/start",
             serial,
             source,
             filename:file.name,
@@ -2530,7 +2535,7 @@
             const payload=arrayBufferToBase64(await slice.arrayBuffer());
 
             const result=await this.ws({
-              type:"taracraft_3d_printer/upload/chunk",
+              type:"printer_control_center/upload/chunk",
               upload_id:session.upload_id,
               content_base64:payload,
             });
@@ -2546,11 +2551,11 @@
 
           this._uploadLabel=source==="sd"
             ? `Datei ${fileNumber} von ${files.length}: ${file.name} wird auf die Drucker-SD-Karte geschrieben …`
-            : `Datei ${fileNumber} von ${files.length}: ${file.name} wird im Taracraft-Archiv gespeichert …`;
+            : `Datei ${fileNumber} von ${files.length}: ${file.name} wird im lokalen Archiv gespeichert …`;
           this.render();
 
           await this.ws({
-            type:"taracraft_3d_printer/upload/finish",
+            type:"printer_control_center/upload/finish",
             upload_id:session.upload_id,
           });
 
@@ -2596,6 +2601,76 @@
       }
     }
 
+    exportGalleryZip(map){
+      if(this._source!=="archive")return;
+      const serial=encodeURIComponent(this.serial(map));
+      this.triggerHomeAssistantDownload(`/api/printer_control_center/archive_export/${serial}`);
+      this._notice="Galerie-ZIP wird erstellt und heruntergeladen.";
+      this.render();
+    }
+
+    async importGalleryZip(map,file){
+      if(!file||this._uploadActive)return;
+      if(this._source!=="archive"){
+        this._error="Galerie-ZIP-Import ist nur im lokalen Archiv verfügbar.";
+        this.render();
+        return;
+      }
+      if(!String(file.name||"").toLowerCase().endsWith(".zip")){
+        this._error="Bitte eine ZIP-Datei auswählen.";
+        this.render();
+        return;
+      }
+      const overwrite=window.confirm(tr("Vorhandene Galerie-Dateien überschreiben?"));
+      this._uploadActive=true;
+      this._zipImportActive=true;
+      this._uploadProgress=0;
+      this._uploadLabel=`Galerie-ZIP ${file.name} wird vorbereitet …`;
+      this._error="";
+      this.render();
+      try{
+        const session=await this.ws({
+          type:"printer_control_center/upload/start",
+          serial:this.serial(map),
+          source:"archive_zip",
+          filename:file.name,
+          folder:"",
+          size:file.size,
+          overwrite,
+        });
+        const chunkBytes=Number(session.chunk_bytes||131072);
+        let offset=0;
+        while(offset<file.size){
+          const slice=file.slice(offset,Math.min(offset+chunkBytes,file.size));
+          const payload=arrayBufferToBase64(await slice.arrayBuffer());
+          const result=await this.ws({
+            type:"printer_control_center/upload/chunk",
+            upload_id:session.upload_id,
+            content_base64:payload,
+          });
+          offset=Number(result.received||offset+slice.size);
+          this._uploadProgress=file.size?Math.min(96,Math.round((offset/file.size)*96)):0;
+          this._uploadLabel=`Galerie-ZIP ${file.name} · ${bytesLabel(offset)} von ${bytesLabel(file.size)}`;
+          this.render();
+        }
+        const result=await this.ws({
+          type:"printer_control_center/upload/finish",
+          upload_id:session.upload_id,
+        });
+        this._uploadProgress=100;
+        this._notice=`ZIP-Import erfolgreich: ${Number(result.imported||0)} Modelle · ${Number(result.folders||0)} Ordner · ${Number(result.overwritten||0)} überschrieben.`;
+        await this.load(map,true);
+      }catch(error){
+        this._error=`Galerie-ZIP konnte nicht importiert werden: ${String(error?.message||error)}`;
+      }finally{
+        this._uploadActive=false;
+        this._zipImportActive=false;
+        this._uploadProgress=0;
+        this._uploadLabel="";
+        this.render();
+      }
+    }
+
     triggerHomeAssistantDownload(url,filename=""){
       const link=document.createElement("a");
       link.href=url;
@@ -2627,7 +2702,7 @@
       try{
         const serial=this.serial(map);
         const data=await this.ws({
-          type:"taracraft_3d_printer/studio/link",
+          type:"printer_control_center/studio/link",
           serial,
           source,
           path,
@@ -2669,7 +2744,7 @@
       if(type==="move"||type==="bulk-move"){
         try{
           const data=await this.ws({
-            type:`taracraft_3d_printer/${this._source}/tree`,
+            type:`printer_control_center/${this._source}/tree`,
             serial:this.serial(map),
           });
           this._folders=data.folders||[];
@@ -2707,8 +2782,8 @@
       const source=this._source;
       const folder=String(targetFolder||"");
       const data=source==="sd"
-        ? await this.ws({type:"taracraft_3d_printer/sd/list",serial,folder:folder||"/",force:true})
-        : await this.ws({type:"taracraft_3d_printer/archive/list",serial,folder});
+        ? await this.ws({type:"printer_control_center/sd/list",serial,folder:folder||"/",force:true})
+        : await this.ws({type:"printer_control_center/archive/list",serial,folder});
       const existing=new Map((data.items||[]).map((entry)=>[String(entry.name||""),entry]));
       return (items||[]).filter((current)=>{
         const hit=existing.get(String(current?.name||""));
@@ -2739,7 +2814,7 @@
           const name=String(dialog.value??this.overlayRoot()?.querySelector("#tc-dialog-value")?.value??"").trim();
           if(!name)return;
           await this.ws({
-            type:`taracraft_3d_printer/${this._source}/create_folder`,
+            type:`printer_control_center/${this._source}/create_folder`,
             serial,
             folder:this._folder,
             name,
@@ -2750,7 +2825,7 @@
           const new_name=String(dialog.value??this.overlayRoot()?.querySelector("#tc-dialog-value")?.value??"").trim();
           if(!new_name||new_name===dialog.item?.name)return;
           await this.ws({
-            type:`taracraft_3d_printer/${this._source}/rename`,
+            type:`printer_control_center/${this._source}/rename`,
             serial,
             path:dialog.item.path,
             new_name,
@@ -2766,7 +2841,7 @@
             }
           }
           await this.ws({
-            type:`taracraft_3d_printer/${this._source}/move`,
+            type:`printer_control_center/${this._source}/move`,
             serial,
             path:dialog.item.path,
             target_folder:dialog.target_folder||"",
@@ -2776,7 +2851,7 @@
 
         if(dialog.type==="delete"){
           await this.ws({
-            type:`taracraft_3d_printer/${this._source}/delete`,
+            type:`printer_control_center/${this._source}/delete`,
             serial,
             path:dialog.item.path,
           });
@@ -2795,7 +2870,7 @@
           for(const current of items){
             try{
               await this.ws({
-                type:`taracraft_3d_printer/${this._source}/move`,
+                type:`printer_control_center/${this._source}/move`,
                 serial,
                 path:current.path,
                 target_folder:dialog.target_folder||"",
@@ -2816,7 +2891,7 @@
           const items=[...(dialog.items||[])].sort((a,b)=>String(b.path||"").split("/").length-String(a.path||"").split("/").length);
           for(const current of items){
             await this.ws({
-              type:`taracraft_3d_printer/${this._source}/delete`,
+              type:`printer_control_center/${this._source}/delete`,
               serial,
               path:current.path,
             });
@@ -2826,7 +2901,7 @@
 
         if(dialog.type==="plan"){
           await this.ws({
-            type:"taracraft_3d_printer/queue/add",
+            type:"printer_control_center/queue/add",
             serial,
             source:this._source,
             path:dialog.item.path,
@@ -2964,7 +3039,7 @@
     async projectLink(map,source,path,mode="download"){
       try{
         const data=await this.ws({
-          type:"taracraft_3d_printer/project/link",
+          type:"printer_control_center/project/link",
           serial:this.serial(map),
           source,
           path,
@@ -3369,7 +3444,7 @@
     ensurePortal(){
       if(this._portal?.isConnected)return this._portal;
       const portal=document.createElement("div");
-      portal.setAttribute("data-taracraft-overlay-portal","");
+      portal.setAttribute("data-printer-control-center-overlay-portal","");
       portal.style.position="fixed";
       portal.style.inset="0";
       portal.style.zIndex="2147483000";
@@ -3585,8 +3660,9 @@
 
               <div class="archive-library-header-actions">
                 <button data-bulk-action="select-all" ${visibleSelectableCount?"":"disabled"}>☑ Sichtbare auswählen</button>
-                <span class="badge" title="Kein Taracraft-Helfer erforderlich. Bambu Studio prüft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.">HA-only · Original-3MF an Bambu Studio</span>
+                <span class="badge" title="Kein Zusatzhelfer erforderlich. Bambu Studio prüft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.">HA-only · Original-3MF an Bambu Studio</span>
                 <button class="primary" data-action="choose-upload">⬆ 3MF hochladen</button>
+                ${this._source==="archive"?`<button data-action="gallery-export">⇩ Galerie-ZIP exportieren</button><button data-action="choose-zip-import">⇧ Galerie-ZIP importieren</button>`:""}
                 <button data-action="template-refresh" title="Dateimanager / Galerie aktualisieren">↻ Aktualisieren</button>
               </div>
             </div>
@@ -3626,12 +3702,13 @@
             </div>
 
             <input id="tc-upload" class="visually-hidden" type="file" accept=".3mf" multiple>
+            <input id="pcc-zip-import" class="visually-hidden" type="file" accept=".zip">
             ${selectedCountForUpload||this._uploadActive?`
               <div class="archive-upload ${selectedCountForUpload?"has-selection":"is-idle"}">
                 <div class="archive-upload-file">
                   <strong>${selectedCountForUpload
                     ? `${selectedCountForUpload} Datei(en) für den Upload ausgewählt`
-                    : `Upload-Ziel: ${this._source==="sd"?"SD-Karte des Druckers":"Taracraft-Archiv"}`
+                    : `Upload-Ziel: ${this._source==="sd"?"SD-Karte des Druckers":"Lokales Archiv"}`
                   }</strong>
                   <small>${selectedCountForUpload
                     ? `${esc(bytesLabel(selectedBytes))} · ${esc(selectedNames.slice(0,3).join(", "))}${selectedNames.length>3?` · +${selectedNames.length-3} weitere`:""}`
@@ -3665,7 +3742,7 @@
 
             <div class="archive-library-body">
               <aside class="archive-library-sidebar">
-                <div class="archive-library-sidebar-title"><strong>Ordner</strong><small>${this._source==="sd"?"SD-Karte":"Taracraft-Archiv"}</small></div>
+                <div class="archive-library-sidebar-title"><strong>Ordner</strong><small>${this._source==="sd"?"SD-Karte":"Lokales Archiv"}</small></div>
                 <nav class="archive-library-tree">${this.folderTreeHtml()}</nav>
               </aside>
 
@@ -3778,6 +3855,13 @@
         this.render();
       });
       this.shadowRoot.querySelector("[data-action='upload-selected']")?.addEventListener("click",()=>this.upload(map));
+      const zipChooser=this.shadowRoot.querySelector("#pcc-zip-import");
+      this.shadowRoot.querySelector("[data-action='gallery-export']")?.addEventListener("click",()=>this.exportGalleryZip(map));
+      this.shadowRoot.querySelector("[data-action='choose-zip-import']")?.addEventListener("click",()=>zipChooser?.click());
+      zipChooser?.addEventListener("change",()=>{
+        const file=zipChooser.files?.[0]||null;
+        if(file)this.importGalleryZip(map,file);
+      });
 
       this.shadowRoot.querySelectorAll("[data-preview-path]").forEach((button)=>button.addEventListener("click",(event)=>{
         const item=(this._items||[]).find((entry)=>entry.path===button.dataset.previewPath)||null;
@@ -3897,7 +3981,7 @@
       this._queueError="";
       this.render();
       try{
-        const data=await this.ws({type:"taracraft_3d_printer/queue/list",serial:this.serial(map)});
+        const data=await this.ws({type:"printer_control_center/queue/list",serial:this.serial(map)});
         this._queue=data.items||[];
       }catch(error){
         this._queueError=`Warteschlange konnte nicht geladen werden: ${String(error?.message||error)}`;
@@ -3914,8 +3998,8 @@
       try{
         const serial=this.serial(map);
         const data=this._pickerSource==="sd"
-          ? await this.ws({type:"taracraft_3d_printer/sd/list",serial,folder:this._pickerFolder||"/",force:Boolean(force)})
-          : await this.ws({type:"taracraft_3d_printer/archive/list",serial,folder:this._pickerFolder||""});
+          ? await this.ws({type:"printer_control_center/sd/list",serial,folder:this._pickerFolder||"/",force:Boolean(force)})
+          : await this.ws({type:"printer_control_center/archive/list",serial,folder:this._pickerFolder||""});
         this._pickerItems=(data.items||[]).filter((item)=>item.kind==="folder"||String(item.name||"").toLowerCase().endsWith(".3mf"));
         this._pickerFolder=data.folder||"";
         this._pickerParent=data.parent||"";
@@ -3960,7 +4044,7 @@
       try{
         for(const item of models){
           await this.ws({
-            type:"taracraft_3d_printer/queue/add",
+            type:"printer_control_center/queue/add",
             serial:this.serial(map),
             source:item.source,
             path:item.path,
@@ -3982,7 +4066,7 @@
 
     async updateItem(map,item,patch,{toast="",toastAnchor=null}={}){
       try{
-        await this.ws({type:"taracraft_3d_printer/queue/update",serial:this.serial(map),queue_id:item.id,...patch});
+        await this.ws({type:"printer_control_center/queue/update",serial:this.serial(map),queue_id:item.id,...patch});
         await this.loadQueue(map);
         if(toast)this.showQueueToast(toast,toastAnchor);
       }catch(error){
@@ -3993,7 +4077,7 @@
 
     async deleteItem(map,item){
       try{
-        await this.ws({type:"taracraft_3d_printer/queue/delete",serial:this.serial(map),queue_id:item.id});
+        await this.ws({type:"printer_control_center/queue/delete",serial:this.serial(map),queue_id:item.id});
         await this.loadQueue(map);
       }catch(error){
         this._queueError=`Warteschlangen-Eintrag konnte nicht entfernt werden: ${String(error?.message||error)}`;
@@ -4003,7 +4087,7 @@
 
     async moveItem(map,item,direction){
       try{
-        await this.ws({type:"taracraft_3d_printer/queue/move",serial:this.serial(map),queue_id:item.id,direction});
+        await this.ws({type:"printer_control_center/queue/move",serial:this.serial(map),queue_id:item.id,direction});
         await this.loadQueue(map);
       }catch(error){
         this._queueError=`Reihenfolge konnte nicht geändert werden: ${String(error?.message||error)}`;
@@ -4020,7 +4104,7 @@
     async openStudio(map,item){
       try{
         const data=await this.ws({
-          type:"taracraft_3d_printer/project/link",
+          type:"printer_control_center/project/link",
           serial:this.serial(map),
           source:item.source,
           path:item.path,
@@ -4038,7 +4122,7 @@
     ensurePickerPortal(){
       if(this._pickerPortal?.isConnected)return this._pickerPortal;
       const portal=document.createElement("div");
-      portal.setAttribute("data-taracraft-queue-picker-portal","");
+      portal.setAttribute("data-printer-control-center-queue-picker-portal","");
       portal.style.position="fixed";
       portal.style.inset="0";
       portal.style.zIndex="2147483001";
@@ -4076,7 +4160,7 @@
             <button data-queue-picker-close>✕</button>
           </div>
           <div class="toolbar">
-            <button class="${this._pickerSource==="archive"?"primary":""}" data-queue-picker-source="archive">Taracraft-Archiv</button>
+            <button class="${this._pickerSource==="archive"?"primary":""}" data-queue-picker-source="archive">Lokales Archiv</button>
             <button class="${this._pickerSource==="sd"?"primary":""}" data-queue-picker-source="sd">SD-Karte</button>
             <button data-queue-picker-up ${canGoUp?"":"disabled"}>↑ Eine Ebene höher</button>
             <button data-queue-picker-refresh>↻ Aktualisieren</button>
@@ -4186,7 +4270,7 @@
         : `<span class="queue-preview-fallback">📄</span>`;
       const draftQuantity=this._queueDraftQuantities.get(String(item.id));
       const shownQuantity=draftQuantity===undefined?item.quantity||1:draftQuantity;
-      return `<article class="queue-row" title="${esc(item.source==="sd"?"SD-Karte":"Taracraft-Archiv")} · ${esc(item.path)}">
+      return `<article class="queue-row" title="${esc(item.source==="sd"?"SD-Karte":"Lokales Archiv")} · ${esc(item.path)}">
         <span class="queue-position">${index+1}</span>
         <div class="queue-preview">${preview}</div>
         <div class="queue-meta">
@@ -4261,7 +4345,7 @@
       if(!this._config)return;
       this.shadowRoot.innerHTML=frame(this._config,`
         <h3>${esc(this._config.title)}</h3>
-        <p class="muted">MakerWorld-Modell suchen oder einen Modell-Link öffnen. Die 3MF-Datei kann anschließend direkt in die Taracraft-Archivkarte hochgeladen werden.</p>
+        <p class="muted">MakerWorld-Modell suchen oder einen Modell-Link öffnen. Die 3MF-Datei kann anschließend direkt in die Archivkarte hochgeladen werden.</p>
         <div class="toolbar"><input id="mw" placeholder="Suchbegriff oder MakerWorld-Link"><button id="mwgo">⌕ MakerWorld öffnen</button></div>
         <p class="notice">Kein verdeckter Direktimport über undokumentierte Community-Endpunkte. Der Workflow bleibt nachvollziehbar und veröffentlichbar.</p>
       `);
@@ -4273,7 +4357,7 @@
     }
   }
 
-  if(!customElements.get("taracraft-3d-printer-card-editor")) customElements.define("taracraft-3d-printer-card-editor",TaracraftEditor);
+  if(!customElements.get("printer-control-center-card-editor")) customElements.define("printer-control-center-card-editor",PrinterControlCenterEditor);
 
   const cards = {
     [TYPES.complete]:CompleteCard,[TYPES.brand]:BrandCard,[TYPES.header]:HeaderCard,[TYPES.progress]:ProgressCard,
@@ -4285,19 +4369,19 @@
 
   const picker = [
     [TYPES.complete,"3D-Printer Control Center · Komplettkarte","Responsive Gesamtansicht mit Kamera, Steuerung und AMS"],
-    [TYPES.media,"Taracraft · Kamera / Modellvorschau","Live-Kamera mit automatischem Vorschau- und Offline-Fallback"],
-    [TYPES.controls,"Taracraft · Steuerung","Licht, Kamera und zustandsabhängige Drucksteuerung"],
-    [TYPES.ams,"Taracraft · AMS / BMCU-370","Geladene Materialien und Farben"],
-    [TYPES.progress,"Taracraft · Druckfortschritt","Fortschritt, Layer und Restzeit"],
-    [TYPES.telemetry,"Taracraft · Telemetrie","Temperaturen und Netzwerk"],
-    [TYPES.network,"Taracraft · Netzwerkdiagnose","Transport, Scanner und IP"],
-    [TYPES.firmware,"Taracraft · Firmware","Firmwarestatus ohne Auto-Update"],
-    [TYPES.header,"Taracraft · Header und Status","Kompakter Druckerstatus"],
-    [TYPES.brand,"Taracraft · Logo und Branding","Branding-Modul"],
-    [TYPES.templates,"Taracraft · Dateimanager / Galerie","HA-only Vollbreiten-Dateimanager mit Body-Overlay, direktem Bambu-Studio-Import und SD-Karten-Verwaltung"],
-    [TYPES.queue,"Taracraft · 3D-Druck-Warteschlange","Persistente Druckplanung mit Galerie-Popup, Mehrfachauswahl, Stückzahl und Bambu-Studio-Druckübergabe"],
-    [TYPES.makerworld,"Taracraft · MakerWorld Explorer","MakerWorld-Websuche"],
-    [TYPES.frame,"Taracraft · Glow-Rahmen","Separater Glow-Rahmen"],
+    [TYPES.media,"3D-Printer Control Center · Kamera / Modellvorschau","Live-Kamera mit automatischem Vorschau- und Offline-Fallback"],
+    [TYPES.controls,"3D-Printer Control Center · Steuerung","Licht, Kamera und zustandsabhängige Drucksteuerung"],
+    [TYPES.ams,"3D-Printer Control Center · AMS / BMCU-370","Geladene Materialien und Farben"],
+    [TYPES.progress,"3D-Printer Control Center · Druckfortschritt","Fortschritt, Layer und Restzeit"],
+    [TYPES.telemetry,"3D-Printer Control Center · Telemetrie","Temperaturen und Netzwerk"],
+    [TYPES.network,"3D-Printer Control Center · Netzwerkdiagnose","Transport, Scanner und IP"],
+    [TYPES.firmware,"3D-Printer Control Center · Firmware","Firmwarestatus ohne Auto-Update"],
+    [TYPES.header,"3D-Printer Control Center · Header und Status","Kompakter Druckerstatus"],
+    [TYPES.brand,"3D-Printer Control Center · Logo und Branding","Branding-Modul"],
+    [TYPES.templates,"3D-Printer Control Center · Dateimanager / Galerie","HA-only Vollbreiten-Dateimanager mit Body-Overlay, direktem Bambu-Studio-Import und SD-Karten-Verwaltung"],
+    [TYPES.queue,"3D-Printer Control Center · 3D-Druck-Warteschlange","Persistente Druckplanung mit Galerie-Popup, Mehrfachauswahl, Stückzahl und Bambu-Studio-Druckübergabe"],
+    [TYPES.makerworld,"3D-Printer Control Center · MakerWorld Explorer","MakerWorld-Websuche"],
+    [TYPES.frame,"3D-Printer Control Center · Glow-Rahmen","Separater Glow-Rahmen"],
   ];
 
   window.customCards=window.customCards||[];
@@ -4306,6 +4390,6 @@
     const old=window.customCards.find((entry)=>entry.type===type);
     old?Object.assign(old,meta):window.customCards.push(meta);
   }
-  window.__taracraft3dPrinterCards={version:VERSION,registeredCards:picker.map(([type,name])=>({type,name}))};
-  console.info(`3D-Printer Control Center by Taracraft ${VERSION}: ${picker.length} cards registered`);
+  window.__printerControlCenterCards={version:VERSION,registeredCards:picker.map(([type,name])=>({type,name}))};
+  console.info(`3D-Printer Control Center ${VERSION}: ${picker.length} cards registered`);
 })();

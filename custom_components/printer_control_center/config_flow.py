@@ -1,4 +1,4 @@
-"""Config flow for the independent Taracraft integration."""
+"""Config flow for the 3D-Printer Control Center integration."""
 from __future__ import annotations
 
 from functools import partial
@@ -86,7 +86,7 @@ def _ams_options(configured: Any, hass_language: Any = "en") -> dict[str, str]:
     return AMS_OPTIONS if _effective_language(configured, hass_language) == "de" else AMS_OPTIONS_EN
 
 
-class TaracraftConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class PrinterControlCenterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Initial setup flow."""
 
     VERSION = 1
@@ -444,10 +444,10 @@ class TaracraftConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         """Create options flow using HA's injected self.config_entry property."""
-        return TaracraftOptionsFlow()
+        return PrinterControlCenterOptionsFlow()
 
 
-class TaracraftOptionsFlow(config_entries.OptionsFlow):
+class PrinterControlCenterOptionsFlow(config_entries.OptionsFlow):
     """Advanced settings flow."""
 
     async def async_step_init(self, user_input=None):

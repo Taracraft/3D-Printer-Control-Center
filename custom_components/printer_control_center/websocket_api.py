@@ -1,4 +1,4 @@
-"""Authenticated WebSocket commands for Taracraft file management."""
+"""Authenticated WebSocket commands for 3D-Printer Control Center file management."""
 from __future__ import annotations
 
 import base64
@@ -21,13 +21,14 @@ from .print_queue import PrintQueueRepository
 _LOGGER = logging.getLogger(__name__)
 
 _UPLOAD_MAX_BYTES = 150_000_000
+_ARCHIVE_ZIP_UPLOAD_MAX_BYTES = 1_000_000_000
 _UPLOAD_CHUNK_BYTES = 128 * 1024
 _UPLOAD_TTL_SECONDS = 30 * 60
 
 
 def _upload_root(hass: HomeAssistant) -> Path:
     """Return a portable upload staging folder below the HA config directory."""
-    root = Path(hass.config.path("taracraft_3d_printer", "uploads"))
+    root = Path(hass.config.path(DOMAIN, "uploads"))
     root.mkdir(parents=True, exist_ok=True)
     return root
 
@@ -72,15 +73,22 @@ def _new_upload(
     filename: str,
     folder: str,
     size: int,
+    overwrite: bool = False,
 ) -> dict:
-    if source not in {"archive", "sd"}:
+    if source not in {"archive", "sd", "archive_zip"}:
         raise ValueError("Unknown upload source")
-    if not filename.lower().endswith(".3mf"):
-        raise ValueError("Only .3mf uploads are accepted")
+    if source == "archive_zip":
+        if not filename.lower().endswith(".zip"):
+            raise ValueError("Only .zip gallery imports are accepted")
+        max_bytes = _ARCHIVE_ZIP_UPLOAD_MAX_BYTES
+    else:
+        if not filename.lower().endswith(".3mf"):
+            raise ValueError("Only .3mf uploads are accepted")
+        max_bytes = _UPLOAD_MAX_BYTES
     if size <= 0:
         raise ValueError("Upload is empty")
-    if size > _UPLOAD_MAX_BYTES:
-        raise ValueError("Upload exceeds 150 MB")
+    if size > max_bytes:
+        raise ValueError("Upload exceeds the allowed size")
 
     sessions = _uploads(hass)
     upload_id = secrets.token_urlsafe(18)
@@ -99,6 +107,7 @@ def _new_upload(
         "received": 0,
         "created": time.time(),
         "tmp_path": str(tmp_path),
+        "overwrite": bool(overwrite),
     }
 
     return {
@@ -168,7 +177,7 @@ def _project_link(
     filename = _slicer_filename(path.replace("\\", "/").rsplit("/", 1)[-1] or "project.3mf", suffix=".3mf")
 
     relative = (
-        f"/api/taracraft_3d_printer/public_download/"
+        f"/api/printer_control_center/public_download/"
         f"{quote(serial, safe='')}/{quote(source, safe='')}/{expires}/{token}/"
         f"{quote(_path_token(path), safe='')}/{quote(filename, safe='')}"
     )
@@ -201,7 +210,7 @@ def _studio_link(
     filename = _slicer_filename(original_filename, suffix=f".{export_format}")
 
     relative = (
-        f"/api/taracraft_3d_printer/public_download/"
+        f"/api/printer_control_center/public_download/"
         f"{quote(serial, safe='')}/{quote(model_source, safe='')}/{expires}/{token}/"
         f"{quote(_path_token(path), safe='')}/{quote(filename, safe='')}"
     )
@@ -215,7 +224,7 @@ def _studio_link(
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/archive/list",
+        vol.Required("type"): "printer_control_center/archive/list",
         vol.Required("serial"): str,
         vol.Optional("folder", default=""): str,
     }
@@ -232,7 +241,7 @@ async def websocket_archive_list(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/archive/tree",
+        vol.Required("type"): "printer_control_center/archive/tree",
         vol.Required("serial"): str,
     }
 )
@@ -245,7 +254,7 @@ async def websocket_archive_tree(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/archive/create_folder",
+        vol.Required("type"): "printer_control_center/archive/create_folder",
         vol.Required("serial"): str,
         vol.Optional("folder", default=""): str,
         vol.Required("name"): str,
@@ -264,7 +273,7 @@ async def websocket_archive_create_folder(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/archive/delete",
+        vol.Required("type"): "printer_control_center/archive/delete",
         vol.Required("serial"): str,
         vol.Required("path"): str,
     }
@@ -278,7 +287,7 @@ async def websocket_archive_delete(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/archive/rename",
+        vol.Required("type"): "printer_control_center/archive/rename",
         vol.Required("serial"): str,
         vol.Required("path"): str,
         vol.Required("new_name"): str,
@@ -297,7 +306,7 @@ async def websocket_archive_rename(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/archive/move",
+        vol.Required("type"): "printer_control_center/archive/move",
         vol.Required("serial"): str,
         vol.Required("path"): str,
         vol.Optional("target_folder", default=""): str,
@@ -318,7 +327,7 @@ async def websocket_archive_move(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/sd/list",
+        vol.Required("type"): "printer_control_center/sd/list",
         vol.Required("serial"): str,
         vol.Optional("folder", default="/"): str,
         vol.Optional("force", default=False): bool,
@@ -355,7 +364,7 @@ async def websocket_sd_list(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/sd/tree",
+        vol.Required("type"): "printer_control_center/sd/tree",
         vol.Required("serial"): str,
     }
 )
@@ -368,7 +377,7 @@ async def websocket_sd_tree(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/sd/create_folder",
+        vol.Required("type"): "printer_control_center/sd/create_folder",
         vol.Required("serial"): str,
         vol.Optional("folder", default="/"): str,
         vol.Required("name"): str,
@@ -387,7 +396,7 @@ async def websocket_sd_create_folder(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/sd/delete",
+        vol.Required("type"): "printer_control_center/sd/delete",
         vol.Required("serial"): str,
         vol.Required("path"): str,
     }
@@ -401,7 +410,7 @@ async def websocket_sd_delete(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/sd/rename",
+        vol.Required("type"): "printer_control_center/sd/rename",
         vol.Required("serial"): str,
         vol.Required("path"): str,
         vol.Required("new_name"): str,
@@ -420,7 +429,7 @@ async def websocket_sd_rename(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/sd/move",
+        vol.Required("type"): "printer_control_center/sd/move",
         vol.Required("serial"): str,
         vol.Required("path"): str,
         vol.Optional("target_folder", default="/"): str,
@@ -441,12 +450,13 @@ async def websocket_sd_move(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/upload/start",
+        vol.Required("type"): "printer_control_center/upload/start",
         vol.Required("serial"): str,
         vol.Required("source"): str,
         vol.Required("filename"): str,
         vol.Optional("folder", default=""): str,
         vol.Required("size"): int,
+        vol.Optional("overwrite", default=False): bool,
     }
 )
 @websocket_api.async_response
@@ -468,6 +478,7 @@ async def websocket_upload_start(hass, connection, msg) -> None:
             filename=msg["filename"],
             folder=msg["folder"],
             size=msg["size"],
+            overwrite=msg["overwrite"],
         )
     )
     connection.send_result(msg["id"], result)
@@ -475,7 +486,7 @@ async def websocket_upload_start(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/upload/chunk",
+        vol.Required("type"): "printer_control_center/upload/chunk",
         vol.Required("upload_id"): str,
         vol.Required("content_base64"): str,
     }
@@ -497,7 +508,7 @@ async def websocket_upload_chunk(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/upload/finish",
+        vol.Required("type"): "printer_control_center/upload/finish",
         vol.Required("upload_id"): str,
     }
 )
@@ -517,6 +528,14 @@ async def websocket_upload_finish(hass, connection, msg) -> None:
             session["filename"],
             payload,
             session["folder"],
+        )
+    elif session["source"] == "archive_zip":
+        result = await hass.async_add_executor_job(
+            partial(
+                _archive(hass).import_zip,
+                payload,
+                overwrite=bool(session.get("overwrite", False)),
+            )
         )
     else:
         result = await hass.async_add_executor_job(
@@ -539,7 +558,7 @@ async def websocket_upload_finish(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/project/link",
+        vol.Required("type"): "printer_control_center/project/link",
         vol.Required("serial"): str,
         vol.Required("source"): str,
         vol.Required("path"): str,
@@ -561,7 +580,7 @@ def websocket_project_link(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/studio/link",
+        vol.Required("type"): "printer_control_center/studio/link",
         vol.Required("serial"): str,
         vol.Required("source"): str,
         vol.Required("path"): str,
@@ -588,14 +607,14 @@ def _queue(hass: HomeAssistant) -> PrintQueueRepository:
     data = hass.data.setdefault(DOMAIN, {})
     repository = data.get("_print_queue_repository")
     if not isinstance(repository, PrintQueueRepository):
-        repository = PrintQueueRepository(Path(hass.config.path("taracraft_3d_printer", "print_queue.json")))
+        repository = PrintQueueRepository(Path(hass.config.path(DOMAIN, "print_queue.json")))
         data["_print_queue_repository"] = repository
     return repository
 
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/queue/list",
+        vol.Required("type"): "printer_control_center/queue/list",
         vol.Required("serial"): str,
     }
 )
@@ -625,7 +644,7 @@ async def websocket_queue_list(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/queue/add",
+        vol.Required("type"): "printer_control_center/queue/add",
         vol.Required("serial"): str,
         vol.Required("source"): vol.In({"archive", "sd"}),
         vol.Required("path"): str,
@@ -655,7 +674,7 @@ async def websocket_queue_add(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/queue/update",
+        vol.Required("type"): "printer_control_center/queue/update",
         vol.Required("serial"): str,
         vol.Required("queue_id"): str,
         vol.Optional("quantity"): int,
@@ -679,7 +698,7 @@ async def websocket_queue_update(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/queue/delete",
+        vol.Required("type"): "printer_control_center/queue/delete",
         vol.Required("serial"): str,
         vol.Required("queue_id"): str,
     }
@@ -695,7 +714,7 @@ async def websocket_queue_delete(hass, connection, msg) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "taracraft_3d_printer/queue/move",
+        vol.Required("type"): "printer_control_center/queue/move",
         vol.Required("serial"): str,
         vol.Required("queue_id"): str,
         vol.Required("direction"): vol.In({"up", "down"}),

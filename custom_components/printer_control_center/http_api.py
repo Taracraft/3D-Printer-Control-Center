@@ -18,7 +18,7 @@ from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
 
 from .const import CONF_ACCESS_CODE, DOMAIN
-from .coordinator import TaracraftCoordinator
+from .coordinator import PrinterControlCenterCoordinator
 from .template_browser import SdTemplateBrowser
 from .archive_browser import LocalArchiveRepository
 from .model_export import export_binary_stl, export_geometry_only_3mf
@@ -56,14 +56,14 @@ def _path_from_token(token: str) -> str:
         raise web.HTTPForbidden(text="Invalid signed path") from exc
 
 
-def _find_coordinator(hass: HomeAssistant, serial: str) -> TaracraftCoordinator:
+def _find_coordinator(hass: HomeAssistant, serial: str) -> PrinterControlCenterCoordinator:
     for value in hass.data.get(DOMAIN, {}).values():
-        if isinstance(value, TaracraftCoordinator) and value.serial == serial:
+        if isinstance(value, PrinterControlCenterCoordinator) and value.serial == serial:
             return value
-    raise web.HTTPNotFound(text="Unknown Taracraft printer")
+    raise web.HTTPNotFound(text="Unknown printer")
 
 
-def _browser(hass: HomeAssistant, coordinator: TaracraftCoordinator) -> SdTemplateBrowser:
+def _browser(hass: HomeAssistant, coordinator: PrinterControlCenterCoordinator) -> SdTemplateBrowser:
     browsers = hass.data.setdefault(DOMAIN, {}).setdefault(_DATA_BROWSERS, {})
     key = (coordinator.serial, coordinator.active_host, str(coordinator.config.get(CONF_ACCESS_CODE, "")))
 
@@ -83,7 +83,7 @@ def _archive(hass: HomeAssistant) -> LocalArchiveRepository:
     domain_data = hass.data.setdefault(DOMAIN, {})
     repository = domain_data.get(_DATA_ARCHIVE)
     if repository is None:
-        repository = LocalArchiveRepository(Path(hass.config.path("taracraft_3d_printer", "archive")))
+        repository = LocalArchiveRepository(Path(hass.config.path(DOMAIN, "archive")))
         domain_data[_DATA_ARCHIVE] = repository
     return repository
 
@@ -114,9 +114,9 @@ def _validate_upload_body(body: dict) -> tuple[str, bytes]:
     return filename, payload
 
 
-class TaracraftTemplateListView(HomeAssistantView):
-    url = "/api/taracraft_3d_printer/templates/{serial}"
-    name = "api:taracraft_3d_printer:templates"
+class PrinterControlCenterTemplateListView(HomeAssistantView):
+    url = "/api/printer_control_center/templates/{serial}"
+    name = "api:printer_control_center:templates"
     requires_auth = True
 
     async def get(self, request: web.Request, serial: str):
@@ -168,9 +168,9 @@ class TaracraftTemplateListView(HomeAssistantView):
         return self.json({"item": item, "error": ""})
 
 
-class TaracraftTemplateDownloadView(HomeAssistantView):
-    url = "/api/taracraft_3d_printer/download/{serial}"
-    name = "api:taracraft_3d_printer:download"
+class PrinterControlCenterTemplateDownloadView(HomeAssistantView):
+    url = "/api/printer_control_center/download/{serial}"
+    name = "api:printer_control_center:download"
     requires_auth = True
 
     async def get(self, request: web.Request, serial: str):
@@ -202,9 +202,9 @@ class TaracraftTemplateDownloadView(HomeAssistantView):
 
 
 
-class TaracraftArchiveView(HomeAssistantView):
-    url = "/api/taracraft_3d_printer/archive/{serial}"
-    name = "api:taracraft_3d_printer:archive"
+class PrinterControlCenterArchiveView(HomeAssistantView):
+    url = "/api/printer_control_center/archive/{serial}"
+    name = "api:printer_control_center:archive"
     requires_auth = True
 
     async def get(self, request: web.Request, serial: str):
@@ -222,9 +222,31 @@ class TaracraftArchiveView(HomeAssistantView):
         return self.json({"item": item, "error": ""})
 
 
-class TaracraftArchiveDownloadView(HomeAssistantView):
-    url = "/api/taracraft_3d_printer/archive_download/{serial}"
-    name = "api:taracraft_3d_printer:archive_download"
+class PrinterControlCenterArchiveExportView(HomeAssistantView):
+    """Download a complete gallery ZIP backup including subfolders."""
+
+    url = "/api/printer_control_center/archive_export/{serial}"
+    name = "api:printer_control_center:archive_export"
+    requires_auth = True
+
+    async def get(self, request: web.Request, serial: str):
+        hass: HomeAssistant = request.app["hass"]
+        _find_coordinator(hass, serial)
+        payload = await hass.async_add_executor_job(_archive(hass).export_zip)
+        filename = f"3d-printer-control-center-gallery-{int(time.time())}.zip"
+        return web.Response(
+            body=payload,
+            content_type="application/zip",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Cache-Control": "no-store",
+            },
+        )
+
+
+class PrinterControlCenterArchiveDownloadView(HomeAssistantView):
+    url = "/api/printer_control_center/archive_download/{serial}"
+    name = "api:printer_control_center:archive_download"
     requires_auth = True
 
     async def get(self, request: web.Request, serial: str):
@@ -242,9 +264,9 @@ class TaracraftArchiveDownloadView(HomeAssistantView):
         )
 
 
-class TaracraftStudioLinkView(HomeAssistantView):
-    url = "/api/taracraft_3d_printer/studio_link/{serial}"
-    name = "api:taracraft_3d_printer:studio_link"
+class PrinterControlCenterStudioLinkView(HomeAssistantView):
+    url = "/api/printer_control_center/studio_link/{serial}"
+    name = "api:printer_control_center:studio_link"
     requires_auth = True
 
     async def post(self, request: web.Request, serial: str):
@@ -269,7 +291,7 @@ class TaracraftStudioLinkView(HomeAssistantView):
             else _slicer_filename(original_name, suffix=".stl")
         )
         relative = (
-            f"/api/taracraft_3d_printer/public_download/"
+            f"/api/printer_control_center/public_download/"
             f"{quote(serial, safe='')}/{quote(model_source, safe='')}/{expires}/{token}/"
             f"{quote(_path_token(path), safe='')}/{quote(filename, safe='')}"
         )
@@ -285,11 +307,11 @@ class TaracraftStudioLinkView(HomeAssistantView):
         )
 
 
-class TaracraftSignedDownloadView(HomeAssistantView):
+class PrinterControlCenterSignedDownloadView(HomeAssistantView):
     # Keep every parameter before filename: Bambu Studio expects the complete URI
     # supplied through bambustudio://open?file=... to end visibly in .3mf.
-    url = "/api/taracraft_3d_printer/public_download/{serial}/{source}/{expires}/{token}/{path_token}/{filename}"
-    name = "api:taracraft_3d_printer:public_download"
+    url = "/api/printer_control_center/public_download/{serial}/{source}/{expires}/{token}/{path_token}/{filename}"
+    name = "api:printer_control_center:public_download"
     requires_auth = False
 
     async def get(
@@ -343,7 +365,7 @@ class TaracraftSignedDownloadView(HomeAssistantView):
                 partial(
                     export_geometry_only_3mf,
                     payload,
-                    label=f"Taracraft {PurePosixPath(original_filename).stem}",
+                    label=f"3D-Printer Control Center {PurePosixPath(original_filename).stem}",
                 )
             )
         elif model_only_stl:
@@ -351,7 +373,7 @@ class TaracraftSignedDownloadView(HomeAssistantView):
                 partial(
                     export_binary_stl,
                     payload,
-                    label=f"Taracraft {PurePosixPath(original_filename).stem}",
+                    label=f"3D-Printer Control Center {PurePosixPath(original_filename).stem}",
                 )
             )
 
@@ -378,10 +400,11 @@ async def async_register_http_views(hass: HomeAssistant) -> None:
     if domain_data.get(_DATA_HTTP_REGISTERED):
         return
 
-    hass.http.register_view(TaracraftTemplateListView())
-    hass.http.register_view(TaracraftTemplateDownloadView())
-    hass.http.register_view(TaracraftArchiveView())
-    hass.http.register_view(TaracraftArchiveDownloadView())
-    hass.http.register_view(TaracraftStudioLinkView())
-    hass.http.register_view(TaracraftSignedDownloadView())
+    hass.http.register_view(PrinterControlCenterTemplateListView())
+    hass.http.register_view(PrinterControlCenterTemplateDownloadView())
+    hass.http.register_view(PrinterControlCenterArchiveView())
+    hass.http.register_view(PrinterControlCenterArchiveDownloadView())
+    hass.http.register_view(PrinterControlCenterArchiveExportView())
+    hass.http.register_view(PrinterControlCenterStudioLinkView())
+    hass.http.register_view(PrinterControlCenterSignedDownloadView())
     domain_data[_DATA_HTTP_REGISTERED] = True

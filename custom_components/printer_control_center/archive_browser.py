@@ -1,9 +1,10 @@
-"""Local 3MF file manager used by the Taracraft dashboard card."""
+"""Local 3MF file manager for the 3D-Printer Control Center dashboard."""
 from __future__ import annotations
 
 from dataclasses import dataclass
 from io import BytesIO
 import base64
+import json
 from pathlib import Path, PurePosixPath
 import re
 import shutil
@@ -12,6 +13,9 @@ import zipfile
 
 _MAX_BYTES = 150_000_000
 _PREVIEW_MAX_BYTES = 600_000
+_ARCHIVE_ZIP_MAX_BYTES = 1_000_000_000
+_ARCHIVE_ZIP_MAX_FILES = 5_000
+_EXPORT_METADATA_FILENAME = "_printer_control_center_export.json"
 
 
 def _clean_segment(value: str, *, require_3mf: bool = False) -> str:
@@ -280,6 +284,113 @@ class LocalArchiveRepository:
             "name": destination.name,
             "path": destination.relative_to(self.root).as_posix(),
         }
+
+
+    def export_zip(self) -> bytes:
+        """Return a ZIP backup with the complete gallery folder structure."""
+        buffer = BytesIO()
+        metadata = {
+            "format": "printer-control-center-gallery",
+            "version": 1,
+            "stats": self.stats(),
+        }
+        with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for path in sorted(
+                (item for item in self.root.rglob("*") if item.is_dir()),
+                key=lambda item: item.relative_to(self.root).as_posix().lower(),
+            ):
+                relative = path.relative_to(self.root).as_posix().rstrip("/") + "/"
+                archive.writestr(relative, b"")
+            for path in sorted(
+                (item for item in self.root.rglob("*") if item.is_file() and item.name.lower().endswith(".3mf")),
+                key=lambda item: item.relative_to(self.root).as_posix().lower(),
+            ):
+                archive.write(path, arcname=path.relative_to(self.root).as_posix())
+            archive.writestr(
+                _EXPORT_METADATA_FILENAME,
+                json.dumps(metadata, ensure_ascii=False, indent=2).encode("utf-8"),
+            )
+        return buffer.getvalue()
+
+    def inspect_import_zip(self, payload: bytes) -> dict[str, Any]:
+        """Validate a gallery ZIP and return an import summary."""
+        if not payload:
+            raise ValueError("ZIP import is empty")
+        if len(payload) > _ARCHIVE_ZIP_MAX_BYTES:
+            raise ValueError("ZIP import exceeds 1 GB")
+        files: list[str] = []
+        folders: set[str] = set()
+        conflicts: list[str] = []
+        total_bytes = 0
+        try:
+            archive = zipfile.ZipFile(BytesIO(payload))
+        except zipfile.BadZipFile as exc:
+            raise ValueError("Invalid ZIP archive") from exc
+        with archive:
+            for info in archive.infolist():
+                raw_name = str(info.filename or "").replace("\\", "/")
+                if not raw_name or raw_name == _EXPORT_METADATA_FILENAME:
+                    continue
+                relative = _safe_relative(raw_name.rstrip("/"), allow_root=False)
+                target = _real_path(self.root, relative)
+                is_directory = info.is_dir() or raw_name.endswith("/")
+                if is_directory:
+                    folders.add(relative.as_posix())
+                    continue
+                if not raw_name.lower().endswith(".3mf"):
+                    raise ValueError(f"Unsupported file in ZIP: {raw_name}")
+                if info.file_size < 0:
+                    raise ValueError(f"Invalid ZIP entry size: {raw_name}")
+                total_bytes += int(info.file_size)
+                if total_bytes > _ARCHIVE_ZIP_MAX_BYTES:
+                    raise ValueError("Expanded ZIP import exceeds 1 GB")
+                files.append(relative.as_posix())
+                folders.update(parent.as_posix() for parent in relative.parents if parent != PurePosixPath("."))
+                if target.exists():
+                    conflicts.append(relative.as_posix())
+                if len(files) > _ARCHIVE_ZIP_MAX_FILES:
+                    raise ValueError("ZIP import contains more than 5000 models")
+        return {
+            "files": len(files),
+            "folders": len(folders),
+            "bytes": total_bytes,
+            "conflicts": conflicts,
+        }
+
+    def import_zip(self, payload: bytes, *, overwrite: bool = False) -> dict[str, Any]:
+        """Import a validated gallery ZIP while preserving its folder tree."""
+        summary = self.inspect_import_zip(payload)
+        conflicts = list(summary.get("conflicts", []))
+        if conflicts and not overwrite:
+            raise FileExistsError(
+                "ZIP import contains existing files. Confirm overwrite and retry."
+            )
+        imported = 0
+        created_folders: set[str] = set()
+        with zipfile.ZipFile(BytesIO(payload)) as archive:
+            for info in archive.infolist():
+                raw_name = str(info.filename or "").replace("\\", "/")
+                if not raw_name or raw_name == _EXPORT_METADATA_FILENAME:
+                    continue
+                relative = _safe_relative(raw_name.rstrip("/"), allow_root=False)
+                target = _real_path(self.root, relative)
+                is_directory = info.is_dir() or raw_name.endswith("/")
+                if is_directory:
+                    target.mkdir(parents=True, exist_ok=True)
+                    created_folders.add(relative.as_posix())
+                    continue
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if target.exists() and not overwrite:
+                    raise FileExistsError(relative.as_posix())
+                target.write_bytes(archive.read(info))
+                imported += 1
+        result = dict(summary)
+        result.update({
+            "imported": imported,
+            "created_folders": len(created_folders),
+            "overwritten": len(conflicts) if overwrite else 0,
+        })
+        return result
 
     def preview(self, path: str) -> str:
         """Return the embedded preview for one archived 3MF project."""

@@ -5,7 +5,7 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from .entity import TaracraftPrinterEntity
+from .entity import PrinterControlCenterPrinterEntity
 
 from .const import (
     CONF_SERIAL,
@@ -13,24 +13,24 @@ from .const import (
     DOMAIN,
     EVENT_MANUAL_FIRMWARE_UPDATE_REQUESTED,
 )
-from .coordinator import TaracraftCoordinator
+from .coordinator import PrinterControlCenterCoordinator
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
     entities = [
-        TaracraftNetworkScanButton(coordinator, entry),
-        TaracraftCommandButton(coordinator, entry, "refresh", "Refresh data", {"pushing": {"sequence_id": "0", "command": "pushall", "version": 1, "push_target": 1}}),
-        TaracraftCommandButton(coordinator, entry, "pause", "Pause printing", {"print": {"sequence_id": "0", "command": "pause"}}),
-        TaracraftCommandButton(coordinator, entry, "resume", "Resume printing", {"print": {"sequence_id": "0", "command": "resume"}}),
-        TaracraftCommandButton(coordinator, entry, "stop", "Stop printing", {"print": {"sequence_id": "0", "command": "stop"}}),
+        PrinterControlCenterNetworkScanButton(coordinator, entry),
+        PrinterControlCenterCommandButton(coordinator, entry, "refresh", "Refresh data", {"pushing": {"sequence_id": "0", "command": "pushall", "version": 1, "push_target": 1}}),
+        PrinterControlCenterCommandButton(coordinator, entry, "pause", "Pause printing", {"print": {"sequence_id": "0", "command": "pause"}}),
+        PrinterControlCenterCommandButton(coordinator, entry, "resume", "Resume printing", {"print": {"sequence_id": "0", "command": "resume"}}),
+        PrinterControlCenterCommandButton(coordinator, entry, "stop", "Stop printing", {"print": {"sequence_id": "0", "command": "stop"}}),
     ]
     if bool({**entry.data, **entry.options}.get(CONF_SHOW_MANUAL_FW_BUTTON, False)):
-        entities.append(TaracraftManualFirmwareRequestButton(coordinator, entry))
+        entities.append(PrinterControlCenterManualFirmwareRequestButton(coordinator, entry))
     async_add_entities(entities)
 
 
-class TaracraftCommandButton(TaracraftPrinterEntity, ButtonEntity):
+class PrinterControlCenterCommandButton(PrinterControlCenterPrinterEntity, ButtonEntity):
     _attr_has_entity_name = True
 
     def __init__(self, coordinator, entry, key, name, payload) -> None:
@@ -43,7 +43,7 @@ class TaracraftCommandButton(TaracraftPrinterEntity, ButtonEntity):
         await self.hass.async_add_executor_job(self.coordinator.publish, self.payload)
 
 
-class TaracraftManualFirmwareRequestButton(TaracraftPrinterEntity, ButtonEntity):
+class PrinterControlCenterManualFirmwareRequestButton(PrinterControlCenterPrinterEntity, ButtonEntity):
     _attr_has_entity_name = True
     _attr_name = "Request manual firmware update"
 
@@ -71,7 +71,7 @@ class TaracraftManualFirmwareRequestButton(TaracraftPrinterEntity, ButtonEntity)
 
 
 
-class TaracraftNetworkScanButton(TaracraftPrinterEntity, ButtonEntity):
+class PrinterControlCenterNetworkScanButton(PrinterControlCenterPrinterEntity, ButtonEntity):
     _attr_name = "Scan network endpoints"
 
     def __init__(self, coordinator, entry) -> None:

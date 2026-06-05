@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Automatic network discovery is a known limitation in routed VLAN, VPN and broadcast-restricted environments. Please test a manual printer IP first under **Settings → Devices & services → Taracraft → Configure**.
+        Automatic network discovery is a known limitation in routed VLAN, VPN and broadcast-restricted environments. Please test a manual printer IP first under **Settings → Devices & services → PrinterControlCenter → Configure**.
   - type: input
     id: printer
     attributes:

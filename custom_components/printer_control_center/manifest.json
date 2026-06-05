@@ -1,6 +1,6 @@
 {
-  "domain": "taracraft_3d_printer",
-  "name": "3D-Printer Control Center by Taracraft",
+  "domain": "printer_control_center",
+  "name": "3D-Printer Control Center",
   "codeowners": [
     "@Taracraft"
   ],
@@ -15,5 +15,5 @@
   "requirements": [
     "paho-mqtt==2.1.0"
   ],
-  "version": "1.0.0"
+  "version": "2.0.0"
 }

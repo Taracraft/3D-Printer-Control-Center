@@ -1,57 +1,56 @@
-# Taracraft 3D-Printer Control Center for Home Assistant
+# 3D-Printer Control Center for Home Assistant
 
-[Deutsche Dokumentation](README.de.md) · [Changelog](CHANGELOG.md) · [Setup guide](docs/SETUP.md) · [Known issues](docs/KNOWN_ISSUES.md) · [Privacy and security](docs/PRIVACY.md)
+[Deutsche Dokumentation](README.de.md) · [Changelog](CHANGELOG.md) · [Setup guide](docs/SETUP.md) · [Migration](docs/MIGRATION.md) · [Privacy and security](docs/PRIVACY.md)
 
-A local-first Home Assistant custom integration for Bambu Lab 3D printers. It provides MQTT telemetry, native camera support where available, responsive Lovelace cards, a local 3MF archive, SD-card file management and a persistent print-planning queue.
+A local-first Home Assistant custom integration for compatible Bambu Lab 3D printers. It provides MQTT telemetry, native camera support where available, responsive Lovelace cards, a local 3MF archive, SD-card file management and a persistent print-planning queue.
 
 ## Highlights
 
 - HACS-compatible repository structure
+- visible product name: **3D-Printer Control Center**
+- internal Home Assistant domain: `printer_control_center`
 - LAN-only, Cloud-only and Hybrid setup modes
-- manual printer IP address with priority over optional automatic discovery
+- manual printer IP with priority over optional automatic discovery
 - German and English setup translations
-- dashboard language selection: `Automatic`, `Deutsch`, `English`
-- model-neutral setup using printer IP address, serial number and LAN access code
-- native Home Assistant camera entity where the printer exposes the compatible camera protocol
+- selectable dashboard language: `Automatic`, `Deutsch`, `English`
+- native Home Assistant camera entity where the compatible camera protocol is available
 - responsive Lovelace cards including **File manager / gallery** and **3D print queue**
-- local 3MF archive below the active Home Assistant configuration directory
+- local 3MF archive with ZIP export and ZIP import preserving folder structure
 - SD-card access through printer FTPS where supported
 - direct Bambu Studio handoff using unchanged original 3MF files
 - no Windows helper, bridge service, external proxy or extra container
-- no automatic printer firmware updates
-
-## Compatibility
-
-Version `1.0.0` was practically tested with a Bambu Lab A1 environment. Other Bambu Lab printers can be configured with a manual IP address, serial number and LAN access code. Feature availability depends on the protocols exposed by the printer firmware.
 
 ## Install through HACS
 
-Until the repository is available in the default HACS catalog:
+1. Add this repository to HACS as a custom **Integration** repository.
+2. Install **3D-Printer Control Center**.
+3. Restart Home Assistant.
+4. Add the integration under **Settings → Devices & services**.
+5. Add the desired dashboard cards from the card picker.
 
-1. Open HACS.
-2. Open the menu and choose **Custom repositories**.
-3. Add `https://github.com/Taracraft/3D-Printer-Control-Center`.
-4. Select **Integration**.
-5. Install **Taracraft 3D-Printer Control Center**.
-6. Restart Home Assistant.
-7. Add the integration under **Settings → Devices & services**.
+Repository:
 
-## LAN setup and device code
+```text
+https://github.com/Taracraft/3D-Printer-Control-Center
+```
 
-A manual printer IP address is recommended. Automatic discovery remains available as an optional fallback.
+## Back up and restore the gallery
 
-To find the LAN access code, open **Settings → LAN Only** on the printer. Depending on printer model and firmware, the page may be below **WLAN** or **Network**. Enable LAN Only mode and use the displayed IP address and access code. Do not use a six-digit account PIN.
+The local archive in **File manager / gallery** provides two buttons:
 
-## Language selection
+```text
+Export gallery ZIP
+Import gallery ZIP
+```
 
-During setup choose `Automatic / Automatisch (Home Assistant)`, `Deutsch` or `English`. The choice can later be changed in the integration options.
+The export contains every 3MF model and the complete folder structure. The import asks before overwriting existing files.
 
 ## Persistent data
 
 ```text
-<HA config>/taracraft_3d_printer/archive/
-<HA config>/taracraft_3d_printer/uploads/
-<HA config>/taracraft_3d_printer/print_queue.json
+<HA config>/printer_control_center/archive/
+<HA config>/printer_control_center/uploads/
+<HA config>/printer_control_center/print_queue.json
 ```
 
 ## Planned features
@@ -61,10 +60,6 @@ During setup choose `Automatic / Automatisch (Home Assistant)`, `Deutsch` or `En
 - project management with pictures, documentation and additional materials
 - MakerWorld import
 
-## Security notes
+## Security
 
-Never post LAN access codes, Cloud tokens or unredacted diagnostics in public issues. Bambu Studio intentionally displays an origin warning for self-hosted download URLs; the integration does not bypass that security check.
-
-## Support
-
-Use the [GitHub issue tracker](https://github.com/Taracraft/3D-Printer-Control-Center/issues) and remove credentials and personal data before posting logs.
+Never post LAN access codes, Cloud tokens or unredacted diagnostics in public issues.

@@ -6,9 +6,9 @@
 2. Open the menu and select **Custom repositories**.
 3. Add `https://github.com/Taracraft/3D-Printer-Control-Center`.
 4. Select **Integration**.
-5. Install **Taracraft 3D-Printer Control Center**.
+5. Install **PrinterControlCenter 3D-Printer Control Center**.
 6. Restart Home Assistant.
-7. Open **Settings → Devices & services → Add integration** and search for `Taracraft`.
+7. Open **Settings → Devices & services → Add integration** and search for `PrinterControlCenter`.
 
 ## Recommended LAN setup
 

@@ -1,4 +1,4 @@
-"""Persistent print planning queue for the Taracraft dashboard."""
+"""Persistent print planning queue for the 3D-Printer Control Center dashboard."""
 from __future__ import annotations
 
 from copy import deepcopy

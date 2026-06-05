@@ -1,10 +1,10 @@
 {
-  "title": "3D-Printer Control Center by Taracraft",
+  "title": "3D-Printer Control Center by 3D-Printer Control Center",
   "config": {
     "step": {
       "user": {
         "title": "Connection mode and language",
-        "description": "Choose how the printer is connected and which language the Taracraft dashboard cards should use. Automatic language follows the Home Assistant UI language.",
+        "description": "Choose how the printer is connected and which language the 3D-Printer Control Center dashboard cards should use. Automatic language follows the Home Assistant UI language.",
         "data": {
           "connection_mode": "Connection mode",
           "ui_language": "Dashboard language"

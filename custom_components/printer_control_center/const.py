@@ -1,7 +1,7 @@
-"""Constants for 3D-Printer Control Center by Taracraft."""
-DOMAIN = "taracraft_3d_printer"
-NAME = "3D-Printer Control Center by Taracraft"
-VERSION = "1.0.0"
+"""Constants for 3D-Printer Control Center."""
+DOMAIN = "printer_control_center"
+NAME = "3D-Printer Control Center"
+VERSION = "2.0.0"
 
 PLATFORMS = ["sensor", "binary_sensor", "light", "button", "select", "switch", "camera"]
 
@@ -68,7 +68,7 @@ AMS_OPTIONS_EN = {
 }
 
 EVENT_MANUAL_FIRMWARE_UPDATE_REQUESTED = (
-    "taracraft_3d_printer_manual_firmware_update_requested"
+    "printer_control_center_manual_firmware_update_requested"
 )
 
 
@@ -101,7 +101,7 @@ SERVICE_SCAN_NETWORK = "scan_network"
 
 
 FRONTEND_URL_BASE = f"/{DOMAIN}"
-FRONTEND_JS_FILENAME = "taracraft-3d-printer-cards.js"
+FRONTEND_JS_FILENAME = "printer-control-center-cards.js"
 FRONTEND_JS_PATH = f"{FRONTEND_URL_BASE}/{FRONTEND_JS_FILENAME}"
 FRONTEND_JS_URL = f"{FRONTEND_JS_PATH}?v={VERSION}"
 FRONTEND_LOGO_PATH = f"{FRONTEND_URL_BASE}/logo-3d-printer-control-center.png"

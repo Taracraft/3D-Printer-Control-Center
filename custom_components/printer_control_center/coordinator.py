@@ -1,4 +1,4 @@
-"""Coordinator for the independent Taracraft printer integration."""
+"""Coordinator for the 3D-Printer Control Center printer integration."""
 from __future__ import annotations
 
 from functools import partial
@@ -45,14 +45,14 @@ from .camera_native import NativePrinterCameraClient
 _LOGGER = logging.getLogger(__name__)
 
 
-class TaracraftCoordinator(DataUpdateCoordinator[PrinterSnapshot]):
+class PrinterControlCenterCoordinator(DataUpdateCoordinator[PrinterSnapshot]):
     """MQTT, telemetry and endpoint discovery coordinator."""
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         super().__init__(
             hass,
             _LOGGER,
-            name=f"Taracraft 3D Printer {entry.data[CONF_SERIAL]}",
+            name=f"3D-Printer Control Center {entry.data[CONF_SERIAL]}",
         )
         self.entry = entry
         self.config = {**entry.data, **entry.options}

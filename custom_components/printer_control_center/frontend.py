@@ -27,8 +27,8 @@ _DATA_RESOURCE_REGISTERED = "_frontend_resource_registered"
 _MAX_RETRIES = 48
 
 
-class TaracraftFrontendRegistration:
-    """Register bundled Taracraft cards as a Lovelace module."""
+class PrinterControlCenterFrontendRegistration:
+    """Register bundled 3D-Printer Control Center cards as a Lovelace module."""
 
     def __init__(self, hass: HomeAssistant) -> None:
         self.hass = hass
@@ -73,10 +73,10 @@ class TaracraftFrontendRegistration:
         try:
             await self.hass.http.async_register_static_paths(paths)
         except RuntimeError:
-            _LOGGER.debug("Taracraft frontend paths were already registered")
+            _LOGGER.debug("3D-Printer Control Center frontend paths were already registered")
 
         domain_data[_DATA_PATHS_REGISTERED] = True
-        _LOGGER.info("Taracraft frontend static paths registered")
+        _LOGGER.info("3D-Printer Control Center frontend static paths registered")
 
     async def _async_register_resource_when_ready(self) -> None:
         lovelace = self.hass.data.get("lovelace")
@@ -110,7 +110,7 @@ class TaracraftFrontendRegistration:
         self._retry_count += 1
         if self._retry_count > _MAX_RETRIES:
             _LOGGER.error(
-                "Taracraft frontend resource registration stopped after %s retries: %s",
+                "3D-Printer Control Center frontend resource registration stopped after %s retries: %s",
                 _MAX_RETRIES,
                 reason,
             )
@@ -138,7 +138,7 @@ class TaracraftFrontendRegistration:
                     "url": expected_url,
                 }
             )
-            _LOGGER.info("Created Taracraft Lovelace resource: %s", expected_url)
+            _LOGGER.info("Created 3D-Printer Control Center Lovelace resource: %s", expected_url)
         else:
             primary = existing[0]
             updates: dict[str, str] = {}
@@ -159,17 +159,17 @@ class TaracraftFrontendRegistration:
                         }
                     )
                     _LOGGER.info(
-                        "Recreated stale Taracraft Lovelace resource: %s",
+                        "Recreated stale 3D-Printer Control Center Lovelace resource: %s",
                         expected_url,
                     )
                 except Exception:
                     _LOGGER.exception(
-                        "Unable to recreate stale Taracraft Lovelace resource"
+                        "Unable to recreate stale 3D-Printer Control Center Lovelace resource"
                     )
                     raise
             else:
                 _LOGGER.info(
-                    "Taracraft Lovelace resource already current: %s",
+                    "3D-Printer Control Center Lovelace resource already current: %s",
                     expected_url,
                 )
 
@@ -177,12 +177,12 @@ class TaracraftFrontendRegistration:
                 try:
                     await resources.async_delete_item(duplicate["id"])
                     _LOGGER.info(
-                        "Removed duplicate Taracraft Lovelace resource: %s",
+                        "Removed duplicate 3D-Printer Control Center Lovelace resource: %s",
                         duplicate.get("url"),
                     )
                 except Exception:
                     _LOGGER.exception(
-                        "Unable to remove duplicate Taracraft Lovelace resource"
+                        "Unable to remove duplicate 3D-Printer Control Center Lovelace resource"
                     )
 
         current = [
@@ -193,7 +193,7 @@ class TaracraftFrontendRegistration:
 
         if not current or current[0].get("url") != expected_url:
             await self._async_retry(
-                "Taracraft Lovelace resource did not persist with expected URL"
+                "3D-Printer Control Center Lovelace resource did not persist with expected URL"
             )
             return
 
@@ -206,12 +206,12 @@ async def async_register_frontend(hass: HomeAssistant) -> None:
     registrar = domain_data.get(_DATA_REGISTRAR)
 
     if registrar is None:
-        registrar = TaracraftFrontendRegistration(hass)
+        registrar = PrinterControlCenterFrontendRegistration(hass)
         domain_data[_DATA_REGISTRAR] = registrar
 
     try:
         await registrar.async_register()
     except Exception:
         _LOGGER.exception(
-            "Taracraft frontend registration failed; continuing backend setup"
+            "3D-Printer Control Center frontend registration failed; continuing backend setup"
         )

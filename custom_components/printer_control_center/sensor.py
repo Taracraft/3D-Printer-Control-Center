@@ -27,12 +27,12 @@ from .const import (
     CONF_UI_LANGUAGE,
     DOMAIN,
 )
-from .coordinator import TaracraftCoordinator
-from .entity import TaracraftPrinterEntity
+from .coordinator import PrinterControlCenterCoordinator
+from .entity import PrinterControlCenterPrinterEntity
 from .models import normalize_tray, safe_state
 
 
-def _ams_labels(coordinator: TaracraftCoordinator) -> dict[str, str]:
+def _ams_labels(coordinator: PrinterControlCenterCoordinator) -> dict[str, str]:
     """Return AMS labels using the configured dashboard language."""
     language = str(coordinator.config.get(CONF_UI_LANGUAGE, "auto") or "auto").lower()
     if language == "auto":
@@ -40,7 +40,7 @@ def _ams_labels(coordinator: TaracraftCoordinator) -> dict[str, str]:
     return AMS_OPTIONS if language == "de" else AMS_OPTIONS_EN
 
 
-def _ams_label(coordinator: TaracraftCoordinator, value: str) -> str:
+def _ams_label(coordinator: PrinterControlCenterCoordinator, value: str) -> str:
     return _ams_labels(coordinator).get(value, value)
 
 
@@ -48,7 +48,7 @@ def _ams_label(coordinator: TaracraftCoordinator, value: str) -> str:
 class SensorDescription:
     key: str
     name: str
-    value: Callable[[TaracraftCoordinator], Any]
+    value: Callable[[PrinterControlCenterCoordinator], Any]
     unit: str | None = None
 
 
@@ -86,24 +86,24 @@ DESCRIPTIONS = [
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
-    coordinator: TaracraftCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: PrinterControlCenterCoordinator = hass.data[DOMAIN][entry.entry_id]
     entities: list[SensorEntity] = [
-        TaracraftPrinterSensor(coordinator, entry, description)
+        PrinterControlCenterPrinterSensor(coordinator, entry, description)
         for description in DESCRIPTIONS
     ]
 
-    entities.append(TaracraftFirmwareSensor(coordinator, entry))
-    entities.append(TaracraftNetworkScanDetailsSensor(coordinator, entry))
-    entities.append(TaracraftConfiguredAmsSensor(coordinator, entry))
+    entities.append(PrinterControlCenterFirmwareSensor(coordinator, entry))
+    entities.append(PrinterControlCenterNetworkScanDetailsSensor(coordinator, entry))
+    entities.append(PrinterControlCenterConfiguredAmsSensor(coordinator, entry))
 
     for index in range(4):
-        entities.append(TaracraftAmsSlotSensor(coordinator, entry, index))
+        entities.append(PrinterControlCenterAmsSlotSensor(coordinator, entry, index))
 
-    entities.append(TaracraftExternalSpoolSensor(coordinator, entry))
+    entities.append(PrinterControlCenterExternalSpoolSensor(coordinator, entry))
     async_add_entities(entities)
 
 
-class TaracraftPrinterSensor(TaracraftPrinterEntity, SensorEntity):
+class PrinterControlCenterPrinterSensor(PrinterControlCenterPrinterEntity, SensorEntity):
     def __init__(self, coordinator, entry, description: SensorDescription) -> None:
         super().__init__(coordinator, entry)
         self.description = description
@@ -116,7 +116,7 @@ class TaracraftPrinterSensor(TaracraftPrinterEntity, SensorEntity):
         return self.description.value(self.coordinator)
 
 
-class TaracraftFirmwareSensor(TaracraftPrinterEntity, SensorEntity):
+class PrinterControlCenterFirmwareSensor(PrinterControlCenterPrinterEntity, SensorEntity):
     _attr_name = "Firmware details"
 
     def __init__(self, coordinator, entry) -> None:
@@ -132,7 +132,7 @@ class TaracraftFirmwareSensor(TaracraftPrinterEntity, SensorEntity):
         return self.coordinator.snapshot.firmware_attributes()
 
 
-class TaracraftNetworkScanDetailsSensor(TaracraftPrinterEntity, SensorEntity):
+class PrinterControlCenterNetworkScanDetailsSensor(PrinterControlCenterPrinterEntity, SensorEntity):
     _attr_name = "Network scan details"
 
     def __init__(self, coordinator, entry) -> None:
@@ -173,7 +173,7 @@ class TaracraftNetworkScanDetailsSensor(TaracraftPrinterEntity, SensorEntity):
         }
 
 
-class TaracraftConfiguredAmsSensor(TaracraftPrinterEntity, SensorEntity):
+class PrinterControlCenterConfiguredAmsSensor(PrinterControlCenterPrinterEntity, SensorEntity):
     _attr_name = "Configured AMS type"
 
     def __init__(self, coordinator, entry) -> None:
@@ -186,14 +186,14 @@ class TaracraftConfiguredAmsSensor(TaracraftPrinterEntity, SensorEntity):
         return _ams_label(self.coordinator, value)
 
 
-class TaracraftAmsSlotSensor(TaracraftPrinterEntity, SensorEntity):
+class PrinterControlCenterAmsSlotSensor(PrinterControlCenterPrinterEntity, SensorEntity):
     @property
     def device_info(self) -> DeviceInfo:
         configured = str({**self.entry.data, **self.entry.options}.get(CONF_AMS_TYPE, AMS_AUTO))
         return DeviceInfo(
             identifiers={(DOMAIN, f"{self.serial}_ams")},
             name=f"{self.serial} AMS",
-            manufacturer="Taracraft / Bambu-compatible",
+            manufacturer="Bambu Lab compatible",
             model=_ams_label(self.coordinator, configured),
             via_device=(DOMAIN, self.serial),
             configuration_url="https://github.com/Taracraft/3D-Printer-Control-Center",
@@ -231,7 +231,7 @@ class TaracraftAmsSlotSensor(TaracraftPrinterEntity, SensorEntity):
         }
 
 
-class TaracraftExternalSpoolSensor(TaracraftPrinterEntity, SensorEntity):
+class PrinterControlCenterExternalSpoolSensor(PrinterControlCenterPrinterEntity, SensorEntity):
     _attr_name = "External spool"
 
     @property
@@ -239,7 +239,7 @@ class TaracraftExternalSpoolSensor(TaracraftPrinterEntity, SensorEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, f"{self.serial}_external_spool")},
             name=f"{self.serial} External spool",
-            manufacturer="Taracraft / Bambu-compatible",
+            manufacturer="Bambu Lab compatible",
             model="External spool",
             via_device=(DOMAIN, self.serial),
             configuration_url="https://github.com/Taracraft/3D-Printer-Control-Center",

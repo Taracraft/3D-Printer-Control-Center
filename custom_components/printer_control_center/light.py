@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .entity import TaracraftPrinterEntity
+from .entity import PrinterControlCenterPrinterEntity
 
 
 @dataclass(frozen=True)
@@ -34,11 +34,11 @@ async def async_setup_entry(
 ) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        [TaracraftPrinterLight(coordinator, entry, description) for description in LIGHTS]
+        [PrinterControlCenterPrinterLight(coordinator, entry, description) for description in LIGHTS]
     )
 
 
-class TaracraftPrinterLight(TaracraftPrinterEntity, LightEntity):
+class PrinterControlCenterPrinterLight(PrinterControlCenterPrinterEntity, LightEntity):
     _attr_supported_color_modes = {ColorMode.ONOFF}
     _attr_color_mode = ColorMode.ONOFF
 

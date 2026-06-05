@@ -1,7 +1,7 @@
 """Constants for 3D-Printer Control Center."""
 DOMAIN = "printer_control_center"
 NAME = "3D-Printer Control Center"
-VERSION = "2.0.3"
+VERSION = "3.0.0"
 
 PLATFORMS = ["sensor", "binary_sensor", "light", "button", "select", "switch", "camera"]
 

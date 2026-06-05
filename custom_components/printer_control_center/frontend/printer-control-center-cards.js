@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 2.0.3 */
+/* 3D-Printer Control Center - HACS Release 3.0.0 */
 (() => {
-  const VERSION = "2.0.3";
+  const VERSION = "3.0.0";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";

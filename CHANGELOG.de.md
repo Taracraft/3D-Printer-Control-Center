@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## [3.0.0] - 2026-06-05
+
+### Stabile HACS-Veröffentlichung
+
+- praktisch bestätigten Code-Stand 2.0.3 als stabile Version 3.0.0 veröffentlicht
+- Repository für die offizielle HACS-Aufnahme vorbereitet
+- Laufzeitverhalten gegenüber der bestätigten Basis 2.0.3 unverändert gelassen
+- vollständige öffentliche Entwicklungshistorie von Alpha bis zur stabilen Version erhalten
+
 Alle wesentlichen Änderungen am **3D-Printer Control Center** werden in dieser Datei dokumentiert.
 
 Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich über zahlreiche Alpha- und Release-Candidate-Stände bis zur ersten stabilen öffentlichen Version. Die frühe Vorab-Historie wurde aus Entwicklungsnotizen, erhaltenen Testartefakten und bestätigten Meilensteinen rekonstruiert. Wenn eine exakte Änderung eines einzelnen internen Zwischenstands nicht sicher belegbar war, wurden eng zusammengehörige Iterationen bewusst zusammengefasst, statt Details zu erfinden.

@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.0.0] - 2026-06-05
+
+### Stable HACS publication release
+
+- promoted the practically verified 2.0.3 code line to stable 3.0.0
+- prepared the repository for official HACS publication
+- kept runtime behavior unchanged from the verified 2.0.3 baseline
+- retained the complete public changelog history from alpha through the stable release
+
 All notable changes to **3D-Printer Control Center** are documented in this file.
 
 The project started as an internal Home Assistant prototype and evolved through a large number of alpha and release-candidate iterations before the first stable public release. The early pre-release history below has been reconstructed from development notes, retained test artifacts and the verified implementation milestones. Where an exact version-level delta could not be verified, closely related internal iterations are grouped rather than described speculatively.

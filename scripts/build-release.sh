@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="${1:-$ROOT/dist}"
-VERSION="2.0.0"
+VERSION="2.0.3"
 mkdir -p "$OUT"
 "$ROOT/scripts/validate-release.sh"
 rm -rf "$ROOT/custom_components/printer_control_center/__pycache__"

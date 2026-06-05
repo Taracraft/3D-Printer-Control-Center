@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 2.0.2 */
+/* 3D-Printer Control Center - HACS Release 2.0.3 */
 (() => {
-  const VERSION = "2.0.2";
+  const VERSION = "2.0.3";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -586,10 +586,8 @@
         task.details=[...(task.details||[]),`Entpacken: OK · ${Number(result.imported||0)} Modelle`, `Ordner: ${Number(result.folders||0)} · Überschrieben: ${Number(result.overwritten||0)}`, `Gegenprüfung: ${result.verification==="ok"?"OK":"unbekannt"} · ${Number(result.verified_files||0)} Modelle · ${bytesLabel(result.verified_bytes||0)}`];
         this.emit(true);return result;
       }catch(error){
-        const message=String(error?.message||error);
-        const keepStaged=/existing files|overwrite/i.test(message);
-        if(task.uploadId&&task.phase!=="cancelled"&&!keepStaged){try{await this.hass.callWS({type:"printer_control_center/upload/abort",upload_id:task.uploadId})}catch(_error){}}
-        if(task.phase!=="cancelled"){task.phase="failed";task.details=[...(task.details||[]),`Fehler: ${message}`,keepStaged?"Vollständig empfangene ZIP bleibt bis zur Bestätigung temporär erhalten.":"Temporäre Fragmente wurden entfernt."];this.emit(true)}
+        if(task.uploadId&&task.phase!=="cancelled"){try{await this.hass.callWS({type:"printer_control_center/upload/abort",upload_id:task.uploadId})}catch(_error){}}
+        if(task.phase!=="cancelled"){task.phase="failed";task.details=[...(task.details||[]),`Fehler: ${String(error?.message||error)}`];this.emit(true)}
         throw error;
       }
     }
@@ -2774,8 +2772,7 @@
           result=await PCC_UPLOADS.startGalleryZip({hass:this._hass,serial:this.serial(map),file,overwrite:false});
         }catch(error){
           const message=String(error?.message||error);
-          if(!/existing files|overwrite/i.test(message))throw error;
-          if(!window.confirm(tr("Vorhandene Galerie-Dateien überschreiben?"))){await PCC_UPLOADS.abort();throw error}
+          if(!/existing files|overwrite/i.test(message)||!window.confirm(tr("Vorhandene Galerie-Dateien überschreiben?")))throw error;
           result=await PCC_UPLOADS.startGalleryZip({hass:this._hass,serial:this.serial(map),file,overwrite:true});
         }
         this._notice=`ZIP-Import erfolgreich: ${Number(result.imported||0)} Modelle · ${Number(result.folders||0)} Ordner · ${Number(result.overwritten||0)} überschrieben · Gegenprüfung ${result.verification==="ok"?"OK":"unbekannt"}`;

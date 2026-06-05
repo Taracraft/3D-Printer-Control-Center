@@ -35,17 +35,18 @@ _DEFAULT_DASHBOARDS: tuple[dict[str, Any], ...] = (
                     "title": "3D-Druck",
                     "path": "printer",
                     "icon": "mdi:printer-3d",
-                    "type": "sidebar",
+                    # Masonry keeps both XL cards compact on desktop instead of
+                    # stretching the printer card across the complete main area.
+                    # On narrow screens Home Assistant stacks the cards naturally.
+                    "type": "masonry",
                     "cards": [
                         {
                             "type": "custom:printer-control-center-card",
                             "card_size": "xl",
-                            "view_layout": {"position": "main"},
                         },
                         {
                             "type": "custom:printer-control-center-queue-card",
                             "card_size": "xl",
-                            "view_layout": {"position": "sidebar"},
                         },
                     ],
                 }

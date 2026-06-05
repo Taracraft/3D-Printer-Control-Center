@@ -20,4 +20,11 @@ fi
 test -f "$ROOT/brand/icon.png"
 test -f "$COMP/brand/icon.png"
 test -f "$COMP/dashboards.py"
+
+test -f "$ROOT/docs/images/printer-queue-dashboard.webp"
+test -f "$ROOT/docs/images/gallery-overview.webp"
+test -f "$ROOT/docs/images/gallery-models.webp"
+test -f "$ROOT/docs/images/model-preview.webp"
+test -f "$ROOT/docs/images/folder-move-dialog.webp"
+test -f "$ROOT/docs/images/sd-card-browser.webp"
 echo "OK: release validation passed"

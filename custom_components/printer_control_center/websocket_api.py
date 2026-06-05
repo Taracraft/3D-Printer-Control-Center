@@ -188,9 +188,6 @@ def _new_upload(
             )
             if expected != actual:
                 raise ValueError("Upload resume metadata does not match")
-            existing["overwrite"] = bool(overwrite)
-            existing["updated"] = time.time()
-            _persist_session(existing)
             return _public_session(existing)
 
     upload_id = secrets.token_urlsafe(18)
@@ -264,33 +261,21 @@ def _list_uploads(hass: HomeAssistant) -> dict:
     }
 
 
-def _read_upload(hass: HomeAssistant, upload_id: str) -> tuple[dict, bytes]:
-    """Read a complete staged upload without removing its resumable files."""
-    session = _uploads(hass).get(upload_id)
+def _consume_upload(hass: HomeAssistant, upload_id: str) -> tuple[dict, bytes]:
+    sessions = _uploads(hass)
+    session = sessions.pop(upload_id, None)
     if session is None:
         raise ValueError("Upload session not found or expired")
     tmp_path = Path(session["tmp_path"])
-    if int(session["received"]) != int(session["size"]):
-        raise ValueError("Upload is incomplete")
-    payload = tmp_path.read_bytes()
-    if len(payload) != int(session["size"]):
-        raise ValueError("Stored upload size mismatch")
-    return session, payload
-
-
-def _finalize_upload(hass: HomeAssistant, upload_id: str) -> dict:
-    """Remove a successfully processed staging upload and its metadata."""
-    session = _uploads(hass).pop(upload_id, None)
-    if session is None:
-        return {"ok": True, "removed_bytes": 0}
-    return {"ok": True, "removed_bytes": _remove_session_files(session)}
-
-
-def _consume_upload(hass: HomeAssistant, upload_id: str) -> tuple[dict, bytes]:
-    """Read and remove a non-ZIP staged upload."""
-    session, payload = _read_upload(hass, upload_id)
-    _finalize_upload(hass, upload_id)
-    return session, payload
+    try:
+        if int(session["received"]) != int(session["size"]):
+            raise ValueError("Upload is incomplete")
+        payload = tmp_path.read_bytes()
+        if len(payload) != int(session["size"]):
+            raise ValueError("Stored upload size mismatch")
+        return session, payload
+    finally:
+        _remove_session_files(session)
 
 
 
@@ -651,18 +636,11 @@ async def websocket_upload_chunk(hass, connection, msg) -> None:
 )
 @websocket_api.async_response
 async def websocket_upload_finish(hass, connection, msg) -> None:
-    upload_id = msg["upload_id"]
-    staged_session = _uploads(hass).get(upload_id)
-    if staged_session is None:
-        raise ValueError("Upload session not found or expired")
-
-    # Keep a complete gallery ZIP staged when conflict detection asks for an
-    # overwrite confirmation. The browser can resume the same server-side
-    # payload without transferring hundreds of megabytes for a second time.
-    if staged_session["source"] == "archive_zip":
-        session, payload = await hass.async_add_executor_job(_read_upload, hass, upload_id)
-    else:
-        session, payload = await hass.async_add_executor_job(_consume_upload, hass, upload_id)
+    session, payload = await hass.async_add_executor_job(
+        _consume_upload,
+        hass,
+        msg["upload_id"],
+    )
 
     coordinator = _find_coordinator(hass, session["serial"])
 
@@ -688,9 +666,6 @@ async def websocket_upload_finish(hass, connection, msg) -> None:
             payload,
             session["folder"] or "/",
         )
-
-    if session["source"] == "archive_zip":
-        await hass.async_add_executor_job(_finalize_upload, hass, upload_id)
 
     _LOGGER.info(
         "Completed upload session: source=%s filename=%s size=%s serial=%s",

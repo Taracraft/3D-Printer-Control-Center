@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.3] - 2026-06-05
+
+### Dashboard and documentation polish
+
+- keep the **3D print** dashboard compact by using a responsive masonry layout instead of stretching the printer card across the full main area
+- preserve the XL presentation for printer and queue cards while stacking naturally on narrow screens
+- add sanitized and optimized screenshots to both README files
+- remove browser address bars and private URLs from public preview images
+- replace the raw repository URL in both README files with a clean GitHub link
+- correct the manual-install build version
+
 ## [2.0.2] - 2026-06-05
 
 ### Dashboard, upload and camera reliability update

@@ -1,6 +1,6 @@
 # Migration to the `printer_control_center` domain
 
-Version `2.0.2` uses the technical Home Assistant domain `printer_control_center`. An installation using an older domain must be configured again once.
+Version `2.0.3` uses the technical Home Assistant domain `printer_control_center`. An installation using an older domain must be configured again once.
 
 ## Safe sequence
 

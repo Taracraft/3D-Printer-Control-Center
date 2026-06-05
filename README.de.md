@@ -2,9 +2,51 @@
 
 <p align="center"><img src="brand/logo.png" alt="3D-Printer Control Center" width="180"></p>
 
-[English documentation](README.md) · [Changelog](CHANGELOG.md) · [Einrichtungsanleitung](docs/SETUP.de.md) · [Migration](docs/MIGRATION.de.md) · [Datenschutz und Sicherheit](docs/PRIVACY.de.md)
+<p align="center">
+  <strong>Lokal ausgerichtetes Control Center für kompatible Bambu-Lab-3D-Drucker in Home Assistant.</strong><br>
+  Telemetrie, native Kamera, Druckwarteschlange, lokales 3MF-Archiv, SD-Karten-Browser und Bambu-Studio-Übergabe in einer Integration.
+</p>
 
-Eine lokal ausgerichtete Home-Assistant-Custom-Integration für kompatible Bambu-Lab-3D-Drucker. Sie stellt MQTT-Telemetrie, native Kameraunterstützung soweit verfügbar, responsive Lovelace-Karten, ein lokales 3MF-Archiv, SD-Karten-Dateiverwaltung und eine persistente Druckplanung bereit.
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="CHANGELOG.md">Changelog</a> ·
+  <a href="docs/SETUP.de.md">Einrichtungsanleitung</a> ·
+  <a href="docs/MIGRATION.de.md">Migration</a> ·
+  <a href="docs/PRIVACY.de.md">Datenschutz und Sicherheit</a>
+</p>
+
+## Vorschau
+
+<p align="center">
+  <img src="docs/images/printer-queue-dashboard.webp" alt="Kompaktes 3D-Druck-Dashboard mit Druckerkarte und Warteschlange" width="900">
+</p>
+
+<p align="center"><em>Kompaktes 3D-Druck-Dashboard: Druckerkarte links, persistente Warteschlange rechts.</em></p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/gallery-overview.webp" alt="Dateimanager Galerie Ordnerübersicht"></td>
+    <td width="50%"><img src="docs/images/gallery-models.webp" alt="Dateimanager Galerie Modellraster"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Galerie mit Ordnerstruktur</strong></td>
+    <td align="center"><strong>3MF-Modellraster mit Vorschauen</strong></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/images/model-preview.webp" alt="Große 3D-Modellvorschau"></td>
+    <td width="50%"><img src="docs/images/folder-move-dialog.webp" alt="Verschieben-Dialog mit Ordnerbaum"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Große Modellvorschau</strong></td>
+    <td align="center"><strong>Strukturierter Verschieben-Dialog</strong></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/images/sd-card-browser.webp" alt="SD-Karten-Browser des Druckers" width="1100">
+</p>
+
+<p align="center"><em>FTPS-SD-Karten-Browser, sofern die Drucker-Firmware ihn bereitstellt.</em></p>
 
 ## Highlights
 
@@ -17,6 +59,7 @@ Eine lokal ausgerichtete Home-Assistant-Custom-Integration für kompatible Bambu
 - auswählbare Dashboard-Sprache: `Automatisch`, `Deutsch`, `English`
 - natives Home-Assistant-Kamera-Entity, wenn der Drucker das kompatible Kameraprotokoll bereitstellt
 - responsive Lovelace-Karten einschließlich **3D-Drucker-Dateimanager/Galerie** sowie integrierter **3D-Druck-Warteschlange**
+- zwei automatisch verwaltete Dashboards: kompaktes **3D-Druck** und vollbreites **3D-Drucker-Dateimanager/Galerie**
 - lokales 3MF-Archiv mit ZIP-Export und ZIP-Import inklusive Ordnerstruktur
 - SD-Karten-Zugriff per FTPS, sofern vom Drucker bereitgestellt
 - direkte Bambu-Studio-Übergabe unveränderter Original-3MF-Dateien
@@ -28,13 +71,9 @@ Eine lokal ausgerichtete Home-Assistant-Custom-Integration für kompatible Bambu
 2. **3D-Printer Control Center** installieren.
 3. Home Assistant neu starten.
 4. Die Integration unter **Einstellungen → Geräte & Dienste** hinzufügen.
-5. Die gewünschten Dashboard-Karten über den Kartenwähler ergänzen.
+5. Die Integration erstellt ihre beiden Standard-Dashboards automatisch, sofern dies bei der Einrichtung nicht deaktiviert wird.
 
-Repository:
-
-```text
-https://github.com/Taracraft/3D-Printer-Control-Center
-```
+[Repository auf GitHub öffnen](https://github.com/Taracraft/3D-Printer-Control-Center)
 
 ## Galerie sichern und wiederherstellen
 
@@ -70,7 +109,7 @@ LAN-Access-Codes, Cloud-Token und nicht bereinigte Diagnosedaten niemals in öff
 
 Die Integration erstellt standardmäßig zwei Lovelace-Dashboards:
 
-- **3D-Druck** mit Druckerkarte links und Warteschlange rechts
+- **3D-Druck** mit kompakter Druckerkarte links und Warteschlange rechts
 - **3D-Drucker-Dateimanager/Galerie** als Vollbreitenansicht
 
 Das lässt sich im Einrichtungsassistenten deaktivieren und später in den Integrationsoptionen ändern. Der Dienst `printer_control_center.install_dashboards` erstellt oder repariert die integrationsbezogenen Dashboards erneut.

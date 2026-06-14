@@ -35,7 +35,7 @@
       },
       "lan": {
         "title": "LAN connection",
-        "description": "Enter the printer IP address manually whenever possible. Automatic discovery is available as an optional fallback but is currently a known issue in routed VLAN, VPN and broadcast-restricted networks. Where can I find the device code? On the printer open Settings > LAN Only (on some models under WLAN or Network), enable LAN Only mode and read the IP address and access code shown on that page. Menu placement can differ by printer model and firmware. Use the LAN access code, not a six-digit account PIN.",
+        "description": "Enter the printer IP address manually whenever possible. Automatic discovery is available as an optional fallback but is currently a known issue in routed VLAN, VPN and broadcast-restricted networks. Where can I find the device code? On the printer open Settings > LAN Only (on some models under WLAN or Network), enable LAN Only mode and read the IP address and access code shown on that page. Menu placement can differ by printer model and firmware. Use the LAN access code, not a six-digit account PIN.\\n\\nImportant: The entered printer name is shown on the dashboard if no model name can be detected automatically.",
         "data": {
           "host": "Printer IP address (recommended)",
           "serial": "Printer serial number",

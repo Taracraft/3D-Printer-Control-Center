@@ -41,6 +41,114 @@ def safe_state(value: Any, default: str = "unknown", limit: int = 240) -> str:
     return text[:limit] if text else default
 
 
+PRINTER_MODEL_LABELS: tuple[tuple[str, str], ...] = (
+    ("x1carbon", "Bambu Lab X1 Carbon"),
+    ("x1c", "Bambu Lab X1 Carbon"),
+    ("x1e", "Bambu Lab X1E"),
+    ("p1s", "Bambu Lab P1S"),
+    ("p1p", "Bambu Lab P1P"),
+    ("a1mini", "Bambu Lab A1 mini"),
+    ("a1", "Bambu Lab A1"),
+    ("h2d", "Bambu Lab H2D"),
+    ("h2s", "Bambu Lab H2S"),
+)
+
+PRINTER_MODEL_KEYS: set[str] = {
+    "devmodel",
+    "devmodelbambucom",
+    "dev_model",
+    "device_model",
+    "machine_type",
+    "model",
+    "printer_model",
+    "printer_type",
+    "product_name",
+}
+
+
+def _normalized_key(value: Any) -> str:
+    return "".join(char for char in str(value).lower() if char.isalnum() or char == "_")
+
+
+def _normalized_model_token(value: Any) -> str:
+    return "".join(char for char in str(value).lower() if char.isalnum())
+
+
+def _walk_printer_model_values(value: Any) -> list[Any]:
+    found: list[Any] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            normalized_key = _normalized_key(key)
+            if normalized_key in PRINTER_MODEL_KEYS and not isinstance(child, (dict, list, tuple, set)):
+                found.append(child)
+            found.extend(_walk_printer_model_values(child))
+    elif isinstance(value, list):
+        for child in value:
+            found.extend(_walk_printer_model_values(child))
+    return found
+
+
+def readable_printer_model(value: Any) -> str:
+    raw = safe_state(value, default="", limit=80).strip()
+    if not raw:
+        return ""
+    normalized = _normalized_model_token(raw)
+    for token, label in PRINTER_MODEL_LABELS:
+        if token in normalized:
+            return label
+    if raw.lower().startswith("bambu"):
+        return raw
+    return raw
+
+
+
+def _is_serial_like_model(value: Any) -> bool:
+    raw = safe_state(value, default="", limit=120).strip()
+    if not raw:
+        return False
+    normalized = _normalized_model_token(raw)
+    if not normalized:
+        return False
+    if any(token in normalized for token in ("bambu", "lab", "a1", "a2", "p1", "p2", "x1", "x2", "h2", "carbon", "mini")):
+        return False
+    return len(normalized) >= 10 and normalized.isalnum()
+
+
+def _module_product_names(data: dict[str, Any]) -> list[str]:
+    names: list[str] = []
+    info = data.get("info")
+    if not isinstance(info, dict):
+        return names
+    modules = info.get("module")
+    if not isinstance(modules, list):
+        return names
+    for module in modules:
+        if not isinstance(module, dict):
+            continue
+        product = safe_state(module.get("product_name"), default="", limit=120).strip()
+        if not product:
+            continue
+        if "ams" in product.lower():
+            continue
+        names.append(product)
+    return names
+
+def detect_printer_model(data: dict[str, Any]) -> str:
+    for candidate in _module_product_names(data):
+        label = readable_printer_model(candidate)
+        if label and not _is_serial_like_model(label):
+            return label
+
+    candidates = _walk_printer_model_values(data)
+    for candidate in candidates:
+        label = readable_printer_model(candidate)
+        if label and not _is_serial_like_model(label):
+            if "ams" not in label.lower():
+                return label
+
+    return "Bambu Lab 3D Printer"
+
+
 def detect_ams_type(data: dict[str, Any]) -> tuple[str, str]:
     """Best-effort AMS type detection with manual override support."""
     p = print_data(data)
@@ -186,12 +294,14 @@ class PrinterSnapshot:
     telemetry: dict[str, Any] = field(default_factory=dict)
     detected_ams_type: str = AMS_NONE
     detection_confidence: str = "unknown"
+    printer_model: str = "Bambu Lab 3D Printer"
 
     def update(self, telemetry: dict[str, Any], transport: str) -> None:
         deep_merge(self.telemetry, telemetry)
         self.transport = transport
         self.online = True
         self.detected_ams_type, self.detection_confidence = detect_ams_type(self.telemetry)
+        self.printer_model = detect_printer_model(self.telemetry)
 
     @property
     def print(self) -> dict[str, Any]:

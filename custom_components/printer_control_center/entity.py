@@ -25,6 +25,6 @@ class PrinterControlCenterPrinterEntity(CoordinatorEntity[PrinterControlCenterCo
             identifiers={(DOMAIN, self.serial)},
             name=str(self.entry.data.get(CONF_PRINTER_NAME) or self.serial),
             manufacturer="Bambu Lab compatible",
-            model="3D Printer",
+            model=getattr(self.coordinator.snapshot, "printer_model", "") or "3D Printer",
             configuration_url="https://github.com/Taracraft/3D-Printer-Control-Center",
         )

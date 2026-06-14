@@ -1,7 +1,7 @@
 """Constants for 3D-Printer Control Center."""
 DOMAIN = "printer_control_center"
 NAME = "3D-Printer Control Center"
-VERSION = "3.0.0"
+VERSION = "4.0.0"
 
 PLATFORMS = ["sensor", "binary_sensor", "light", "button", "select", "switch", "camera"]
 
@@ -18,6 +18,35 @@ CONF_PRINTER_NAME = "printer_name"
 CONF_AMS_TYPE = "ams_type"
 CONF_SHOW_MANUAL_FW_BUTTON = "show_manual_firmware_update_button"
 CONF_TLS_INSECURE = "tls_insecure"
+
+CONF_CAMERA_MODE = "camera_mode"
+CONF_CAMERA_ENTITY = "camera_entity"
+CONF_CAMERA_URL = "camera_url"
+
+CAMERA_MODE_AUTO = "auto"
+CAMERA_MODE_DISABLED = "disabled"
+CAMERA_MODE_CHAMBER_IMAGE_6000 = "chamber_image_6000"
+CAMERA_MODE_RTSPS_322 = "rtsps_322"
+CAMERA_MODE_EXTERNAL_ENTITY = "external_entity"
+CAMERA_MODE_EXTERNAL_URL = "external_url"
+
+CAMERA_MODE_OPTIONS = {
+    CAMERA_MODE_AUTO: "Automatisch nach Druckermodell",
+    CAMERA_MODE_DISABLED: "Keine Kamera",
+    CAMERA_MODE_CHAMBER_IMAGE_6000: "Chamber Image / TCP 6000 (A1/P1/A2)",
+    CAMERA_MODE_RTSPS_322: "RTSPS / TCP 322 (X1/H2/P2/X2)",
+    CAMERA_MODE_EXTERNAL_ENTITY: "Externe Home-Assistant-Kamera-Entity",
+    CAMERA_MODE_EXTERNAL_URL: "Externe MJPEG-/Proxy-URL",
+}
+
+CAMERA_MODE_OPTIONS_EN = {
+    CAMERA_MODE_AUTO: "Auto by printer model",
+    CAMERA_MODE_DISABLED: "No camera",
+    CAMERA_MODE_CHAMBER_IMAGE_6000: "Chamber Image / TCP 6000 (A1/P1/A2)",
+    CAMERA_MODE_RTSPS_322: "RTSPS / TCP 322 (X1/H2/P2/X2)",
+    CAMERA_MODE_EXTERNAL_ENTITY: "External Home Assistant camera entity",
+    CAMERA_MODE_EXTERNAL_URL: "External MJPEG/proxy URL",
+}
 
 CONF_UI_LANGUAGE = "ui_language"
 CONF_AUTO_CREATE_DASHBOARDS = "auto_create_dashboards"

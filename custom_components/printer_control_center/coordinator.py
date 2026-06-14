@@ -41,6 +41,8 @@ from .discovery import ScanReport, advanced_scan
 from .models import PrinterSnapshot
 from .mqtt_client import PrinterMqttClient
 from .camera_native import NativePrinterCameraClient
+from .capabilities import camera_capability, effective_camera_mode
+from .const import CAMERA_MODE_CHAMBER_IMAGE_6000, CAMERA_MODE_DISABLED, CAMERA_MODE_RTSPS_322
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,6 +65,9 @@ class PrinterControlCenterCoordinator(DataUpdateCoordinator[PrinterSnapshot]):
         self._connected_transports: set[str] = set()
         self._rescan_scheduled = False
         self.camera_client: NativePrinterCameraClient | None = None
+        self.camera_mode = CAMERA_MODE_DISABLED
+        self.camera_capability = camera_capability(CAMERA_MODE_DISABLED)
+        self._camera_sync_scheduled = False
 
         self.active_host = str(self.config.get(CONF_HOST, "")).strip()
         self.last_scan_report: ScanReport | None = None
@@ -199,8 +204,70 @@ class PrinterControlCenterCoordinator(DataUpdateCoordinator[PrinterSnapshot]):
         for client in self._clients:
             await self.hass.async_add_executor_job(client.start)
 
+        await self._async_sync_camera()
+
+
+    def _effective_camera_mode(self) -> str:
+        model_hint = " ".join(
+            str(value or "")
+            for value in (
+                getattr(self.snapshot, "printer_model", ""),
+                self.config.get("printer_name", ""),
+                self.config.get(CONF_SERIAL, ""),
+            )
+        )
+        return effective_camera_mode(self.config, model_hint)
+
+    def camera_status(self) -> dict[str, Any]:
+        """Return sanitized camera capability status for entities and sensors."""
+        mode = self._effective_camera_mode()
+        capability = camera_capability(mode)
+        host = self.camera_host
+        status: dict[str, Any] = {
+            "camera_mode": mode,
+            "camera_transport": capability.transport,
+            "camera_label": capability.label,
+            "camera_port": capability.port or "",
+            "camera_host": host,
+            "camera_available": False,
+            "camera_connected": False,
+            "camera_last_error": "",
+        }
+        if mode == CAMERA_MODE_RTSPS_322:
+            status["camera_available"] = bool(host and self.config.get(CONF_ACCESS_CODE))
+        elif mode == CAMERA_MODE_CHAMBER_IMAGE_6000 and self.camera_client is not None:
+            runtime = self.camera_client.runtime_status()
+            status.update({
+                "camera_available": True,
+                "camera_connected": runtime.connected,
+                "camera_last_error": runtime.last_error,
+            })
+        return status
+
+    async def _async_sync_camera(self) -> None:
+        """Start the native TCP-6000 reader only for compatible model families."""
+        self._camera_sync_scheduled = False
+        mode = self._effective_camera_mode()
+        capability = camera_capability(mode)
+        self.camera_mode = mode
+        self.camera_capability = capability
+
+        wants_native = mode == CAMERA_MODE_CHAMBER_IMAGE_6000
+        if not wants_native:
+            if self.camera_client is not None:
+                await self.hass.async_add_executor_job(self.camera_client.stop)
+                self.camera_client = None
+                self.async_set_updated_data(self.snapshot)
+            return
+
         camera_host = self.camera_host
-        if mode in (MODE_LAN, MODE_HYBRID) and camera_host:
+        if not camera_host:
+            return
+
+        tls_insecure = bool(self.config.get(CONF_TLS_INSECURE, True))
+        if self.camera_client is None or self.camera_client.host != camera_host:
+            if self.camera_client is not None:
+                await self.hass.async_add_executor_job(self.camera_client.stop)
             self.camera_client = NativePrinterCameraClient(
                 host=camera_host,
                 access_code=str(self.config[CONF_ACCESS_CODE]),
@@ -208,6 +275,13 @@ class PrinterControlCenterCoordinator(DataUpdateCoordinator[PrinterSnapshot]):
                 on_state_change=self._camera_state_from_thread,
             )
             await self.hass.async_add_executor_job(self.camera_client.start)
+            self.async_set_updated_data(self.snapshot)
+
+    def _schedule_camera_sync(self) -> None:
+        if self._camera_sync_scheduled:
+            return
+        self._camera_sync_scheduled = True
+        self.hass.async_create_task(self._async_sync_camera())
 
     async def async_stop(self) -> None:
         if self.camera_client is not None:
@@ -266,8 +340,11 @@ class PrinterControlCenterCoordinator(DataUpdateCoordinator[PrinterSnapshot]):
     def _handle_telemetry(self, payload: dict[str, Any], transport: str) -> None:
         if self.snapshot.transport == "lan" and transport == "cloud":
             return
+        previous_camera_mode = self.camera_mode
         self.snapshot.update(payload, transport)
         self.async_set_updated_data(self.snapshot)
+        if self._effective_camera_mode() != previous_camera_mode:
+            self._schedule_camera_sync()
 
     def _telemetry_from_thread(self, payload: dict[str, Any], transport: str) -> None:
         self.hass.loop.call_soon_threadsafe(self._handle_telemetry, payload, transport)

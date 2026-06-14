@@ -35,7 +35,7 @@
       },
       "lan": {
         "title": "LAN-Verbindung",
-        "description": "Trage die IP-Adresse des Druckers nach Möglichkeit manuell ein. Die automatische Erkennung bleibt als optionaler Fallback verfügbar, ist aber in gerouteten VLAN-, VPN- und Broadcast-eingeschränkten Netzen derzeit ein bekanntes Problem. Wo finde ich meinen Gerätecode? Öffne am Drucker Einstellungen > LAN Only beziehungsweise Nur-LAN-Modus (bei einigen Modellen unter WLAN oder Netzwerk), aktiviere den LAN-Modus und lies auf dieser Seite IP-Adresse und Access Code ab. Die Position des Menüs kann je nach Druckermodell und Firmware abweichen. Verwende den LAN-Access-Code und nicht eine sechsstellige Konto-PIN.",
+        "description": "Trage die IP-Adresse des Druckers nach Möglichkeit manuell ein. Die automatische Erkennung bleibt als optionaler Fallback verfügbar, ist aber in gerouteten VLAN-, VPN- und Broadcast-eingeschränkten Netzen derzeit ein bekanntes Problem. Wo finde ich meinen Gerätecode? Öffne am Drucker Einstellungen > LAN Only beziehungsweise Nur-LAN-Modus (bei einigen Modellen unter WLAN oder Netzwerk), aktiviere den LAN-Modus und lies auf dieser Seite IP-Adresse und Access Code ab. Die Position des Menüs kann je nach Druckermodell und Firmware abweichen. Verwende den LAN-Access-Code und nicht eine sechsstellige Konto-PIN.\\n\\nWichtiger Hinweis: Der eingegebene Druckername wird im Dashboard angezeigt, falls kein Modellname automatisch erkannt wird.",
         "data": {
           "host": "Drucker-IP-Adresse (empfohlen)",
           "serial": "Seriennummer des Druckers",

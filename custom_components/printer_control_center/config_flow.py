@@ -1,6 +1,7 @@
 """Config flow for the 3D-Printer Control Center integration."""
 from __future__ import annotations
 
+DISPLAY_NAME_HINT = "Wichtiger Hinweis: Dieser Name wird im Dashboard angezeigt, falls kein Modellname automatisch erkannt wird. Verwende einen sprechenden Namen, z. B. Bambu Lab A1, Werkstatt X1 Carbon oder Drucker Büro."
 from functools import partial
 import logging
 from typing import Any
@@ -17,6 +18,12 @@ from .const import (
     AMS_AUTO,
     AMS_OPTIONS,
     AMS_OPTIONS_EN,
+    CAMERA_MODE_AUTO,
+    CAMERA_MODE_OPTIONS,
+    CAMERA_MODE_OPTIONS_EN,
+    CONF_CAMERA_ENTITY,
+    CONF_CAMERA_MODE,
+    CONF_CAMERA_URL,
     CONF_ACCESS_CODE,
     CONF_ACCESS_TOKEN,
     CONF_AMS_TYPE,
@@ -81,6 +88,11 @@ def _effective_language(configured: Any, hass_language: Any = "en") -> str:
         return choice
     return "de" if _clean(hass_language).lower().startswith("de") else "en"
 
+
+
+def _camera_mode_options(configured: Any, hass_language: Any = "en") -> dict[str, str]:
+    """Return translated camera mode labels without changing persisted values."""
+    return CAMERA_MODE_OPTIONS if _effective_language(configured, hass_language) == "de" else CAMERA_MODE_OPTIONS_EN
 
 def _ams_options(configured: Any, hass_language: Any = "en") -> dict[str, str]:
     """Return translated AMS choice labels without changing persisted values."""
@@ -171,6 +183,7 @@ class PrinterControlCenterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             errors=errors,
+            description_placeholders={"display_name_hint": DISPLAY_NAME_HINT},
         )
 
     async def async_step_cloud_code(self, user_input=None):
@@ -438,6 +451,11 @@ class PrinterControlCenterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_AMS_TYPE, default=AMS_AUTO): vol.In(
                         _ams_options(self._data.get(CONF_UI_LANGUAGE), self.hass.config.language)
                     ),
+                    vol.Required(CONF_CAMERA_MODE, default=CAMERA_MODE_AUTO): vol.In(
+                        _camera_mode_options(self._data.get(CONF_UI_LANGUAGE), self.hass.config.language)
+                    ),
+                    vol.Optional(CONF_CAMERA_ENTITY, default=""): str,
+                    vol.Optional(CONF_CAMERA_URL, default=""): str,
                     vol.Optional(CONF_SHOW_MANUAL_FW_BUTTON, default=False): bool,
                 }
             ),
@@ -468,6 +486,11 @@ class PrinterControlCenterOptionsFlow(config_entries.OptionsFlow):
                     vol.Required(CONF_AMS_TYPE, default=current.get(CONF_AMS_TYPE, AMS_AUTO)): vol.In(
                         _ams_options(current.get(CONF_UI_LANGUAGE), self.hass.config.language)
                     ),
+                    vol.Required(CONF_CAMERA_MODE, default=current.get(CONF_CAMERA_MODE, CAMERA_MODE_AUTO)): vol.In(
+                        _camera_mode_options(current.get(CONF_UI_LANGUAGE), self.hass.config.language)
+                    ),
+                    vol.Optional(CONF_CAMERA_ENTITY, default=_clean(current.get(CONF_CAMERA_ENTITY))): str,
+                    vol.Optional(CONF_CAMERA_URL, default=_clean(current.get(CONF_CAMERA_URL))): str,
                     vol.Optional(CONF_SHOW_MANUAL_FW_BUTTON, default=_bool(current.get(CONF_SHOW_MANUAL_FW_BUTTON), False)): bool,
                     vol.Optional(CONF_HOST, default=_clean(current.get(CONF_HOST))): str,
                     vol.Optional(CONF_AUTO_DISCOVER_IP, default=_bool(current.get(CONF_AUTO_DISCOVER_IP), False)): bool,

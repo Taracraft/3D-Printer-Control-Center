@@ -12,6 +12,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     AMS_AUTO,
+    AMS_BMCU_370,
+    AMS_4_SLOT_COMPATIBLE,
     AMS_OPTIONS,
     AMS_OPTIONS_EN,
     CONF_AMS_TYPE,
@@ -44,6 +46,30 @@ def _ams_label(coordinator: PrinterControlCenterCoordinator, value: str) -> str:
     return _ams_labels(coordinator).get(value, value)
 
 
+def _configured_ams_type(coordinator: PrinterControlCenterCoordinator) -> str:
+    data_value = str(coordinator.entry.data.get(CONF_AMS_TYPE, AMS_AUTO))
+    options_value = str(coordinator.entry.options.get(CONF_AMS_TYPE, ""))
+
+    # If BMCU/BCMU-370 was selected in the setup wizard, keep that manual choice
+    # stable. BMCU controllers can emulate official AMS identifiers, so automatic
+    # detection remains diagnostic only in this case.
+    if data_value == AMS_BMCU_370:
+        return AMS_BMCU_370
+
+    return options_value or data_value or AMS_AUTO
+
+
+def _ams_display_label(coordinator: PrinterControlCenterCoordinator) -> str:
+    configured = _configured_ams_type(coordinator)
+    if configured and configured != AMS_AUTO:
+        return _ams_label(coordinator, configured)
+
+    detected = coordinator.snapshot.detected_ams_type
+    if detected == AMS_BMCU_370:
+        return _ams_label(coordinator, AMS_4_SLOT_COMPATIBLE)
+    return _ams_label(coordinator, detected)
+
+
 @dataclass(frozen=True)
 class SensorDescription:
     key: str
@@ -62,11 +88,16 @@ DESCRIPTIONS = [
     SensorDescription("nozzle_temperature", "Nozzle temperature", lambda c: c.snapshot.value("nozzle_temper", default=0), "°C"),
     SensorDescription("bed_temperature", "Bed temperature", lambda c: c.snapshot.value("bed_temper", default=0), "°C"),
     SensorDescription("wifi_signal", "Wi-Fi signal", lambda c: safe_state(c.snapshot.value("wifi_signal", default="unknown"))),
+    SensorDescription("printer_model", "Printer model", lambda c: safe_state(getattr(c.snapshot, "printer_model", ""), default="Bambu Lab 3D Printer")),
     SensorDescription("speed_profile", "Speed profile", lambda c: safe_state(c.snapshot.value("spd_lvl", default="2"))),
-    SensorDescription("camera_available", "Camera available", lambda c: str(isinstance(c.snapshot.value("ipcam", default={}), dict) and str(c.snapshot.value("ipcam", default={}).get("ipcam_dev", "0")) == "1").lower()),
+    SensorDescription("camera_available", "Camera available", lambda c: str(bool(c.camera_status().get("camera_available"))).lower()),
+    SensorDescription("camera_transport", "Camera transport", lambda c: safe_state(c.camera_status().get("camera_label", "disabled"))),
+    SensorDescription("camera_port", "Camera port", lambda c: safe_state(c.camera_status().get("camera_port", ""), default="none")),
+    SensorDescription("camera_last_error", "Camera last error", lambda c: safe_state(c.camera_status().get("camera_last_error", ""), default="none", limit=160)),
     SensorDescription("active_ams_slot", "Active AMS slot", lambda c: safe_state((c.snapshot.value("ams", default={}) or {}).get("tray_now", "unknown") if isinstance(c.snapshot.value("ams", default={}), dict) else "unknown")),
     SensorDescription("ams_slot_count", "AMS slot count", lambda c: sum(1 for slot in c.snapshot.ams_slots() if normalize_tray(slot).get("normalized_loaded"))),
     SensorDescription("connection_mode", "Active connection mode", lambda c: safe_state(c.snapshot.transport)),
+    SensorDescription("ams_display_name", "AMS display name", lambda c: _ams_display_label(c)),
     SensorDescription("detected_ams_type", "Detected AMS type", lambda c: _ams_label(c, c.snapshot.detected_ams_type)),
     SensorDescription("ams_detection_confidence", "AMS detection confidence", lambda c: safe_state(c.snapshot.detection_confidence)),
     SensorDescription("firmware_status", "Firmware status", lambda c: c.snapshot.firmware_state()),
@@ -182,7 +213,7 @@ class PrinterControlCenterConfiguredAmsSensor(PrinterControlCenterPrinterEntity,
 
     @property
     def native_value(self):
-        value = str({**self.entry.data, **self.entry.options}.get(CONF_AMS_TYPE, AMS_AUTO))
+        value = _configured_ams_type(self.coordinator)
         return _ams_label(self.coordinator, value)
 
 

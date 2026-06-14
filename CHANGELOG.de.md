@@ -1,4 +1,4 @@
-﻿# Änderungsprotokoll
+# Änderungsprotokoll
 
 ## [4.0.1] - 2026-06-14
 
@@ -559,4 +559,3 @@ Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich Ã�
 - Die stabile ÃƒÂ¶ffentliche Support-Linie beginnt mit `1.0.0`.
 - Die frÃƒÂ¼here interne Domain `taracraft_3d_printer` wurde mit `2.0.0` abgelÃƒÂ¶st.
 - Die aktuelle Integrations-Domain lautet `printer_control_center`.
-

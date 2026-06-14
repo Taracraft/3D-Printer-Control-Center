@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 ## [4.0.1] - 2026-06-14
 
@@ -157,4 +157,3 @@
 - RTSPS classification is prepared for X/H/P2 class printers; actual live camera behavior remains model- and firmware-dependent.
 - Chamber-image camera classification is prepared for A/P1 class printers via TCP 6000.
 - The stable v3 history remains available in the German changelog and below this release line where maintained.
-

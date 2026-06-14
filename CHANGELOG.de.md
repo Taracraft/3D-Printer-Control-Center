@@ -1,99 +1,110 @@
-# Änderungsprotokoll
+﻿# Änderungsprotokoll
+
+## [4.0.1] - 2026-06-14
+
+### Behoben
+
+- JSON-Encoding für HACS-Validierung normalisiert.
+- UTF-8-BOM aus `manifest.json` entfernt.
+- Zeilenende in den Übersetzungsdateien normalisiert.
+- HACS-Parser-Kompatibilität für `manifest.json` wiederhergestellt.
+
+# Ã„nderungsprotokoll
 
 ## [4.0.0] - 2026-06-14
 
 ### Schwerpunkt
 
-- Veröffentlichung der eigenständigen v4-Kamera- und Modellfähigkeitslogik.
-- Die Integration bleibt vollständig standalone und benötigt keine BambuLab-Home-Assistant-Integration als funktionale Abhängigkeit.
-- Andere Bambu-Integrationen werden nur als technische Referenz für Protokolle und Kameraansteuerung betrachtet.
-- Das Dashboard wurde für breitere Ansichten, kompaktere Diagnose und bessere Modellanzeige überarbeitet.
+- VerÃ¶ffentlichung der eigenstÃ¤ndigen v4-Kamera- und ModellfÃ¤higkeitslogik.
+- Die Integration bleibt vollstÃ¤ndig standalone und benÃ¶tigt keine BambuLab-Home-Assistant-Integration als funktionale AbhÃ¤ngigkeit.
+- Andere Bambu-Integrationen werden nur als technische Referenz fÃ¼r Protokolle und Kameraansteuerung betrachtet.
+- Das Dashboard wurde fÃ¼r breitere Ansichten, kompaktere Diagnose und bessere Modellanzeige Ã¼berarbeitet.
 
-### Hinzugefügt
+### HinzugefÃ¼gt
 
-#### Eigenständige Kamera-Fähigkeitserkennung
+#### EigenstÃ¤ndige Kamera-FÃ¤higkeitserkennung
 
-- Interne Kamera-Fähigkeitsmatrix für unterstützte Bambu-Druckerfamilien ergänzt.
-- Eigenständige Erkennung der Kameraart anhand des Druckermodells ergänzt.
+- Interne Kamera-FÃ¤higkeitsmatrix fÃ¼r unterstÃ¼tzte Bambu-Druckerfamilien ergÃ¤nzt.
+- EigenstÃ¤ndige Erkennung der Kameraart anhand des Druckermodells ergÃ¤nzt.
 - Kamera-Transport und Kamera-Port werden innerhalb der eigenen Integration bestimmt.
-- Diagnosewerte für Kamera-Transport, Kamera-Port und Kamera-Verfügbarkeit ergänzt.
+- Diagnosewerte fÃ¼r Kamera-Transport, Kamera-Port und Kamera-VerfÃ¼gbarkeit ergÃ¤nzt.
 - Trennung zwischen Chamber-Image-Kameras und RTSPS-Kameras umgesetzt.
-- Vorbereitung für künftige direkte RTSPS-Livekamera-Anbindung ergänzt.
+- Vorbereitung fÃ¼r kÃ¼nftige direkte RTSPS-Livekamera-Anbindung ergÃ¤nzt.
 - Kameralogik bewusst ohne Fallback auf externe Home-Assistant-Kamera-Entities umgesetzt.
 
-#### Chamber-Image-Kameraunterstützung
+#### Chamber-Image-KameraunterstÃ¼tzung
 
-- Unterstützungspfad für A1-, A1-mini-, P1P- und P1S-ähnliche Chamber-Image-Kameras ergänzt.
+- UnterstÃ¼tzungspfad fÃ¼r A1-, A1-mini-, P1P- und P1S-Ã¤hnliche Chamber-Image-Kameras ergÃ¤nzt.
 - TCP-Port `6000` als Chamber-Image-Kamera-Port klassifiziert.
-- Dashboard-Label `Chamber Image / TCP 6000` ergänzt.
-- Kamera-Diagnose für LAN-basierte Chamber-Image-Kameras verbessert.
-- Native Kamera-Statuslogik für lokale LAN-Nutzung vorbereitet und vereinheitlicht.
+- Dashboard-Label `Chamber Image / TCP 6000` ergÃ¤nzt.
+- Kamera-Diagnose fÃ¼r LAN-basierte Chamber-Image-Kameras verbessert.
+- Native Kamera-Statuslogik fÃ¼r lokale LAN-Nutzung vorbereitet und vereinheitlicht.
 
-#### RTSPS-Kameraunterstützung
+#### RTSPS-KameraunterstÃ¼tzung
 
-- RTSPS-Kamerafamilie für X1-, X1-Carbon-, X1E-, H2-, P2- und X2-Klasse vorbereitet.
+- RTSPS-Kamerafamilie fÃ¼r X1-, X1-Carbon-, X1E-, H2-, P2- und X2-Klasse vorbereitet.
 - TCP-Port `322` als RTSPS-Kamera-Port klassifiziert.
-- Dashboard-Label `RTSPS / TCP 322` ergänzt.
-- Modellbasierte Auswahl der RTSPS-Kameraart ergänzt.
-- Grundlage für eigenständige RTSPS-Implementierung ohne externe Entity-Abhängigkeit gelegt.
+- Dashboard-Label `RTSPS / TCP 322` ergÃ¤nzt.
+- Modellbasierte Auswahl der RTSPS-Kameraart ergÃ¤nzt.
+- Grundlage fÃ¼r eigenstÃ¤ndige RTSPS-Implementierung ohne externe Entity-AbhÃ¤ngigkeit gelegt.
 
 #### Druckermodell und Anzeigename
 
-- Automatische Druckermodellerkennung aus Bambu-Telemetrie ergänzt.
+- Automatische Druckermodellerkennung aus Bambu-Telemetrie ergÃ¤nzt.
 - `product_name` aus den Bambu-Modulinformationen wird bevorzugt verwendet.
-- Seriennummern werden nicht mehr als Druckermodell angezeigt, wenn ein besserer Name verfügbar ist.
-- Fallback-Erkennung über Entity-Prefix und konfigurierten Druckernamen ergänzt.
+- Seriennummern werden nicht mehr als Druckermodell angezeigt, wenn ein besserer Name verfÃ¼gbar ist.
+- Fallback-Erkennung Ã¼ber Entity-Prefix und konfigurierten Druckernamen ergÃ¤nzt.
 - Der im Einrichtungsassistenten eingegebene Name kann als sichtbarer Dashboard-Name dienen.
-- Hinweis im Einrichtungsassistenten ergänzt, dass der eingegebene Druckername im Dashboard angezeigt wird, wenn kein Modell automatisch erkannt wird.
-- Deutsche und englische Texte für den Anzeigenamen-Hinweis ergänzt.
+- Hinweis im Einrichtungsassistenten ergÃ¤nzt, dass der eingegebene Druckername im Dashboard angezeigt wird, wenn kein Modell automatisch erkannt wird.
+- Deutsche und englische Texte fÃ¼r den Anzeigenamen-Hinweis ergÃ¤nzt.
 
 #### Dashboard und Diagnose
 
-- Kompakte Diagnose-Badges für Drucker und Kamera ergänzt.
+- Kompakte Diagnose-Badges fÃ¼r Drucker und Kamera ergÃ¤nzt.
 - Lange technische Diagnoseanzeige reduziert.
 - Lesbare Modellanzeige wie `Bambu Lab A1` statt Seriennummer umgesetzt.
 - Kameraanzeige auf einen kompakten Transporthinweis reduziert.
 - Footer- und Diagnosebereich optisch kompakter gestaltet.
-- Frontend-Resource-Versionierung für den Release aktualisiert.
+- Frontend-Resource-Versionierung fÃ¼r den Release aktualisiert.
 - Bestehendes automatisch erzeugtes Dashboard auf neue Resource-Version migrierbar gemacht.
 
 #### Breiteres Dashboard-Layout
 
-- Sections-basiertes Dashboard-Layout ergänzt.
-- Druckerkarte erhält mehr horizontale Breite.
+- Sections-basiertes Dashboard-Layout ergÃ¤nzt.
+- Druckerkarte erhÃ¤lt mehr horizontale Breite.
 - Warteschlangenkarte wird daneben eingeordnet.
-- Container-Query-basiertes Frontend-Layout ergänzt.
-- Breite Ansichten nutzen den verfügbaren Platz besser.
+- Container-Query-basiertes Frontend-Layout ergÃ¤nzt.
+- Breite Ansichten nutzen den verfÃ¼gbaren Platz besser.
 - Schmale Ansichten bleiben responsiv und stapeln die Inhalte weiterhin sauber.
 - Unterer Informationsbereich wurde reduziert, damit das Dashboard weniger langgezogen wirkt.
 
-#### Modell- und AMS-Fähigkeiten
+#### Modell- und AMS-FÃ¤higkeiten
 
-- Neue Modellfähigkeitslogik ergänzt.
-- Neue Datei für Capability-Definitionen ergänzt.
+- Neue ModellfÃ¤higkeitslogik ergÃ¤nzt.
+- Neue Datei fÃ¼r Capability-Definitionen ergÃ¤nzt.
 - BMCU-370-/BCMU-370-Behandlung verbessert.
-- Manuell gewählte AMS-/BMCU-Konfiguration bleibt erhalten.
-- Automatische Erkennung überschreibt eine manuelle BMCU-370-Auswahl nicht mehr ungewollt.
+- Manuell gewÃ¤hlte AMS-/BMCU-Konfiguration bleibt erhalten.
+- Automatische Erkennung Ã¼berschreibt eine manuelle BMCU-370-Auswahl nicht mehr ungewollt.
 - AMS-Anzeige im Dashboard lesbarer gemacht.
-- Technische Kamera- und Modellfähigkeitsnotizen für die v4-Arbeit vorbereitet.
+- Technische Kamera- und ModellfÃ¤higkeitsnotizen fÃ¼r die v4-Arbeit vorbereitet.
 
-### Geändert
+### GeÃ¤ndert
 
 #### Architektur
 
-- Kamera- und Modellfähigkeitserkennung in die eigene Integration verlagert.
-- Keine funktionale Abhängigkeit von der BambuLab-Home-Assistant-Integration.
-- Externe Bambu-Integrationen dienen nur noch als Referenzquelle für Protokollverhalten.
-- Backend-Diagnose und Frontend-Anzeige stärker vereinheitlicht.
+- Kamera- und ModellfÃ¤higkeitserkennung in die eigene Integration verlagert.
+- Keine funktionale AbhÃ¤ngigkeit von der BambuLab-Home-Assistant-Integration.
+- Externe Bambu-Integrationen dienen nur noch als Referenzquelle fÃ¼r Protokollverhalten.
+- Backend-Diagnose und Frontend-Anzeige stÃ¤rker vereinheitlicht.
 - Dashboard-Erzeugung auf breiteres Standardlayout umgestellt.
 
 #### Frontend
 
 - Frontend-Version auf `4.0.0` aktualisiert.
-- Vollständige Druckerkarte für breite Ansichten überarbeitet.
+- VollstÃ¤ndige Druckerkarte fÃ¼r breite Ansichten Ã¼berarbeitet.
 - Breitenverteilung zwischen Druckerkarte und Warteschlange verbessert.
 - Diagnosebereich gestrafft.
-- Abstände im unteren Kartenbereich reduziert.
+- AbstÃ¤nde im unteren Kartenbereich reduziert.
 - Modellname und Kameraart werden kompakter angezeigt.
 - Cache-Busting der Frontend-Ressource aktualisiert.
 
@@ -103,7 +114,7 @@
 - Integrationskonstante auf `4.0.0` aktualisiert.
 - Druckermodellerkennung verbessert.
 - Kamerastatus-Ausgabe verbessert.
-- Sensorwerte für Kamera-Transport und Kamera-Port erweitert.
+- Sensorwerte fÃ¼r Kamera-Transport und Kamera-Port erweitert.
 - Dashboard-Standarderzeugung angepasst.
 - Modell- und Capability-Erkennung erweitert.
 
@@ -114,8 +125,8 @@
 - Behoben, dass die Seriennummer als Druckermodell angezeigt wurde.
 - Behoben, dass beim Bambu A1 nicht automatisch `Bambu Lab A1` angezeigt wurde.
 - Behoben, dass der echte Bambu-`product_name` nicht bevorzugt im Dashboard landete.
-- Fallback-Reihenfolge für Modellname, Anzeigename und Seriennummer korrigiert.
-- Setup-Hinweis für den sichtbaren Dashboard-Namen ergänzt.
+- Fallback-Reihenfolge fÃ¼r Modellname, Anzeigename und Seriennummer korrigiert.
+- Setup-Hinweis fÃ¼r den sichtbaren Dashboard-Namen ergÃ¤nzt.
 
 #### Kamera-Diagnose
 
@@ -128,116 +139,116 @@
 #### Dashboard-Layout
 
 - Zu schmal und vertikal gestreckt wirkende Dashboardansicht verbessert.
-- Altes Masonry-Layout für das Standarddashboard durch breiteres Sections-Layout ersetzt.
+- Altes Masonry-Layout fÃ¼r das Standarddashboard durch breiteres Sections-Layout ersetzt.
 - Druckerkarte nutzt in breiten Ansichten mehr Platz.
 - Bestehendes Dashboard-Storage des Testsystems migrierbar gemacht.
 - Unterer Informationsbereich kompakter gesetzt.
 
-#### Release-Qualität
+#### Release-QualitÃ¤t
 
 - Python-Syntaxproblem aus der rc2-Vorbereitung behoben.
 - Frontend-Resource-Cache-Version korrigiert.
 - Leere-Zeile-am-Dateiende-Warnungen bereinigt.
-- ZIP-Strukturprüfung für das finale Installationspaket durchgeführt.
+- ZIP-StrukturprÃ¼fung fÃ¼r das finale Installationspaket durchgefÃ¼hrt.
 - Finales Installationspaket `pcc-4.0.0-ha-install.zip` vorbereitet.
 
 ### Hinweise
 
-- Version 4.0.0 ist der erste Release mit eigenständiger Kamera- und Modellfähigkeitslogik.
-- Die Integration bleibt weiterhin eine eigenständige Home-Assistant-Custom-Integration.
-- Für X-/H-/P2-Klassen ist die RTSPS-Zuordnung vorbereitet; die tatsächliche Livekamera-Umsetzung bleibt modell- und firmwareabhängig.
-- Für A-/P1-Klassen ist die Chamber-Image-Kameraklassifizierung über TCP 6000 vorbereitet.
+- Version 4.0.0 ist der erste Release mit eigenstÃ¤ndiger Kamera- und ModellfÃ¤higkeitslogik.
+- Die Integration bleibt weiterhin eine eigenstÃ¤ndige Home-Assistant-Custom-Integration.
+- FÃ¼r X-/H-/P2-Klassen ist die RTSPS-Zuordnung vorbereitet; die tatsÃ¤chliche Livekamera-Umsetzung bleibt modell- und firmwareabhÃ¤ngig.
+- FÃ¼r A-/P1-Klassen ist die Chamber-Image-Kameraklassifizierung Ã¼ber TCP 6000 vorbereitet.
 - Die stabile v3-Historie bleibt unterhalb dieses Eintrags erhalten.
 
-# Ã„nderungsprotokoll
+# Ãƒâ€žnderungsprotokoll
 
 ## [3.0.0] - 2026-06-05
 
-### Stabile HACS-VerÃ¶ffentlichung
+### Stabile HACS-VerÃƒÂ¶ffentlichung
 
-- praktisch bestÃ¤tigten Code-Stand 2.0.3 als stabile Version 3.0.0 verÃ¶ffentlicht
-- Repository fÃ¼r die offizielle HACS-Aufnahme vorbereitet
-- Laufzeitverhalten gegenÃ¼ber der bestÃ¤tigten Basis 2.0.3 unverÃ¤ndert gelassen
-- vollstÃ¤ndige Ã¶ffentliche Entwicklungshistorie von Alpha bis zur stabilen Version erhalten
+- praktisch bestÃƒÂ¤tigten Code-Stand 2.0.3 als stabile Version 3.0.0 verÃƒÂ¶ffentlicht
+- Repository fÃƒÂ¼r die offizielle HACS-Aufnahme vorbereitet
+- Laufzeitverhalten gegenÃƒÂ¼ber der bestÃƒÂ¤tigten Basis 2.0.3 unverÃƒÂ¤ndert gelassen
+- vollstÃƒÂ¤ndige ÃƒÂ¶ffentliche Entwicklungshistorie von Alpha bis zur stabilen Version erhalten
 
-Alle wesentlichen Ã„nderungen am **3D-Printer Control Center** werden in dieser Datei dokumentiert.
+Alle wesentlichen Ãƒâ€žnderungen am **3D-Printer Control Center** werden in dieser Datei dokumentiert.
 
-Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich Ã¼ber zahlreiche Alpha- und Release-Candidate-StÃ¤nde bis zur ersten stabilen Ã¶ffentlichen Version. Die frÃ¼he Vorab-Historie wurde aus Entwicklungsnotizen, erhaltenen Testartefakten und bestÃ¤tigten Meilensteinen rekonstruiert. Wenn eine exakte Ã„nderung eines einzelnen internen Zwischenstands nicht sicher belegbar war, wurden eng zusammengehÃ¶rige Iterationen bewusst zusammengefasst, statt Details zu erfinden.
+Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich ÃƒÂ¼ber zahlreiche Alpha- und Release-Candidate-StÃƒÂ¤nde bis zur ersten stabilen ÃƒÂ¶ffentlichen Version. Die frÃƒÂ¼he Vorab-Historie wurde aus Entwicklungsnotizen, erhaltenen Testartefakten und bestÃƒÂ¤tigten Meilensteinen rekonstruiert. Wenn eine exakte Ãƒâ€žnderung eines einzelnen internen Zwischenstands nicht sicher belegbar war, wurden eng zusammengehÃƒÂ¶rige Iterationen bewusst zusammengefasst, statt Details zu erfinden.
 
 ## [2.0.3] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
 - Das automatisch erzeugte Dashboard `3D-Druck` verwendet jetzt ein responsives Masonry-Layout.
-- Druckerkarte und Warteschlange bleiben im XL-Modus, werden auf Desktop-Bildschirmen aber nicht mehr unnÃ¶tig breit gestreckt.
+- Druckerkarte und Warteschlange bleiben im XL-Modus, werden auf Desktop-Bildschirmen aber nicht mehr unnÃƒÂ¶tig breit gestreckt.
 - Auf schmalen Bildschirmen werden die Karten weiterhin automatisch untereinander angeordnet.
-- Die deutsche und englische README wurden vollstÃ¤ndig Ã¼berarbeitet.
-- Kuratierte, zugeschnittene und komprimierte WebP-Screenshots wurden unter `docs/images/` ergÃ¤nzt.
-- Browser-Adressleisten, private URLs und veraltete Footer-URLs wurden aus Ã¶ffentlichen Screenshots entfernt.
-- Sichtbare rohe Repository-URL-BlÃ¶cke wurden durch saubere GitHub-Links ersetzt.
+- Die deutsche und englische README wurden vollstÃƒÂ¤ndig ÃƒÂ¼berarbeitet.
+- Kuratierte, zugeschnittene und komprimierte WebP-Screenshots wurden unter `docs/images/` ergÃƒÂ¤nzt.
+- Browser-Adressleisten, private URLs und veraltete Footer-URLs wurden aus ÃƒÂ¶ffentlichen Screenshots entfernt.
+- Sichtbare rohe Repository-URL-BlÃƒÂ¶cke wurden durch saubere GitHub-Links ersetzt.
 - Die Versionsnummer des Build-Skripts wurde korrigiert.
 
 ## [2.0.2] - 2026-06-05
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
-- Globale Hintergrund-Uploads fÃ¼r die Galerie.
-- Anzeige von Fortschritt, Ã¼bertragener Datenmenge, aktueller Geschwindigkeit und aufklappbaren Upload-Details.
+- Globale Hintergrund-Uploads fÃƒÂ¼r die Galerie.
+- Anzeige von Fortschritt, ÃƒÂ¼bertragener Datenmenge, aktueller Geschwindigkeit und aufklappbaren Upload-Details.
 - Fortsetzung unterbrochener Uploads.
 - Bereinigung veralteter Upload-Fragmente.
-- ZusÃ¤tzliche hochauflÃ¶sende Branding-Dateien fÃ¼r HACS und Home Assistant.
+- ZusÃƒÂ¤tzliche hochauflÃƒÂ¶sende Branding-Dateien fÃƒÂ¼r HACS und Home Assistant.
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
 - Die automatisch erzeugten Dashboards wurden auf zwei reduziert:
   - `3D-Druck`
   - `3D-Drucker-Dateimanager/Galerie`
 - Die Druckwarteschlange wurde in das Dashboard `3D-Druck` integriert.
 - Druckerkarte und Warteschlange bleiben im XL-Modus.
-- Eine manuell eingetragene Drucker-IP hat fÃ¼r die native Kamera immer Vorrang vor der automatischen Netzwerkerkennung.
+- Eine manuell eingetragene Drucker-IP hat fÃƒÂ¼r die native Kamera immer Vorrang vor der automatischen Netzwerkerkennung.
 
 ### Behoben
 
 - Native Kamera wiederhergestellt, wenn die Netzwerkerkennung eine ungeeignete Adresse lieferte.
 - Galerie-ZIP-Export repariert: Die ZIP wird heruntergeladen, statt auf die Home-Assistant-Startseite zu navigieren.
-- Serverseitiges Staging wiederverwendet: Eine ÃœberschreibbestÃ¤tigung erfordert keinen erneuten Upload groÃŸer ZIP-Dateien.
-- GegenprÃ¼fung nach dem Entpacken eines Galerie-Imports ergÃ¤nzt.
+- Serverseitiges Staging wiederverwendet: Eine ÃƒÅ“berschreibbestÃƒÂ¤tigung erfordert keinen erneuten Upload groÃƒÅ¸er ZIP-Dateien.
+- GegenprÃƒÂ¼fung nach dem Entpacken eines Galerie-Imports ergÃƒÂ¤nzt.
 
 ## [2.0.1] - 2026-06-05
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
 - Automatische Erzeugung der Standard-Lovelace-Dashboards.
 - Dienst `printer_control_center.install_dashboards` zum erneuten Erstellen der Standard-Dashboards.
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
 - Lovelace-Ressource auf den neuen Frontend-Pfad mit Cache-Busting umgestellt.
-- KompatibilitÃ¤ts-Aliasse fÃ¼r frÃ¼here Kartentypen wÃ¤hrend der Migration ergÃ¤nzt.
+- KompatibilitÃƒÂ¤ts-Aliasse fÃƒÂ¼r frÃƒÂ¼here Kartentypen wÃƒÂ¤hrend der Migration ergÃƒÂ¤nzt.
 
 ### Behoben
 
-- Veraltete Frontend-Ressourcen der frÃ¼heren Domain werden entfernt.
+- Veraltete Frontend-Ressourcen der frÃƒÂ¼heren Domain werden entfernt.
 - Sichtbarer Integrationstitel korrigiert.
 - Dashboard-Migration nach dem Domainwechsel repariert.
 
 ## [2.0.0] - 2026-06-05
 
-### Inkompatible Ã„nderungen
+### Inkompatible Ãƒâ€žnderungen
 
 - Interne Home-Assistant-Domain von `taracraft_3d_printer` auf `printer_control_center` umbenannt.
 - Integrationsordner auf `custom_components/printer_control_center` umgestellt.
-- Persistente Laufzeitpfade geÃ¤ndert:
+- Persistente Laufzeitpfade geÃƒÂ¤ndert:
   - `<HA-Konfiguration>/printer_control_center/archive/`
   - `<HA-Konfiguration>/printer_control_center/uploads/`
   - `<HA-Konfiguration>/printer_control_center/print_queue.json`
-- Einmalige Neuinstallation und neue Integrationseinrichtung erforderlich, da Home-Assistant-Domains keine Bindestriche enthalten dÃ¼rfen und ein Domainwechsel keine transparente Migration ist.
+- Einmalige Neuinstallation und neue Integrationseinrichtung erforderlich, da Home-Assistant-Domains keine Bindestriche enthalten dÃƒÂ¼rfen und ein Domainwechsel keine transparente Migration ist.
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
-- Galerie-ZIP-Export mit vollstÃ¤ndiger Ordnerstruktur.
-- Galerie-ZIP-Import mit sicheren PfadprÃ¼fungen.
-- Konflikterkennung und ausdrÃ¼cklicher Nachfrage vor dem Ãœberschreiben.
+- Galerie-ZIP-Export mit vollstÃƒÂ¤ndiger Ordnerstruktur.
+- Galerie-ZIP-Import mit sicheren PfadprÃƒÂ¼fungen.
+- Konflikterkennung und ausdrÃƒÂ¼cklicher Nachfrage vor dem ÃƒÅ“berschreiben.
 - Branding-Dateien sowohl im Repository-Root als auch im Integrationsordner.
 - Migrationsdokumentation.
 
@@ -248,20 +259,20 @@ Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich Ã�
 
 ## [1.0.0] - 2026-06-05
 
-### Erste stabile Ã¶ffentliche Version
+### Erste stabile ÃƒÂ¶ffentliche Version
 
-- Stabilen Stand aus internem Kandidaten `rc1.39` verÃ¶ffentlicht.
-- HACS-kompatible Repository-Struktur ergÃ¤nzt.
-- MIT-Lizenz, zweisprachige README-Dateien, Setup-Dokumentation, Publishing-Dokumentation und Ã¶ffentliche Repository-Bereinigung ergÃ¤nzt.
-- Deutsche und englische Setup-Ãœbersetzungen ergÃ¤nzt.
-- Dashboard-Sprache auswÃ¤hlbar:
+- Stabilen Stand aus internem Kandidaten `rc1.39` verÃƒÂ¶ffentlicht.
+- HACS-kompatible Repository-Struktur ergÃƒÂ¤nzt.
+- MIT-Lizenz, zweisprachige README-Dateien, Setup-Dokumentation, Publishing-Dokumentation und ÃƒÂ¶ffentliche Repository-Bereinigung ergÃƒÂ¤nzt.
+- Deutsche und englische Setup-ÃƒÅ“bersetzungen ergÃƒÂ¤nzt.
+- Dashboard-Sprache auswÃƒÂ¤hlbar:
   - automatisch nach Home-Assistant-Sprache
   - Deutsch
   - English
-- Manuelle Drucker-IP mit Vorrang vor der optionalen automatischen Erkennung ergÃ¤nzt.
+- Manuelle Drucker-IP mit Vorrang vor der optionalen automatischen Erkennung ergÃƒÂ¤nzt.
 - Laufzeitpfade mit `hass.config.path(...)` portabel gemacht.
-- Weitere Bambu-Lab-Drucker generisch Ã¼ber IP-Adresse, Seriennummer und LAN-Access-Code vorgesehen.
-- A1 als zum Release praktisch bestÃ¤tigtes Druckermodell dokumentiert.
+- Weitere Bambu-Lab-Drucker generisch ÃƒÂ¼ber IP-Adresse, Seriennummer und LAN-Access-Code vorgesehen.
+- A1 als zum Release praktisch bestÃƒÂ¤tigtes Druckermodell dokumentiert.
 - Geplante Funktionen dokumentiert:
   - Filamentverwaltung
   - Druckkosten
@@ -276,8 +287,8 @@ Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich Ã�
 
 ### Stabiler interner Ausgangsstand
 
-- Nach praktischer Browser-PrÃ¼fung intern als **Version 1.0** freigegeben.
-- Verschieben-Dialog als klar erkennbare Ordnerbaumansicht mit EinrÃ¼ckung, Verbindungslinien und Baum-Symbolen umgesetzt.
+- Nach praktischer Browser-PrÃƒÂ¼fung intern als **Version 1.0** freigegeben.
+- Verschieben-Dialog als klar erkennbare Ordnerbaumansicht mit EinrÃƒÂ¼ckung, Verbindungslinien und Baum-Symbolen umgesetzt.
 - Interne Scrollposition der Ordnerliste im Verschieben-Dialog erhalten.
 - Telemetrie-bedingte Komplett-Neurenderings in Galerie, Warteschlange und Karteneditor verhindert.
 - Fokus und Cursorposition in aktiven Eingabe- und Mengenfeldern erhalten.
@@ -291,68 +302,68 @@ Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich Ã�
 
 ## [rc1.37] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
 - Ordnerbaum-Darstellung im Verschieben-Dialog verbessert.
-- Toast-Meldungen und Ãœberschreibfeedback verfeinert.
+- Toast-Meldungen und ÃƒÅ“berschreibfeedback verfeinert.
 
 ## [rc1.36] - 2026-06-05
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
-- Nachfrage vor dem Ãœberschreiben bei Verschiebekonflikten.
+- Nachfrage vor dem ÃƒÅ“berschreiben bei Verschiebekonflikten.
 - Modernes Inline-Speicherfeedback.
-- Mengen-Dropdown fÃ¼r Warteschlangen-EintrÃ¤ge.
+- Mengen-Dropdown fÃƒÂ¼r Warteschlangen-EintrÃƒÂ¤ge.
 
 ## [rc1.35] - 2026-06-05
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
-- BestÃ¤tigungsbutton fÃ¼r MengenÃ¤nderungen in der Warteschlange.
-- Kurz sichtbares `Gespeichert`-Feedback nach MengenÃ¤nderungen.
-- Skalierung der Warteschlangenkarten fÃ¼r einzelne und mehrere EintrÃ¤ge verbessert.
+- BestÃƒÂ¤tigungsbutton fÃƒÂ¼r MengenÃƒÂ¤nderungen in der Warteschlange.
+- Kurz sichtbares `Gespeichert`-Feedback nach MengenÃƒÂ¤nderungen.
+- Skalierung der Warteschlangenkarten fÃƒÂ¼r einzelne und mehrere EintrÃƒÂ¤ge verbessert.
 
 ## [rc1.34] - 2026-06-05
 
 ### Behoben
 
 - Mehrfachverschieben in der Galerie.
-- Aktualisierung der SD-Karte nach dem Anlegen oder LÃ¶schen von Verzeichnissen.
-- Thumbnail-GrÃ¶ÃŸe der Warteschlangenkarten.
+- Aktualisierung der SD-Karte nach dem Anlegen oder LÃƒÂ¶schen von Verzeichnissen.
+- Thumbnail-GrÃƒÂ¶ÃƒÅ¸e der Warteschlangenkarten.
 
 ## [rc1.33] - 2026-06-05
 
 ### Behoben
 
 - Lokale Archiv-Verschiebungen verwenden verifizierte Dateisystem-Umbenennung statt Kopiersemantik.
-- NachprÃ¼fung fÃ¼r lokale Verschiebungen ergÃ¤nzt.
-- NachprÃ¼fung fÃ¼r SD-Karten-FTPS-Renames ergÃ¤nzt.
+- NachprÃƒÂ¼fung fÃƒÂ¼r lokale Verschiebungen ergÃƒÂ¤nzt.
+- NachprÃƒÂ¼fung fÃƒÂ¼r SD-Karten-FTPS-Renames ergÃƒÂ¤nzt.
 - Fokus und Cursorposition bei Home-Assistant-Live-Refreshes erhalten.
 - Warteschlangenlayout vereinfacht:
   - Vorschau zuerst
   - Dateiname unterhalb der Vorschau
   - optionaler Zeitpunkt unterhalb des Dateinamens
-  - sÃ¤mtliche Bedienelemente unterhalb des Modells
-- Fehlende Vorschauen Ã¤lterer Warteschlangen-EintrÃ¤ge nachtrÃ¤glich ergÃ¤nzt.
+  - sÃƒÂ¤mtliche Bedienelemente unterhalb des Modells
+- Fehlende Vorschauen ÃƒÂ¤lterer Warteschlangen-EintrÃƒÂ¤ge nachtrÃƒÂ¤glich ergÃƒÂ¤nzt.
 
 ## [rc1.32] - 2026-06-05
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
-- EigenstÃ¤ndige Lovelace-Karte `3D-Druck-Warteschlange`.
+- EigenstÃƒÂ¤ndige Lovelace-Karte `3D-Druck-Warteschlange`.
 - Persistente Warteschlange in `print_queue.json`.
 - Verwaltung der Warteschlange:
-  - StÃ¼ckzahl
+  - StÃƒÂ¼ckzahl
   - optionaler Zeitpunkt
   - Reihenfolge
   - `1 erledigt`
   - Entfernen
-  - Drucken Ã¼ber Original-3MF-Ãœbergabe
-- Galerie-Popup zur Auswahl mehrerer Modelle fÃ¼r die Warteschlange.
+  - Drucken ÃƒÂ¼ber Original-3MF-ÃƒÅ“bergabe
+- Galerie-Popup zur Auswahl mehrerer Modelle fÃƒÂ¼r die Warteschlange.
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
-- Redundante KontextmenÃ¼-Aktionen entfernt:
+- Redundante KontextmenÃƒÂ¼-Aktionen entfernt:
   - Original-Projekt-3MF herunterladen
   - QR-Code
   - Nach Zeitraffer suchen
@@ -366,17 +377,17 @@ Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich Ã�
 
 ## [rc1.30] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
-- PrimÃ¤re Bambu-Studio-Ãœbergabe auf unverÃ¤nderte Original-3MF-Datei umgestellt.
+- PrimÃƒÂ¤re Bambu-Studio-ÃƒÅ“bergabe auf unverÃƒÂ¤nderte Original-3MF-Datei umgestellt.
 - Generierte Modell-3MF- und STL-Dateien als explizite manuelle Fallbacks behalten.
 - Originaldateien als `application/octet-stream` ausgeliefert.
 
 ### Dokumentiertes Verhalten
 
-- BestÃ¤tigt, dass Bambu Studio fÃ¼r selbst gehostete URLs eine Herkunftswarnung anzeigt.
-- BestÃ¤tigt, dass diese Warnung durch Bambu Studio erzwungen wird und fÃ¼r eine private Home-Assistant-Domain nicht sauber ohne Client-Manipulation oder vorgetÃ¤uschten vertrauenswÃ¼rdigen Hostnamen abschaltbar ist.
-- LÃ¶sung vollstÃ¤ndig Home-Assistant-autark gehalten:
+- BestÃƒÂ¤tigt, dass Bambu Studio fÃƒÂ¼r selbst gehostete URLs eine Herkunftswarnung anzeigt.
+- BestÃƒÂ¤tigt, dass diese Warnung durch Bambu Studio erzwungen wird und fÃƒÂ¼r eine private Home-Assistant-Domain nicht sauber ohne Client-Manipulation oder vorgetÃƒÂ¤uschten vertrauenswÃƒÂ¼rdigen Hostnamen abschaltbar ist.
+- LÃƒÂ¶sung vollstÃƒÂ¤ndig Home-Assistant-autark gehalten:
   - kein Windows-Helfer
   - kein Bridge-Dienst
   - kein externer Proxy
@@ -385,29 +396,29 @@ Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich Ã�
 
 ### Behoben
 
-- KontextmenÃ¼- und Vorschau-CSS-Regeln aus versehentlichem schmalen `@container`-Bereich verschoben.
+- KontextmenÃƒÂ¼- und Vorschau-CSS-Regeln aus versehentlichem schmalen `@container`-Bereich verschoben.
 - Overlays mindestens 76 px unterhalb des oberen Fensterrands gehalten.
-- 3D-Vorschau an ausgewÃ¤hlter Modellkarte verankert.
+- 3D-Vorschau an ausgewÃƒÂ¤hlter Modellkarte verankert.
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
 - Signierte Direktimport-URL so angepasst, dass die sichtbare URL auf `.3mf` endet.
-- Pfad, Ablaufzeit und Signatur als URL-Pfadsegmente vor dem Dateinamen Ã¼bertragen.
+- Pfad, Ablaufzeit und Signatur als URL-Pfadsegmente vor dem Dateinamen ÃƒÂ¼bertragen.
 
 ## [rc1.28] - 2026-06-05
 
 ### Interne Stabilisierung
 
 - Verrutschte Overlays und Bambu-Studio-Direktimport untersucht.
-- Overlay- und Signed-URL-Korrekturen fÃ¼r `rc1.29` vorbereitet.
+- Overlay- und Signed-URL-Korrekturen fÃƒÂ¼r `rc1.29` vorbereitet.
 
 ## [rc1.27] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
-- Galerie- und Dateimanager-Workflows zusammengefÃ¼hrt.
-- Home-Assistant-autarke Bambu-Studio-Ãœbergabe vorbereitet.
-- AbhÃ¤ngigkeit von einem Windows-Helfer entfernt.
+- Galerie- und Dateimanager-Workflows zusammengefÃƒÂ¼hrt.
+- Home-Assistant-autarke Bambu-Studio-ÃƒÅ“bergabe vorbereitet.
+- AbhÃƒÂ¤ngigkeit von einem Windows-Helfer entfernt.
 
 ## [rc1.26] - 2026-06-05
 
@@ -417,134 +428,135 @@ Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich Ã�
 
 ## [rc1.25] - 2026-06-05
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
 - Verfeinerungen der Galerie-Karte.
 - Modell-Export-Aktionen.
-- ZusÃ¤tzliche Tests fÃ¼r Modell-Export und Galerie-Kartenverhalten.
+- ZusÃƒÂ¤tzliche Tests fÃƒÂ¼r Modell-Export und Galerie-Kartenverhalten.
 
 ## [rc1.24] - 2026-06-05
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
 - Dedizierte Galerie-Karteniteration.
-- Erste Trennung der Galerie als eigenstÃ¤ndige Lovelace-Karte.
+- Erste Trennung der Galerie als eigenstÃƒÂ¤ndige Lovelace-Karte.
 
 ## [rc1.23] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
-- Galerie in Richtung professioneller Archiv-Modellraster-Ansicht Ã¼berarbeitet.
+- Galerie in Richtung professioneller Archiv-Modellraster-Ansicht ÃƒÂ¼berarbeitet.
 - Visuelle Hierarchie und Skalierung verbessert.
 
 ## [rc1.22] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
-- Galerie-Proportionen und Thumbnail-GrÃ¶ÃŸen verfeinert.
+- Galerie-Proportionen und Thumbnail-GrÃƒÂ¶ÃƒÅ¸en verfeinert.
 
 ## [rc1.21] - 2026-06-05
 
 ### Behoben
 
-- Ã–ffnen der Galerie.
+- Ãƒâ€“ffnen der Galerie.
 - Popup- und Karteninteraktionen.
 
 ## [rc1.20] - 2026-06-05
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
 - Galerie-Manager-Iteration mit Archivnavigation und Modellverwaltung.
 
 ## [rc1.19] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
 - Generierte Thumbnails und Modellvorschau verbessert.
 
 ## [rc1.18] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
 - Erste Galerie-Implementierung verfeinert.
 
 ## [rc1.17] - 2026-06-05
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
-- Erste Galerieansicht fÃ¼r archivierte Modelle.
+- Erste Galerieansicht fÃƒÂ¼r archivierte Modelle.
 
 ## [rc1.16] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
 - Dateimanager nach Upload- und Modellimport-Implementierung weiter verbessert.
 
 ## [rc1.15] - 2026-06-05
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
 - Modellimport-Workflow.
 
 ## [rc1.14] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
 - Upload-Verarbeitung und Validierung verbessert.
 
 ## [rc1.13] - 2026-06-05
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
 - Erster Archiv-Upload-Workflow.
 
 ## [rc1.12] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
 - Dateimanager-Iteration mit weiterer Archivnavigation.
 
 ## [rc1.11] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
-- Dateimanager-Iteration mit zusÃ¤tzlichen Dateioperationen.
+- Dateimanager-Iteration mit zusÃƒÂ¤tzlichen Dateioperationen.
 
 ## [rc1.10] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
-- Dateimanager-Iteration mit frÃ¼hen Archivverwaltungsverbesserungen.
+- Dateimanager-Iteration mit frÃƒÂ¼hen Archivverwaltungsverbesserungen.
 
 ## [rc1.9] - 2026-06-05
 
-### GeÃ¤ndert
+### GeÃƒÂ¤ndert
 
 - Erste Dateimanager-Implementierung verfeinert.
 
 ## [rc1.8] - 2026-06-05
 
-### HinzugefÃ¼gt
+### HinzugefÃƒÂ¼gt
 
-- Erster Dateimanager-Prototyp fÃ¼r archivierte Druckdateien.
+- Erster Dateimanager-Prototyp fÃƒÂ¼r archivierte Druckdateien.
 
 ## [alpha] - 2026-06-04 bis 2026-06-05
 
 ### Erster Prototyp
 
-- Erste Home-Assistant-Integration fÃ¼r einen Bambu-Lab-Drucker erstellt.
-- LAN-orientierte Druckerverbindung und MQTT-Telemetrie ergÃ¤nzt.
-- Erste Lovelace-Druckerkarte ergÃ¤nzt.
-- Native Kamera-Experimente und Druckersteuerungen ergÃ¤nzt.
-- AMS/BMCU-Slot-Anzeige ergÃ¤nzt.
-- Responsive KartengrÃ¶ÃŸen-Steuerung ergÃ¤nzt.
-- Erstes lokales Archivkonzept angelegt, aus dem spÃ¤ter Galerie und Dateimanager hervorgingen.
+- Erste Home-Assistant-Integration fÃƒÂ¼r einen Bambu-Lab-Drucker erstellt.
+- LAN-orientierte Druckerverbindung und MQTT-Telemetrie ergÃƒÂ¤nzt.
+- Erste Lovelace-Druckerkarte ergÃƒÂ¤nzt.
+- Native Kamera-Experimente und Druckersteuerungen ergÃƒÂ¤nzt.
+- AMS/BMCU-Slot-Anzeige ergÃƒÂ¤nzt.
+- Responsive KartengrÃƒÂ¶ÃƒÅ¸en-Steuerung ergÃƒÂ¤nzt.
+- Erstes lokales Archivkonzept angelegt, aus dem spÃƒÂ¤ter Galerie und Dateimanager hervorgingen.
 
 ---
 
-# Hinweise fÃ¼r Maintainer
+# Hinweise fÃƒÂ¼r Maintainer
 
-- VorabstÃ¤nde bleiben zur Transparenz und historischen Dokumentation erhalten.
-- Die stabile Ã¶ffentliche Support-Linie beginnt mit `1.0.0`.
-- Die frÃ¼here interne Domain `taracraft_3d_printer` wurde mit `2.0.0` abgelÃ¶st.
+- VorabstÃƒÂ¤nde bleiben zur Transparenz und historischen Dokumentation erhalten.
+- Die stabile ÃƒÂ¶ffentliche Support-Linie beginnt mit `1.0.0`.
+- Die frÃƒÂ¼here interne Domain `taracraft_3d_printer` wurde mit `2.0.0` abgelÃƒÂ¶st.
 - Die aktuelle Integrations-Domain lautet `printer_control_center`.
+

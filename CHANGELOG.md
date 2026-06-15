@@ -1,5 +1,17 @@
 # Changelog
 
+## 5.0.0-alpha14 - Persistent Studio profile bank backend
+
+### Added
+- Added a local persistent Studio profile bank backend using Home Assistant storage.
+- Added default filament, process and printer profile structures for the v5 Studio workflow.
+- Added WebSocket commands for loading, updating and resetting the profile bank.
+- Added frontend helper methods for future Studio profile UI binding.
+
+### Notes
+- The profile bank is local and standalone. It does not depend on ha-bambulab or external Bambu integrations.
+- Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha13 - Dry-run UI binding fix
 
 ### Fixed

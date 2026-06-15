@@ -18,6 +18,11 @@ from .studio_jobs import (
     async_update_studio_job,
 )
 from .studio_worker import build_dry_run_result
+from .studio_profiles import (
+    async_load_profile_bank,
+    async_reset_profile_bank,
+    async_update_profile_bank,
+)
 
 REGISTERED_KEY = "_v5_studio_ws_registered"
 
@@ -35,6 +40,9 @@ def async_register_studio_websocket(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_studio_jobs_clear)
     websocket_api.async_register_command(hass, ws_studio_selftest)
     websocket_api.async_register_command(hass, ws_studio_worker_dry_run)
+    websocket_api.async_register_command(hass, ws_studio_profiles_get)
+    websocket_api.async_register_command(hass, ws_studio_profiles_update)
+    websocket_api.async_register_command(hass, ws_studio_profiles_reset)
 
     domain_data[REGISTERED_KEY] = True
 
@@ -192,3 +200,51 @@ async def ws_studio_worker_dry_run(
                 "dryRun": patch,
             },
         )
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "printer_control_center/studio_profiles/get",
+    }
+)
+@websocket_api.async_response
+async def ws_studio_profiles_get(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Return the persistent Studio profile bank."""
+    bank = await async_load_profile_bank(hass)
+    connection.send_result(msg["id"], bank)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "printer_control_center/studio_profiles/update",
+        vol.Optional("patch", default={}): dict,
+    }
+)
+@websocket_api.async_response
+async def ws_studio_profiles_update(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Patch and return the persistent Studio profile bank."""
+    bank = await async_update_profile_bank(hass, msg.get("patch") or {})
+    connection.send_result(msg["id"], bank)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "printer_control_center/studio_profiles/reset",
+    }
+)
+@websocket_api.async_response
+async def ws_studio_profiles_reset(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Reset and return the persistent Studio profile bank."""
+    bank = await async_reset_profile_bank(hass)
+    connection.send_result(msg["id"], bank)

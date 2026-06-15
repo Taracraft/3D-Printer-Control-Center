@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha13";
+  const VERSION = "5.0.0-alpha14";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha13",
+      version:"5.0.0-alpha14",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3195,6 +3195,51 @@ class StudioCard extends BaseCard {
     return updated;
   }
 
+  async loadStudioProfileBank(){
+    if(!this.hass?.connection)return null;
+    try{
+      const bank=await this.hass.connection.sendMessagePromise({
+        type:"printer_control_center/studio_profiles/get"
+      });
+      this._studioProfileBank=bank;
+      this.requestUpdate?.();
+      return bank;
+    }catch(error){
+      console.warn("PCC Studio profile bank load failed",error);
+      return null;
+    }
+  }
+
+  async updateStudioProfileBank(patch){
+    if(!this.hass?.connection)return null;
+    try{
+      const bank=await this.hass.connection.sendMessagePromise({
+        type:"printer_control_center/studio_profiles/update",
+        patch:patch||{}
+      });
+      this._studioProfileBank=bank;
+      this.requestUpdate?.();
+      return bank;
+    }catch(error){
+      console.warn("PCC Studio profile bank update failed",error);
+      return null;
+    }
+  }
+
+  async resetStudioProfileBank(){
+    if(!this.hass?.connection)return null;
+    try{
+      const bank=await this.hass.connection.sendMessagePromise({
+        type:"printer_control_center/studio_profiles/reset"
+      });
+      this._studioProfileBank=bank;
+      this.requestUpdate?.();
+      return bank;
+    }catch(error){
+      console.warn("PCC Studio profile bank reset failed",error);
+      return null;
+    }
+  }
   async runSliceWorkerDryRun(jobId){
     const jobs=this.sliceJobs();
     const id=String(jobId||jobs[0]?.id||"");
@@ -3298,7 +3343,7 @@ class StudioCard extends BaseCard {
     const model=this.currentStudioModel?.()||state.model||null;
     return {
       schema:"printer-control-center.v5.local-selftest",
-      version:"5.0.0-alpha13",
+      version:"5.0.0-alpha14",
       source:"browser-local",
       websocketRegistered:false,
       jobsCount:jobs.length,
@@ -3459,7 +3504,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha13",
+      version:"5.0.0-alpha14",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),

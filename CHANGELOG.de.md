@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha14 - Persistente Studio-Profilbank im Backend
+
+### Hinzugefügt
+- Lokale persistente Studio-Profilbank im Backend über Home-Assistant-Storage ergänzt.
+- Standardstrukturen für Filament-, Prozess- und Druckerprofile für den v5-Studio-Workflow ergänzt.
+- WebSocket-Befehle zum Laden, Aktualisieren und Zurücksetzen der Profilbank ergänzt.
+- Frontend-Hilfsmethoden für die spätere Studio-Profil-UI-Anbindung ergänzt.
+
+### Hinweise
+- Die Profilbank ist lokal und standalone. Sie hängt nicht von ha-bambulab oder externen Bambu-Integrationen ab.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha13 - Dry-Run-UI-Binding-Fix
 
 ### Behoben

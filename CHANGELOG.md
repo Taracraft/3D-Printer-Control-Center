@@ -1,5 +1,16 @@
 # Changelog
 
+## 5.0.0-alpha20.2 - Emergency frontend rollback
+
+### Fixed
+- Restored the frontend resource from the last stable v4.0.7 frontend baseline to recover custom element registration.
+- Kept alpha20.1 backend modules, Studio WebSocket registration and diagnostics files in place.
+- Added a minimal Studio fallback card so the Studio dashboard route stays loadable during frontend recovery.
+
+### Notes
+- This is an emergency frontend loading hotfix for the alpha20 test window.
+- Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha20.1 - Init syntax hotfix
 
 ### Fixed

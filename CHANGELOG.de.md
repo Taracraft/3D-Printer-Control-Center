@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha20.2 - Notfall-Frontend-Rollback
+
+### Behoben
+- Frontend-Ressource aus dem letzten stabilen v4.0.7-Frontendstand wiederhergestellt, damit Custom-Element-Registrierungen wieder funktionieren.
+- alpha20.1-Backendmodule, Studio-WebSocket-Registrierung und Diagnose-Dateien bleiben erhalten.
+- Minimale Studio-Fallback-Karte ergänzt, damit die Studio-Dashboardroute während der Frontend-Reparatur ladbar bleibt.
+
+### Hinweise
+- Dies ist ein Notfall-Hotfix für das Frontend-Laden im alpha20-Testfenster.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha20.1 - Init-Syntax-Hotfix
 
 ### Behoben

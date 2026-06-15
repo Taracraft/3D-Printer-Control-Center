@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 4.0.2 */
+/* 3D-Printer Control Center - HACS Release 4.0.3 */
 (() => {
-  const VERSION = "4.0.2";
+  const VERSION = "4.0.3";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -266,7 +266,7 @@
   function localizeHtml(value) { return tr(value); }
 
   function resolveUiLanguage(hass, map) {
-    const configured = map ? stateValue(hass, map.uiLanguage, "auto") : "auto";
+    const configured = map ? autoStateValue(hass, map.uiLanguage, "uiLanguage", "auto") : "auto";
     if (["de", "en"].includes(configured)) return configured;
     return String(hass?.language || navigator.language || "de").toLowerCase().startsWith("de") ? "de" : "en";
   }
@@ -335,7 +335,105 @@
   const attrs = (hass, entityId) => hass?.states?.[entityId]?.attributes || {};
   const isOn = (hass, entityId) => hass?.states?.[entityId]?.state === "on";
 
-  function formatTemp(value) {
+  function pccEntityText(id,item){
+  const attr=item?.attributes||{};
+  return [
+    id,
+    attr.friendly_name,
+    attr.device_class,
+    attr.unit_of_measurement,
+    attr.icon,
+    attr.model,
+    attr.manufacturer,
+    attr.entity_category
+  ].filter(Boolean).join(" ").toLowerCase();
+}
+function pccAutoRule(key){
+  const k=String(key||"").toLowerCase();
+  if(/target.*(nozzle|duese|düse)|(nozzle|duese|düse).*target|nozzle.*ziel|duese.*ziel|düse.*ziel/.test(k)) return {all:["nozzle"], any:["target","ziel"], not:["diameter","type"]};
+  if(/nozzle|duese|düse|hotend/.test(k) && /diameter|durchmesser/.test(k)) return {all:["nozzle"], any:["diameter","durchmesser"]};
+  if(/nozzle|duese|düse|hotend/.test(k) && /type|typ/.test(k)) return {all:["nozzle"], any:["type","typ"]};
+  if(/nozzle|duese|düse|hotend/.test(k)) return {all:["nozzle"], any:["temperature","temperatur","temp"], not:["target","ziel","diameter","type"]};
+
+  if(/target.*(bed|bett|heatbed)|(bed|bett|heatbed).*target|bett.*ziel|bed.*ziel/.test(k)) return {all:["bed"], any:["target","ziel"], not:["type"]};
+  if(/bed|bett|heatbed/.test(k) && /type|typ/.test(k)) return {all:["bed"], any:["type","typ"]};
+  if(/bed|bett|heatbed/.test(k)) return {all:["bed"], any:["temperature","temperatur","temp"], not:["target","ziel","type"]};
+
+  if(/chamber|kammer|gehaeuse|gehäuse/.test(k)) return {all:["chamber"], any:["temperature","temperatur","temp"]};
+  if(/progress|percent|fortschritt/.test(k)) return {any:["progress","percent","fortschritt","mc_percent"]};
+  if(/remaining|restzeit|remain/.test(k)) return {any:["remaining","restzeit","remain"]};
+  if(/stage|phase|currentstage/.test(k)) return {any:["current stage","stage","phase"]};
+  if(/status|state|zustand|gcode/.test(k)) return {any:["print status","gcode","status","state","zustand"]};
+  if(/total.*layer|layer.*total|gesamt.*schicht/.test(k)) return {all:["layer"], any:["total","gesamt"]};
+  if(/layer|schicht/.test(k)) return {all:["layer"], any:["current","aktuell"], not:["total","gesamt"]};
+  if(/wifi|wlan|signal/.test(k)) return {all:["wifi"], any:["signal"]};
+  if(/ip|address|adresse/.test(k)) return {all:["ip"], any:["address","adresse"]};
+  if(/sd|sdcard|card/.test(k)) return {all:["sd"], any:["card","karte","status"]};
+  if(/online|available|verfuegbar|verfügbar/.test(k)) return {any:["online","available","verfügbar","verfuegbar"]};
+  if(/firmware|version|update/.test(k)) return {any:["firmware","version","update"]};
+  if(/model|modell|printertype|druckermodell/.test(k)) return {any:["model","modell","printer","drucker"]};
+
+  const trayMatch=k.match(/(?:tray|slot|spool|filament|material|ams).*?([1-4])/);
+  if(trayMatch) return {all:["tray", trayMatch[1]], prefer:["ams"]};
+  if(/active.*tray|tray.*active|aktive.*spule|aktiv.*slot/.test(k)) return {all:["active"], any:["tray","slot","spool"], prefer:["ams"]};
+  if(/ams.*humid|humid.*ams|feuchte/.test(k)) return {all:["humidity"], prefer:["ams"]};
+  if(/ams.*temp|temp.*ams/.test(k)) return {all:["temperature"], prefer:["ams"]};
+  if(/ams/.test(k)) return {any:["ams"], prefer:["bambu"]};
+
+  return null;
+}
+function pccAutoResolveEntity(hass,key){
+  const rule=pccAutoRule(key);
+  if(!rule) return null;
+  let best=null;
+  for(const [id,item] of Object.entries(hass?.states||{})){
+    if(!available(item)) continue;
+    if(!/^(sensor|binary_sensor|update)\./.test(id)) continue;
+    const text=pccEntityText(id,item);
+    let score=0;
+    const all=rule.all||[];
+    const any=rule.any||[];
+    const not=rule.not||[];
+    const prefer=rule.prefer||[];
+    if(all.some(term=>!text.includes(term))) continue;
+    if(any.length && !any.some(term=>text.includes(term))) continue;
+    if(not.some(term=>text.includes(term))) continue;
+    score+=100;
+    score+=all.length*20;
+    score+=any.filter(term=>text.includes(term)).length*10;
+    score+=prefer.filter(term=>text.includes(term)).length*12;
+    if(text.includes("bambu")) score+=25;
+    if(text.includes("x1")||text.includes("x1c")||text.includes("carbon")) score+=12;
+    if(text.includes("printer")||text.includes("drucker")) score+=8;
+    if(id.startsWith("sensor.")) score+=5;
+    if(id.includes("printer_control_center")) score-=80;
+    if(item.attributes?.device_class==="temperature") score+=15;
+    if(item.attributes?.unit_of_measurement==="°C") score+=12;
+    if(!best || score>best.score) best={id,item,score};
+  }
+  return best;
+}
+function autoStateValue(hass,entityId,key,fallback="—"){
+  const explicit=hass?.states?.[entityId];
+  if(available(explicit)) return explicit.state;
+  const auto=pccAutoResolveEntity(hass,key);
+  return auto ? auto.item.state : fallback;
+}
+function autoNumberValue(hass,entityId,key,fallback=0){
+  const explicit=hass?.states?.[entityId];
+  const raw=available(explicit) ? explicit.state : (pccAutoResolveEntity(hass,key)?.item?.state);
+  const value=Number.parseFloat(raw);
+  if(Number.isFinite(value)) return value;
+  const k=String(key||"").toLowerCase();
+  if(/temp|temper|nozzle|duese|düse|bed|bett|chamber|kammer/.test(k)) return NaN;
+  return fallback;
+}
+function autoAttrs(hass,entityId,key){
+  const explicit=hass?.states?.[entityId];
+  if(available(explicit)) return explicit.attributes||{};
+  const auto=pccAutoResolveEntity(hass,key);
+  return auto?.item?.attributes||{};
+} function formatTemp(value) {
     const parsed = Number.parseFloat(value);
     return Number.isFinite(parsed) ? `${parsed.toFixed(1)} °C` : "—";
   }
@@ -730,7 +828,7 @@
     if (!prefix) return null;
 
     const map = { prefix, ...entities(prefix) };
-    const serial = stateValue(hass, map.serial, "");
+    const serial = autoStateValue(hass, map.serial, "serial", "");
     const identity = [prefix, serial];
 
     map.amsSlots = [1, 2, 3, 4].map((slotNumber) =>
@@ -795,8 +893,8 @@
   }
 
   function isPrinterOnline(hass, map) {
-    const transport = stateValue(hass, map.activeMode, "disconnected").toLowerCase();
-    const status = stateValue(hass, map.printStatus, "unknown").toLowerCase();
+    const transport = autoStateValue(hass, map.activeMode, "activeMode", "disconnected").toLowerCase();
+    const status = autoStateValue(hass, map.printStatus, "printStatus", "unknown").toLowerCase();
     return (
       isOn(hass, map.online)
       || ["lan", "cloud", "hybrid"].includes(transport)
@@ -805,7 +903,7 @@
   }
 
   function displaySpeed(hass, map) {
-    const selected = stateValue(hass, map.speed, "");
+    const selected = autoStateValue(hass, map.speed, "speed", "");
     if (selected && selected !== "—") return selected;
     return "standard";
   }
@@ -821,11 +919,11 @@
   }
 
   function printerModelName(hass, map, config = {}) {
-    const detected = stateValue(hass, map.printerModel, "");
+    const detected = autoStateValue(hass, map.printerModel, "printerModel", "");
     if (knownLabel(detected)) return detected;
     const configured = String(config.printer_model || config.model || "").trim();
     if (knownLabel(configured)) return configured;
-    return stateValue(hass, map.serial, map.prefix || "3D Printer");
+    return autoStateValue(hass, map.serial, "serial", map.prefix || "3D Printer");
   }
 
 
@@ -902,13 +1000,13 @@
   }
 
   function amsDisplayName(hass, map) {
-    const display = stateValue(hass, map.amsDisplayName, "");
+    const display = autoStateValue(hass, map.amsDisplayName, "amsDisplayName", "");
     if (knownLabel(display)) return display;
 
-    const configured = stateValue(hass, map.configuredAms, "");
+    const configured = autoStateValue(hass, map.configuredAms, "configuredAms", "");
     if (!isAutoAmsLabel(configured)) return configured;
 
-    const detected = stateValue(hass, map.detectedAms, "");
+    const detected = autoStateValue(hass, map.detectedAms, "detectedAms", "");
     if (knownLabel(detected)) {
       const lower = detected.toLowerCase();
       if (lower.includes("bmcu") || lower.includes("bcmu")) return tr("AMS-/BMCU-kompatibel (4 Slots erkannt)");
@@ -918,9 +1016,9 @@
   }
 
   function amsMetaHtml(hass, map) {
-    const configured = stateValue(hass, map.configuredAms, "-");
-    const detected = stateValue(hass, map.detectedAms, "-");
-    const confidence = stateValue(hass, map.amsConfidence, "-");
+    const configured = autoStateValue(hass, map.configuredAms, "configuredAms", "-");
+    const detected = autoStateValue(hass, map.detectedAms, "detectedAms", "-");
+    const confidence = autoStateValue(hass, map.amsConfidence, "amsConfidence", "-");
     return `
       <div class="row ams-meta">
         <span class="badge">${tr("Auswahl")}: ${esc(configured)}</span>
@@ -2250,7 +2348,7 @@
 
   function mediaHtml(hass, map, config, cameraVisible, online, status) {
     const source = mediaSource(hass, map, config, cameraVisible, online, status);
-    const task = stateValue(hass, map.task, "Kein aktiver Druckauftrag");
+    const task = autoStateValue(hass, map.task, "task", "Kein aktiver Druckauftrag");
     const native = cameraProxy(hass, map, config);
 
     if (online && cameraVisible && !source.src) {
@@ -2284,7 +2382,7 @@
 
     const streamHtml = esc(native.stream);
     const stillJson = JSON.stringify(still);
-    const title = esc(`3D-Printer Control Center Live-Kamera · ${stateValue(hass, map.serial, map.prefix)}`);
+    const title = esc(`3D-Printer Control Center Live-Kamera · ${autoStateValue(hass, map.serial, "serial", map.prefix)}`);
 
     popup.document.open();
     popup.document.write(`<!doctype html>

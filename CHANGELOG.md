@@ -1,5 +1,17 @@
 # Changelog
 
+## 5.0.0-alpha16 - Studio profile context for dry-run jobs
+
+### Added
+- Added frontend profile-context handoff for Studio Dry-Run jobs.
+- Added printer, filament and process profile context to the Dry-Run worker request.
+- Added backend normalization and validation for the supplied Studio profile context.
+- Added Dry-Run result metadata for selected profiles and validation warnings.
+
+### Notes
+- The Dry-Run worker still performs validation only.
+- Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha15 - Studio profile bank UI binding
 
 ### Added

@@ -1,105 +1,165 @@
-"""Dry-run slicer worker scaffold for v5 Studio.
+"""Studio worker dry-run helpers for Printer Control Center v5.
 
-This worker intentionally does not execute a real slicer yet. It validates the
-slice plan and updates persistent job status so the v5 Studio workflow can be
-tested safely before direct slicing/printing is enabled.
+Alpha16 adds profile-context validation for dry-run jobs.
+This module still does not perform real slicing and never starts direct printing.
 """
 
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
 
+WORKER_VERSION = "5.0.0-alpha16"
+
 
 def _utcnow() -> str:
+    """Return an ISO timestamp with UTC timezone."""
     return datetime.now(timezone.utc).isoformat()
 
 
-def validate_slice_plan(plan: dict[str, Any] | None) -> dict[str, Any]:
-    """Validate the minimum shape required for a future slicer run."""
-    data = plan if isinstance(plan, dict) else {}
-    model = data.get("model") if isinstance(data.get("model"), dict) else {}
-    slice_settings = data.get("sliceSettings") if isinstance(data.get("sliceSettings"), dict) else {}
+def _safe_dict(value: Any) -> dict[str, Any]:
+    """Return value when it is a dict, otherwise an empty dict."""
+    return value if isinstance(value, dict) else {}
+
+
+def _compact_profile(profile: Any) -> dict[str, Any] | None:
+    """Return a compact profile representation suitable for job storage."""
+    if not isinstance(profile, dict):
+        return None
+
+    allowed_keys = {
+        "id",
+        "name",
+        "family",
+        "material",
+        "vendor",
+        "build_plate_mm",
+        "default_nozzle_mm",
+        "nozzle_temp_c",
+        "bed_temp_c",
+        "max_volumetric_speed_mm3_s",
+        "layer_height_mm",
+        "wall_loops",
+        "top_shell_layers",
+        "bottom_shell_layers",
+        "sparse_infill_density_percent",
+        "sparse_infill_pattern",
+        "support_enabled",
+    }
+
+    return {key: deepcopy(value) for key, value in profile.items() if key in allowed_keys}
+
+
+def normalize_profile_context(profile_context: Any | None) -> dict[str, Any]:
+    """Normalize the Studio profile context supplied by the frontend."""
+    context = _safe_dict(profile_context)
+
+    selection = _safe_dict(context.get("selection"))
+    printer_profile = _compact_profile(context.get("printer_profile"))
+    filament_profile = _compact_profile(context.get("filament_profile"))
+    process_profile = _compact_profile(context.get("process_profile"))
+
+    normalized = {
+        "version": WORKER_VERSION,
+        "source": context.get("source") or "studio_ui",
+        "selection": {
+            "printer_profile_id": selection.get("printer_profile_id"),
+            "filament_profile_id": selection.get("filament_profile_id"),
+            "process_profile_id": selection.get("process_profile_id"),
+        },
+        "printer_profile": printer_profile,
+        "filament_profile": filament_profile,
+        "process_profile": process_profile,
+        "valid": True,
+        "warnings": [],
+    }
+
+    if not normalized["selection"]["printer_profile_id"]:
+        normalized["valid"] = False
+        normalized["warnings"].append("Missing printer profile selection.")
+
+    if not normalized["selection"]["filament_profile_id"]:
+        normalized["valid"] = False
+        normalized["warnings"].append("Missing filament profile selection.")
+
+    if not normalized["selection"]["process_profile_id"]:
+        normalized["valid"] = False
+        normalized["warnings"].append("Missing process profile selection.")
+
+    if printer_profile is None:
+        normalized["valid"] = False
+        normalized["warnings"].append("Missing printer profile details.")
+
+    if filament_profile is None:
+        normalized["valid"] = False
+        normalized["warnings"].append("Missing filament profile details.")
+
+    if process_profile is None:
+        normalized["valid"] = False
+        normalized["warnings"].append("Missing process profile details.")
+
+    return normalized
+
+
+def build_dry_run_result(
+    job: dict[str, Any] | None,
+    profile_context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build a dry-run patch for a Studio job.
+
+    The result is intentionally a planning/validation object only.
+    It must not invoke a slicer and must not start a print job.
+    """
+    target_job = _safe_dict(job)
+    normalized_profile_context = normalize_profile_context(profile_context)
+    now = _utcnow()
+
+    job_name = (
+        target_job.get("name")
+        or target_job.get("title")
+        or target_job.get("file_name")
+        or target_job.get("filename")
+        or "Studio job"
+    )
+
+    dry_run_ok = bool(target_job) and normalized_profile_context["valid"]
 
     warnings: list[str] = []
-    errors: list[str] = []
+    if not target_job:
+        warnings.append("No Studio job was supplied to the dry-run worker.")
 
-    model_name = str(model.get("name") or data.get("modelName") or "").strip()
-    model_path = str(model.get("path") or model.get("url") or data.get("path") or "").strip()
+    warnings.extend(normalized_profile_context["warnings"])
 
-    if not model_name:
-        warnings.append("Model name is missing.")
-    if not model_path:
-        warnings.append("Model path is missing. Dry-run can continue, real slicing will need a resolved file path.")
-
-    printer = str(data.get("printer") or model.get("printer") or "").strip()
-    nozzle = str(data.get("nozzle") or "").strip()
-    process = str(data.get("process") or "").strip()
-
-    if not printer:
-        warnings.append("Printer profile is missing.")
-    if not nozzle:
-        warnings.append("Nozzle profile is missing.")
-    if not process:
-        warnings.append("Process profile is missing.")
-
-    layer_height = slice_settings.get("layerHeight")
-    infill = slice_settings.get("infill")
-
-    try:
-        if layer_height is not None and float(layer_height) <= 0:
-            errors.append("Layer height must be greater than zero.")
-    except (TypeError, ValueError):
-        errors.append("Layer height is not numeric.")
-
-    try:
-        if infill is not None and not 0 <= float(infill) <= 100:
-            errors.append("Infill must be between 0 and 100 percent.")
-    except (TypeError, ValueError):
-        errors.append("Infill is not numeric.")
-
-    return {
-        "ok": not errors,
-        "warnings": warnings,
-        "errors": errors,
-        "modelName": model_name or "3MF model",
-        "modelPath": model_path,
-        "printer": printer,
-        "nozzle": nozzle,
-        "process": process,
-        "checkedAt": _utcnow(),
-    }
-
-
-def build_dry_run_result(job: dict[str, Any] | None) -> dict[str, Any]:
-    """Build a deterministic dry-run result for a Studio slice job."""
-    source_job = job if isinstance(job, dict) else {}
-    plan = source_job.get("plan") if isinstance(source_job.get("plan"), dict) else {}
-    validation = validate_slice_plan(plan)
-
-    status = "dry_run_ready" if validation["ok"] else "dry_run_blocked"
-    progress = 10 if validation["ok"] else 0
-    stage = "dry-run-validation-ok" if validation["ok"] else "dry-run-validation-blocked"
-
-    message = "Dry-run erfolgreich vorbereitet. Echter Slicer-Lauf ist weiterhin deaktiviert."
-    if not validation["ok"]:
-        message = "Dry-run blockiert. Slice-Plan muss vor echtem Slicer-Lauf korrigiert werden."
-
-    return {
-        "id": source_job.get("id"),
-        "status": status,
-        "progress": progress,
-        "stage": stage,
-        "workerStatus": status,
-        "workerCommand": "dry_run",
-        "workerMessage": message,
-        "message": message,
-        "validation": validation,
-        "updatedAt": _utcnow(),
-        "output": {
-            "type": "dry_run",
-            "slicerWorker": "not_enabled",
-            "directPrint": "disabled",
-            "estimatedOutput": None,
+    result = {
+        "version": WORKER_VERSION,
+        "updated_at": now,
+        "status": "dry_run_ready" if dry_run_ok else "dry_run_incomplete",
+        "profile_context": normalized_profile_context,
+        "worker": {
+            "version": WORKER_VERSION,
+            "state": "dry_run_ready" if dry_run_ok else "dry_run_incomplete",
+            "dry_run": True,
+            "real_slicing_enabled": False,
+            "direct_print_enabled": False,
+            "message": (
+                "Dry-run profile context validation completed."
+                if dry_run_ok
+                else "Dry-run profile context validation completed with warnings."
+            ),
+            "warnings": warnings,
+            "job_name": job_name,
+            "updated_at": now,
+        },
+        "dry_run": {
+            "ok": dry_run_ok,
+            "job_present": bool(target_job),
+            "profile_context_valid": normalized_profile_context["valid"],
+            "real_slicing_enabled": False,
+            "direct_print_enabled": False,
+            "warnings": warnings,
+            "updated_at": now,
         },
     }
+
+    return result

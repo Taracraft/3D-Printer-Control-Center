@@ -159,6 +159,7 @@ async def ws_studio_selftest(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "printer_control_center/studio_worker/dry_run",
+        vol.Optional("profile_context", default={}): dict,
         vol.Required("job_id"): str,
     }
 )
@@ -186,7 +187,7 @@ async def ws_studio_worker_dry_run(
             },
         )
     else:
-        patch = build_dry_run_result(target_job)
+        patch = build_dry_run_result(target_job, msg.get("profile_context") or {})
         updated_job = await async_update_studio_job(
             hass,
             job_id=str(msg["job_id"]),

@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha15";
+  const VERSION = "5.0.0-alpha16";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha15",
+      version:"5.0.0-alpha16",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3519,6 +3519,29 @@ class StudioCard extends BaseCard {
       return null;
     }
   }
+  buildStudioProfileContext(){
+    const details=this.selectedStudioProfileDetails?this.selectedStudioProfileDetails():null;
+    const bank=this._studioProfileBank||{};
+    const selection=(details&&details.selection)||this.currentStudioProfileSelection?.()||{};
+
+    return {
+      version:VERSION,
+      source:"studio_ui_alpha16",
+      selection:{
+        printer_profile_id:selection.printer_profile_id||null,
+        filament_profile_id:selection.filament_profile_id||null,
+        process_profile_id:selection.process_profile_id||null
+      },
+      printer_profile:details?.printer||null,
+      filament_profile:details?.filament||null,
+      process_profile:details?.process||null,
+      counts:{
+        printers:Object.keys(bank.printer_profiles||{}).length,
+        filaments:Object.keys(bank.filaments||{}).length,
+        process_profiles:Object.keys(bank.process_profiles||{}).length
+      }
+    };
+  }
   async runSliceWorkerDryRun(jobId){
     const jobs=this.sliceJobs();
     const id=String(jobId||jobs[0]?.id||"");
@@ -3529,6 +3552,7 @@ class StudioCard extends BaseCard {
       if(this._hass&&this.ws){
         const result=await this.ws({
           type:"printer_control_center/studio_worker/dry_run",
+          profile_context:this.buildStudioProfileContext?.()||null,
           job_id:id
         });
         updated=result?.job||null;
@@ -3622,7 +3646,7 @@ class StudioCard extends BaseCard {
     const model=this.currentStudioModel?.()||state.model||null;
     return {
       schema:"printer-control-center.v5.local-selftest",
-      version:"5.0.0-alpha15",
+      version:"5.0.0-alpha16",
       source:"browser-local",
       websocketRegistered:false,
       jobsCount:jobs.length,
@@ -3783,7 +3807,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha15",
+      version:"5.0.0-alpha16",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),

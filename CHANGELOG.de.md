@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha16 - Studio-Profilkontext für Dry-Run-Jobs
+
+### Hinzugefügt
+- Frontend-Übergabe des Profilkontexts für Studio-Dry-Run-Jobs ergänzt.
+- Drucker-, Filament- und Prozessprofilkontext wird an den Dry-Run-Worker übergeben.
+- Backend-Normalisierung und Validierung für den übergebenen Studio-Profilkontext ergänzt.
+- Dry-Run-Ergebnis um ausgewählte Profile und Validierungswarnungen erweitert.
+
+### Hinweise
+- Der Dry-Run-Worker führt weiterhin nur Validierung aus.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha15 - Studio-Profilbank-UI-Anbindung
 
 ### Hinzugefügt

@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-alpha20.5*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-alpha20.6*/
 (() => {
-  const VERSION = "5.0.0-alpha20.5";
+  const VERSION = "5.0.0-alpha20.6";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4726,9 +4726,9 @@
   console.info(`3D-Printer Control Center ${VERSION}: ${picker.length} cards registered`);
 })();
 
-/* v5 alpha20.5: isolated Studio frontend card rebuilt on stable frontend baseline. */
+/* v5 alpha20.6: isolated Studio frontend card rebuilt on stable frontend baseline. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-alpha20.5";
+  const STUDIO_VERSION = "5.0.0-alpha20.6";
 
   const escStudio = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -4782,7 +4782,7 @@
     buildProfileContext() {
       return {
         version: STUDIO_VERSION,
-        source: "isolated_studio_alpha20_5",
+        source: "isolated_studio_alpha20_6",
         selection: {
           printer_profile_id: "bambu_a1_x1_p1_h2_generic",
           filament_profile_id: "pla_generic",
@@ -4816,13 +4816,54 @@
       return {
         id: "isolated-studio-preview",
         name: "Isolated Studio Preview",
-        source: "frontend_alpha20_5",
+        source: "frontend_alpha20_6",
         transform: {...this._transform},
         real_slicing_enabled: false,
         direct_print_enabled: false
       };
     }
 
+    buildLocalStudioPlan(dryRun) {
+      const profileContext = dryRun?.profile_context || this.buildProfileContext();
+      const dry = dryRun?.dry_run || {};
+      const now = new Date().toISOString();
+
+      return {
+        version: STUDIO_VERSION,
+        schema: 1,
+        source: "frontend_alpha20_6_fallback",
+        updated_at: now,
+        job: {
+          id: "isolated-studio-preview",
+          name: "Isolated Studio Preview",
+          source: "frontend_alpha20_6",
+          updated_at: now
+        },
+        profile_context: {
+          ...profileContext,
+          valid: profileContext.valid !== false,
+          warnings: Array.isArray(profileContext.warnings) ? profileContext.warnings : []
+        },
+        dry_run: {
+          ok: dry.ok !== false,
+          job_present: true,
+          profile_context_valid: true,
+          status: dry.status || (dry.ok === false ? "dry_run_incomplete" : "dry_run_ready"),
+          warnings: Array.isArray(dry.warnings) ? dry.warnings : [],
+          updated_at: dry.updated_at || now,
+          real_slicing_enabled: false,
+          direct_print_enabled: false
+        },
+        slicer: {
+          stage: "planning_only",
+          real_slicing_enabled: false,
+          direct_print_enabled: false,
+          worker_enabled: false
+        },
+        warnings: Array.isArray(dry.warnings) ? dry.warnings : [],
+        valid: dry.ok !== false && profileContext.valid !== false
+      };
+    }
     async runDryRunPlan() {
       if (!this._hass?.connection?.sendMessagePromise) {
         this._status = "Dry-Run konnte nicht gestartet werden: Home Assistant WebSocket fehlt.";
@@ -4841,9 +4882,22 @@
         });
 
         const dryRun = result?.result || result?.patch || result?.job || result || {};
+        if (!dryRun.profile_context) {
+          dryRun.profile_context = this.buildProfileContext();
+        }
+        if (!dryRun.dry_run) {
+          dryRun.dry_run = {
+            ok: dryRun.status !== "dry_run_incomplete",
+            real_slicing_enabled: false,
+            direct_print_enabled: false,
+            warnings: []
+          };
+        }
+        dryRun.studio_plan = dryRun.studio_plan || this.buildLocalStudioPlan(dryRun);
+
         this._lastDryRun = dryRun;
-        this._lastStudioPlan = dryRun.studio_plan || null;
-        this._status = "Dry-Run-Plan erfolgreich geprüft. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+        this._lastStudioPlan = dryRun.studio_plan;
+        this._status = "Dry-Run-Plan erfolgreich geprüft. Studio-Plan ist für Health verfügbar. Echtes Slicen und Direktdruck bleiben deaktiviert.";
       } catch (error) {
         this._lastDryRun = {
           status: "dry_run_incomplete",
@@ -4855,8 +4909,9 @@
           },
           profile_context: this.buildProfileContext()
         };
-        this._lastStudioPlan = null;
-        this._status = "Dry-Run-Plan meldet einen Hinweis.";
+        this._lastDryRun.studio_plan = this.buildLocalStudioPlan(this._lastDryRun);
+        this._lastStudioPlan = this._lastDryRun.studio_plan;
+        this._status = "Dry-Run-Plan meldet einen Hinweis, Studio-Plan-Fallback ist verfügbar.";
       }
 
       this.render();
@@ -5282,7 +5337,7 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate">
-                  <div class="plate-label">Buildplate · isolierter alpha20.5 Dry-Run-Plan</div>
+                  <div class="plate-label">Buildplate · isolierter alpha20.6 Dry-Run-Plan</div>
                   <div class="model"></div>
                 </div>
                 <div class="status">${escStudio(this._status)}</div>

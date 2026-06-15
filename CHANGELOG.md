@@ -1,5 +1,16 @@
 # Changelog
 
+## 5.0.0-alpha20.6 - Studio plan fallback for isolated Dry-Run
+
+### Fixed
+- Added a local `studio_plan` fallback when the isolated Studio Dry-Run result does not return a plan object.
+- Updated Health payloads so `studio_plan_present` can validate after "Plan prüfen".
+- Kept the fallback strictly in planning mode with real slicing and direct printing disabled.
+
+### Notes
+- This remains part of the alpha20 recovery/test window.
+- Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha20.5 - Isolated Studio Dry-Run plan UI
 
 ### Added

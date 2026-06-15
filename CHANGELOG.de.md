@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha20.6 - Studio-Plan-Fallback für isolierten Dry-Run
+
+### Behoben
+- Lokalen `studio_plan`-Fallback ergänzt, falls der isolierte Studio-Dry-Run kein Planobjekt zurückgibt.
+- Health-Nutzdaten so erweitert, dass `studio_plan_present` nach „Plan prüfen“ validieren kann.
+- Fallback bleibt strikt im Planungsmodus; echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### Hinweise
+- Dieser Stand gehört weiterhin zum alpha20-Recovery-/Testfenster.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha20.5 - Isolierter Studio-Dry-Run-Plan
 
 ### Hinzugefügt

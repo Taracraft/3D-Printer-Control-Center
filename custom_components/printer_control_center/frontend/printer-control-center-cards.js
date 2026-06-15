@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-alpha20.4*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-alpha20.5*/
 (() => {
-  const VERSION = "5.0.0-alpha20.4";
+  const VERSION = "5.0.0-alpha20.5";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4726,9 +4726,9 @@
   console.info(`3D-Printer Control Center ${VERSION}: ${picker.length} cards registered`);
 })();
 
-/* v5 alpha20.4: isolated Studio frontend card rebuilt on stable frontend baseline. */
+/* v5 alpha20.5: isolated Studio frontend card rebuilt on stable frontend baseline. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-alpha20.4";
+  const STUDIO_VERSION = "5.0.0-alpha20.5";
 
   const escStudio = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -4749,7 +4749,9 @@
       this.attachShadow({mode:"open"});
       this._mode = "move";
       this._health = null;
-      this._status = "Studio frontend rebuilt. Real slicing and direct printing remain disabled.";
+      this._lastDryRun = null;
+      this._lastStudioPlan = null;
+      this._status = "Studio frontend ready. Real slicing and direct printing remain disabled.";
       this._transform = {
         x: 0,
         y: 0,
@@ -4774,6 +4776,141 @@
 
     set hass(hass) {
       this._hass = hass;
+      this.render();
+    }
+
+    buildProfileContext() {
+      return {
+        version: STUDIO_VERSION,
+        source: "isolated_studio_alpha20_5",
+        selection: {
+          printer_profile_id: "bambu_a1_x1_p1_h2_generic",
+          filament_profile_id: "pla_generic",
+          process_profile_id: "standard_020"
+        },
+        printer_profile: {
+          id: "bambu_a1_x1_p1_h2_generic",
+          name: "Bambu A1 / X1 / P1 / H2",
+          build_plate_mm: [256, 256],
+          default_nozzle_mm: 0.4
+        },
+        filament_profile: {
+          id: "pla_generic",
+          name: "PLA Generic",
+          material: "PLA",
+          nozzle_temp_c: 220,
+          bed_temp_c: 60,
+          max_volumetric_speed_mm3_s: 12
+        },
+        process_profile: {
+          id: "standard_020",
+          name: "0.20 mm Standard",
+          layer_height_mm: 0.2,
+          sparse_infill_density_percent: 15,
+          sparse_infill_pattern: "grid"
+        }
+      };
+    }
+
+    buildDryRunJob() {
+      return {
+        id: "isolated-studio-preview",
+        name: "Isolated Studio Preview",
+        source: "frontend_alpha20_5",
+        transform: {...this._transform},
+        real_slicing_enabled: false,
+        direct_print_enabled: false
+      };
+    }
+
+    async runDryRunPlan() {
+      if (!this._hass?.connection?.sendMessagePromise) {
+        this._status = "Dry-Run konnte nicht gestartet werden: Home Assistant WebSocket fehlt.";
+        this.render();
+        return;
+      }
+
+      this._status = "Dry-Run-Plan wird geprüft ...";
+      this.render();
+
+      try {
+        const result = await this._hass.connection.sendMessagePromise({
+          type: "printer_control_center/studio_worker/dry_run",
+          job: this.buildDryRunJob(),
+          profile_context: this.buildProfileContext()
+        });
+
+        const dryRun = result?.result || result?.patch || result?.job || result || {};
+        this._lastDryRun = dryRun;
+        this._lastStudioPlan = dryRun.studio_plan || null;
+        this._status = "Dry-Run-Plan erfolgreich geprüft. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+      } catch (error) {
+        this._lastDryRun = {
+          status: "dry_run_incomplete",
+          dry_run: {
+            ok: false,
+            warnings: [String(error?.message || error)],
+            real_slicing_enabled: false,
+            direct_print_enabled: false
+          },
+          profile_context: this.buildProfileContext()
+        };
+        this._lastStudioPlan = null;
+        this._status = "Dry-Run-Plan meldet einen Hinweis.";
+      }
+
+      this.render();
+    }
+
+    async runHealthCheck() {
+      if (!this._hass?.connection?.sendMessagePromise) {
+        this._health = {
+          status: "warnings",
+          summary: {ok: 0, warnings: 1, checks: 1},
+          checks: [{
+            name: "websocket_connection",
+            ok: false,
+            detail: "Home Assistant WebSocket connection is not available in this frontend context."
+          }],
+          safety: {
+            real_slicing_enabled: false,
+            direct_print_enabled: false,
+            stage: "frontend_only"
+          }
+        };
+        this._status = "Health check could not use Home Assistant WebSocket.";
+        this.render();
+        return;
+      }
+
+      this._status = "Running Studio health check ...";
+      this.render();
+
+      try {
+        this._health = await this._hass.connection.sendMessagePromise({
+          type: "printer_control_center/studio/health",
+          jobs: this._lastStudioPlan ? [{studio_plan: this._lastStudioPlan}] : [],
+          dry_run: this._lastDryRun || {}
+        });
+        this._status = "Studio health check completed.";
+      } catch (error) {
+        this._health = {
+          status: "warnings",
+          summary: {ok: 0, warnings: 1, checks: 1},
+          checks: [{
+            name: "studio_health_websocket",
+            ok: false,
+            detail: String(error?.message || error)
+          }],
+          safety: {
+            real_slicing_enabled: false,
+            direct_print_enabled: false,
+            stage: "diagnostics_only"
+          }
+        };
+        this._status = "Studio health check returned a warning.";
+      }
+
       this.render();
     }
 
@@ -4814,7 +4951,10 @@
 
       if (action === "reset") {
         this._transform = {x:0,y:0,z:0,rx:0,ry:0,rz:0,scale:100,sx:100,sy:100,sz:100};
-        this._status = "Transform reset.";
+        this._lastDryRun = null;
+        this._lastStudioPlan = null;
+        this._health = null;
+        this._status = "Transform and local plan state reset.";
         this.render();
       }
 
@@ -4829,65 +4969,12 @@
       }
 
       if (action === "slice") {
-        this._status = "Dry planning only. Real slicing is disabled.";
-        this.render();
+        this.runDryRunPlan();
       }
 
       if (action === "health") {
         this.runHealthCheck();
       }
-    }
-
-    async runHealthCheck() {
-      if (!this._hass?.connection?.sendMessagePromise) {
-        this._health = {
-          status: "warnings",
-          summary: {ok: 0, warnings: 1, checks: 1},
-          checks: [{
-            name: "websocket_connection",
-            ok: false,
-            detail: "Home Assistant WebSocket connection is not available in this frontend context."
-          }],
-          safety: {
-            real_slicing_enabled: false,
-            direct_print_enabled: false,
-            stage: "frontend_only"
-          }
-        };
-        this._status = "Health check could not use Home Assistant WebSocket.";
-        this.render();
-        return;
-      }
-
-      this._status = "Running Studio health check ...";
-      this.render();
-
-      try {
-        this._health = await this._hass.connection.sendMessagePromise({
-          type: "printer_control_center/studio/health",
-          jobs: [],
-          dry_run: {}
-        });
-        this._status = "Studio health check completed.";
-      } catch (error) {
-        this._health = {
-          status: "warnings",
-          summary: {ok: 0, warnings: 1, checks: 1},
-          checks: [{
-            name: "studio_health_websocket",
-            ok: false,
-            detail: String(error?.message || error)
-          }],
-          safety: {
-            real_slicing_enabled: false,
-            direct_print_enabled: false,
-            stage: "diagnostics_only"
-          }
-        };
-        this._status = "Studio health check returned a warning.";
-      }
-
-      this.render();
     }
 
     toolButton(label, mode) {
@@ -4906,12 +4993,41 @@
       `;
     }
 
+    renderPlanSummary() {
+      if (!this._lastDryRun && !this._lastStudioPlan) {
+        return `
+          <div class="plan-note">
+            Noch kein Dry-Run-Plan erzeugt. "Plan pruefen" erstellt einen Backend-Dry-Run ohne echtes Slicen.
+          </div>
+        `;
+      }
+
+      const dry = this._lastDryRun?.dry_run || {};
+      const plan = this._lastStudioPlan || this._lastDryRun?.studio_plan || {};
+      const profile = plan.profile_context || this._lastDryRun?.profile_context || {};
+      const printer = profile.printer_profile?.name || "Bambu A1 / X1 / P1 / H2";
+      const filament = profile.filament_profile?.name || "PLA Generic";
+      const process = profile.process_profile?.name || "0.20 mm Standard";
+
+      return `
+        <div class="plan-summary">
+          <span class="badge ${dry.ok === false ? "warn" : "ok"}">${dry.ok === false ? "Plan Hinweis" : "Plan bereit"}</span>
+          <span class="badge">Slicen ${dry.real_slicing_enabled ? "aktiv" : "aus"}</span>
+          <span class="badge">Druck ${dry.direct_print_enabled ? "aktiv" : "aus"}</span>
+          <div class="health-row"><span>Plan-Drucker</span><strong>${escStudio(printer)}</strong></div>
+          <div class="health-row"><span>Plan-Filament</span><strong>${escStudio(filament)}</strong></div>
+          <div class="health-row"><span>Plan-Prozess</span><strong>${escStudio(process)}</strong></div>
+          <div class="health-row"><span>Planstruktur</span><strong>${plan.version ? escStudio(plan.version) : "noch nicht persistiert"}</strong></div>
+        </div>
+      `;
+    }
+
     renderHealth() {
       const health = this._health;
       if (!health) {
         return `
           <div class="health-note">
-            No health result yet. Use "Health pruefen" after Home Assistant has fully restarted.
+            No health result yet. Use "Plan pruefen" first, then "Health pruefen".
           </div>
         `;
       }
@@ -4995,7 +5111,7 @@
             }
             .studio-grid{
               display:grid;
-              grid-template-columns:260px minmax(360px,1fr) 300px;
+              grid-template-columns:260px minmax(360px,1fr) 320px;
               gap:12px;
               padding:12px;
             }
@@ -5069,7 +5185,9 @@
               border-radius:14px;
               border:1px solid rgba(255,255,255,.28);
             }
-            .status{
+            .status,
+            .plan-note,
+            .plan-summary{
               border:1px solid rgba(255,255,255,.16);
               border-radius:10px;
               padding:10px;
@@ -5156,7 +5274,7 @@
                 <div class="profile-row"><span>Drucker</span><strong>Bambu A1 / X1 / P1 / H2</strong></div>
                 <div class="profile-row"><span>Druckplatte</span><strong>Standard Build Plate</strong></div>
                 <div class="profile-row"><span>Duese</span><strong>0.4 mm</strong></div>
-                <div class="profile-row"><span>Filament</span><strong>PLA / PETG Profilbank</strong></div>
+                <div class="profile-row"><span>Filament</span><strong>PLA Generic</strong></div>
                 <div class="profile-row"><span>Prozess</span><strong>0.20 mm Standard</strong></div>
                 <div class="profile-row"><span>Slicer</span><strong>planning_only</strong></div>
                 <div class="profile-row"><span>Direktdruck</span><strong>deaktiviert</strong></div>
@@ -5164,10 +5282,11 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate">
-                  <div class="plate-label">Buildplate · isolierter alpha20.4 Frontend-Rebuild</div>
+                  <div class="plate-label">Buildplate · isolierter alpha20.5 Dry-Run-Plan</div>
                   <div class="model"></div>
                 </div>
                 <div class="status">${escStudio(this._status)}</div>
+                ${this.renderPlanSummary()}
               </main>
 
               <aside class="panel">
@@ -5209,7 +5328,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "Isolated v5 Studio/CAD frontend rebuilt on the stable gallery frontend baseline."
+      description: "Isolated v5 Studio/CAD frontend with backend Dry-Run planning."
     });
   }
 })();

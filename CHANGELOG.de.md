@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha20.5 - Isolierter Studio-Dry-Run-Plan
+
+### Hinzugefügt
+- Backend-Dry-Run-Ausführung aus der isolierten Studio-Karte ergänzt.
+- Statische Profilkontext-Übergabe für Drucker-, Filament- und Prozessprofil ergänzt.
+- Frontend-Anzeige für zurückgegebenen Dry-Run und `studio_plan` ergänzt.
+- Studio-Health-Prüfung nutzt jetzt das letzte Dry-Run-Ergebnis und den Studio-Plan.
+
+### Hinweise
+- Dieser Stand gehört weiterhin zum alpha20-Recovery-/Testfenster.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha20.4 - Studio-Frontend-Deduplizierung
 
 ### Behoben

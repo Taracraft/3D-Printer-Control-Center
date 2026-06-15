@@ -1,5 +1,17 @@
 # Changelog
 
+## 5.0.0-alpha20.5 - Isolated Studio Dry-Run plan UI
+
+### Added
+- Added backend Dry-Run execution from the isolated Studio card.
+- Added static profile context handoff for printer, filament and process profile.
+- Added frontend display for the returned Dry-Run and `studio_plan`.
+- Updated Studio Health checks to include the latest Dry-Run result and Studio plan.
+
+### Notes
+- This is still part of the alpha20 recovery/test window.
+- Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha20.4 - Studio frontend deduplication cleanup
 
 ### Fixed

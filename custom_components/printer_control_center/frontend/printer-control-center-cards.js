@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - v5.0.0-alpha1 development */
+/* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha1";
+  const VERSION = "5.0.0-alpha2-ui";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -2813,6 +2813,16 @@ class StudioCard extends BaseCard {
 
   defaults(){
     return {
+      tool:"move",
+      printer:"Bambu Lab A1",
+      nozzle:"0.4",
+      bed:"Bambu Smooth PEI Plate",
+      filament1:"eSUN PLA+ @BBL A1 PLA HS",
+      filament2:"PETG",
+      filament3:"ABS",
+      filament4:"PLA",
+      process:"0.20mm Standard @BBL A1 - PLA+",
+      qualityTab:"Qualität",
       x:0,y:0,z:0,
       rx:0,ry:0,rz:0,
       sx:100,sy:100,sz:100,
@@ -2820,8 +2830,11 @@ class StudioCard extends BaseCard {
     }
   }
 
-  storageKey(){
-    return "printer_control_center.v5.studio.transform.v1"
+  storageKey(){return "printer_control_center.v5.studio.ui.v2"}
+
+  state(){
+    if(!this._studioState)this._studioState=this.loadState()
+    return this._studioState
   }
 
   loadState(){
@@ -2829,22 +2842,14 @@ class StudioCard extends BaseCard {
     try{
       const raw=window.localStorage.getItem(this.storageKey())
       if(!raw)return base
-      const parsed=JSON.parse(raw)
-      return {...base,...parsed}
+      return {...base,...JSON.parse(raw)}
     }catch(_error){
       return base
     }
   }
 
   saveState(){
-    try{
-      window.localStorage.setItem(this.storageKey(),JSON.stringify(this.state()))
-    }catch(_error){}
-  }
-
-  state(){
-    if(!this._studioState)this._studioState=this.loadState()
-    return this._studioState
+    try{window.localStorage.setItem(this.storageKey(),JSON.stringify(this.state()))}catch(_error){}
   }
 
   num(value,fallback=0){
@@ -2863,13 +2868,19 @@ class StudioCard extends BaseCard {
     this.render()
   }
 
+  selectField(key,label,options){
+    const current=this.state()[key]
+    return `<label class="studio-select"><span>${esc(label)}</span><select data-studio-select="${esc(key)}">${options.map((option)=>`<option value="${esc(option)}" ${option===current?"selected":""}>${esc(option)}</option>`).join("")}</select></label>`
+  }
+
   field(key,label,unit){
     const value=this.state()[key]
     return `<label class="studio-field"><span>${esc(label)} <small>${esc(unit||"")}</small></span><input data-studio-input="${esc(key)}" type="number" step="1" value="${esc(String(value))}"></label>`
   }
 
-  panel(title,html){
-    return `<section class="studio-panel"><h4>${esc(title)}</h4><div class="studio-fields">${html}</div></section>`
+  toolButton(tool,label){
+    const active=this.state().tool===tool
+    return `<button class="${active?"active":""}" data-studio-tool="${esc(tool)}">${esc(label)}</button>`
   }
 
   render(){
@@ -2877,68 +2888,166 @@ class StudioCard extends BaseCard {
     const s=this.state()
     this.shadowRoot.innerHTML=frame(this._config,`
       <style>
-        .studio-v5{display:grid;grid-template-columns:minmax(280px,1fr) minmax(280px,440px);gap:14px}
-        .studio-stage{position:relative;min-height:620px;border:1px solid rgba(0,190,255,.55);border-radius:14px;overflow:hidden;background:
-          linear-gradient(rgba(0,170,220,.12) 1px,transparent 1px),
-          linear-gradient(90deg,rgba(0,170,220,.12) 1px,transparent 1px),
-          radial-gradient(circle at 50% 40%,rgba(0,180,255,.16),rgba(0,0,0,.08) 42%,rgba(0,0,0,.30));
-          background-size:32px 32px,32px 32px,100% 100%}
-        .studio-bed{position:absolute;left:3%;right:3%;top:5%;bottom:7%;border:1px dashed rgba(0,190,255,.75);border-radius:12px}
-        .studio-model{position:absolute;left:50%;top:50%;width:160px;height:110px;margin-left:-80px;margin-top:-55px;border:1px solid rgba(0,210,255,.9);border-radius:18px;background:linear-gradient(135deg,rgba(0,180,255,.75),rgba(0,120,170,.55));display:flex;align-items:center;justify-content:center;font-weight:800;box-shadow:0 0 30px rgba(0,180,255,.24);transform-origin:center center;transition:transform .12s ease,width .12s ease,height .12s ease}
-        .studio-readout{position:absolute;left:20px;bottom:18px;font-size:12px;line-height:1.7;color:rgba(230,250,255,.9)}
-        .studio-side{display:flex;flex-direction:column;gap:10px}
-        .studio-panel{border:1px solid rgba(0,190,255,.45);border-radius:12px;padding:12px;background:rgba(0,0,0,.18)}
-        .studio-panel h4{margin:0 0 10px 0}
-        .studio-fields{display:grid;grid-template-columns:repeat(3,minmax(70px,1fr));gap:8px}
-        .studio-field span{display:block;font-size:12px;color:rgba(230,250,255,.75);margin-bottom:5px}
-        .studio-field input{width:100%;box-sizing:border-box;border:1px solid rgba(0,190,255,.55);border-radius:8px;background:rgba(0,0,0,.48);color:white;padding:8px}
-        .studio-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-        .studio-tools button{border:1px solid rgba(0,190,255,.6);border-radius:8px;background:rgba(255,255,255,.08);color:white;padding:9px;cursor:pointer}
-        .studio-tools button:hover{background:rgba(0,190,255,.18)}
-        .studio-note{font-size:12px;line-height:1.45;color:rgba(230,250,255,.78)}
-        @media(max-width:900px){.studio-v5{grid-template-columns:1fr}.studio-stage{min-height:520px}}
+        .studio-shell{display:grid;grid-template-columns:310px minmax(520px,1fr) 360px;gap:10px;min-height:calc(100vh - 150px)}
+        .studio-left,.studio-right,.studio-center{border:1px solid rgba(0,190,255,.42);border-radius:14px;background:rgba(0,0,0,.18);overflow:hidden}
+        .studio-left{display:flex;flex-direction:column;min-height:760px}
+        .studio-right{padding:10px;display:flex;flex-direction:column;gap:10px}
+        .studio-center{display:flex;flex-direction:column;min-height:760px}
+        .studio-topbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px;border-bottom:1px solid rgba(0,190,255,.32);background:rgba(255,255,255,.04)}
+        .studio-topbar button,.studio-action{border:1px solid rgba(0,190,255,.55);border-radius:8px;background:rgba(255,255,255,.07);color:white;padding:8px 10px;cursor:pointer;font-weight:700}
+        .studio-topbar button.active,.studio-action.primary{background:rgba(0,155,210,.42);box-shadow:0 0 0 1px rgba(0,220,255,.35) inset}
+        .studio-topbar .spacer{flex:1}
+        .studio-action.disabled{opacity:.45;cursor:not-allowed}
+        .studio-left-section{padding:10px;border-bottom:1px solid rgba(0,190,255,.22)}
+        .studio-left-section h4,.studio-panel h4{margin:0 0 9px 0;font-size:14px}
+        .studio-printer-card{display:grid;grid-template-columns:50px 1fr;gap:8px;align-items:center;border:1px solid rgba(0,190,255,.35);border-radius:10px;padding:8px;background:rgba(255,255,255,.04)}
+        .studio-printer-icon{height:48px;border-radius:8px;border:1px solid rgba(0,190,255,.35);display:flex;align-items:center;justify-content:center;font-weight:800;background:rgba(0,150,200,.12)}
+        .studio-select{display:block;margin:7px 0}
+        .studio-select span,.studio-field span{display:block;font-size:12px;color:rgba(230,250,255,.75);margin-bottom:4px}
+        .studio-select select,.studio-field input{width:100%;box-sizing:border-box;border:1px solid rgba(0,190,255,.48);border-radius:8px;background:rgba(0,0,0,.48);color:white;padding:8px}
+        .studio-filament-row{display:grid;grid-template-columns:24px 1fr 22px;gap:7px;align-items:center;margin:6px 0}
+        .studio-filament-slot{height:22px;width:22px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:var(--slot-color,#888)}
+        .studio-filament-row input{min-width:0;border:1px solid rgba(0,190,255,.35);border-radius:7px;background:rgba(0,0,0,.42);color:white;padding:7px}
+        .studio-profile-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+        .studio-profile-tabs button{border:1px solid rgba(0,190,255,.4);border-radius:999px;background:rgba(255,255,255,.06);color:white;padding:5px 8px}
+        .studio-profile-tabs button.active{background:rgba(0,155,210,.42)}
+        .studio-quality-grid{display:grid;grid-template-columns:1fr 90px;gap:7px;align-items:center;font-size:12px}
+        .studio-quality-grid input{border:1px solid rgba(0,190,255,.35);border-radius:7px;background:rgba(0,0,0,.42);color:white;padding:6px}
+        .studio-bed-wrap{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 42%,rgba(0,170,220,.10),rgba(0,0,0,.14) 45%,rgba(0,0,0,.28))}
+        .studio-bed{position:relative;width:min(86%,920px);aspect-ratio:1/1;border-radius:18px;background:
+          linear-gradient(rgba(255,255,255,.18) 1px,transparent 1px),
+          linear-gradient(90deg,rgba(255,255,255,.18) 1px,transparent 1px),
+          linear-gradient(135deg,#333,#505050);
+          background-size:24px 24px,24px 24px,100% 100%;
+          border:12px solid #202424;box-shadow:0 20px 80px rgba(0,0,0,.42),0 0 0 2px rgba(0,190,255,.25) inset;transform:perspective(900px) rotateX(58deg) rotateZ(0deg)}
+        .studio-bed:before{content:"Bambu Smooth PEI Plate / High Temp Plate";position:absolute;left:18px;top:18px;color:rgba(255,255,255,.52);font-size:18px;font-weight:800;writing-mode:vertical-rl;text-orientation:mixed}
+        .studio-plate-number{position:absolute;right:-46px;bottom:16px;color:#00e676;font-size:28px;font-weight:900;transform:rotateX(-58deg)}
+        .studio-axis{position:absolute;left:calc(7% + 22px);bottom:calc(7% + 18px);font-size:12px;color:white}
+        .studio-axis .x{color:#ff5252}.studio-axis .y{color:#00e676}.studio-axis .z{color:#40c4ff}
+        .studio-model{position:absolute;left:50%;top:50%;width:150px;height:96px;margin-left:-75px;margin-top:-48px;border:2px solid rgba(0,220,255,.95);border-radius:16px;background:linear-gradient(135deg,rgba(0,190,255,.82),rgba(0,100,150,.62));display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 26px rgba(0,190,255,.35);transform-origin:center center;cursor:grab;user-select:none}
+        .studio-model:active{cursor:grabbing}
+        .studio-view-buttons{position:absolute;right:18px;top:20px;display:flex;flex-direction:column;gap:6px}
+        .studio-view-buttons button{border:1px solid rgba(255,255,255,.35);border-radius:6px;background:rgba(0,0,0,.42);color:white;padding:6px 8px}
+        .studio-panel{border:1px solid rgba(0,190,255,.34);border-radius:12px;padding:10px;background:rgba(255,255,255,.035)}
+        .studio-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .studio-tools{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+        .studio-tools button{border:1px solid rgba(0,190,255,.48);border-radius:8px;background:rgba(255,255,255,.07);color:white;padding:9px;cursor:pointer}
+        .studio-note{font-size:12px;line-height:1.45;color:rgba(230,250,255,.76)}
+        .studio-status{font-size:12px;color:rgba(230,250,255,.78);padding:7px 10px;border-top:1px solid rgba(0,190,255,.25)}
+        @media(max-width:1200px){.studio-shell{grid-template-columns:1fr}.studio-left{min-height:auto}.studio-center{min-height:680px}.studio-bed{width:82%}}
       </style>
       <div class="row between">
         <div>
           <h3>${esc(this._config.title||"3D-Studio / CAD-Vorschau")}</h3>
-          <p class="muted">v5-alpha2-mini: Live-Transform, lokale Persistenz im Browser. Original-3MF-Dateien bleiben unverändert.</p>
+          <p class="muted">v5-alpha2-ui: Studio-Arbeitsbereich mit Druckplatte, Werkzeugleiste, Filamenten und Prozessprofilen. Original-3MF-Dateien bleiben unverändert.</p>
         </div>
-        <span class="badge">v5-alpha2-mini</span>
+        <span class="badge">v5-alpha2-ui</span>
       </div>
-      <div class="studio-v5">
-        <div class="studio-stage">
-          <div class="studio-bed"></div>
-          <div class="studio-model" data-studio-model>3MF</div>
-          <div class="studio-readout" data-studio-readout></div>
-        </div>
-        <div class="studio-side">
-          ${this.panel("Position",this.field("x","X","mm")+this.field("y","Y","mm")+this.field("z","Z","mm"))}
+      <div class="studio-shell">
+        <aside class="studio-left">
+          <div class="studio-left-section">
+            <h4>Drucker</h4>
+            <div class="studio-printer-card">
+              <div class="studio-printer-icon">A1</div>
+              <div>
+                ${this.selectField("printer","Drucker",["Bambu Lab A1","Bambu Lab P1S","Bambu Lab X1 Carbon","Custom Bambu LAN"])}
+                ${this.selectField("bed","Druckplatte",["Bambu Smooth PEI Plate","Textured PEI Plate","High Temp Plate","Engineering Plate"])}
+              </div>
+            </div>
+          </div>
+          <div class="studio-left-section">
+            <h4>Düse</h4>
+            ${this.selectField("nozzle","Durchmesser",["0.2","0.4","0.6","0.8"])}
+          </div>
+          <div class="studio-left-section">
+            <h4>Projekt Filamente</h4>
+            ${this.filamentRow("filament1","1","#ff3131")}
+            ${this.filamentRow("filament2","2","#ffffff")}
+            ${this.filamentRow("filament3","3","#ff3131")}
+            ${this.filamentRow("filament4","4","#111111")}
+          </div>
+          <div class="studio-left-section">
+            <h4>Prozess</h4>
+            ${this.selectField("process","Druckprofil",["0.20mm Standard @BBL A1 - PLA+","0.16mm Optimal @BBL A1","0.24mm Draft @BBL A1","PETG trocken - langsam","ABS geschlossen - stabil"])}
+            <div class="studio-profile-tabs">
+              ${["Qualität","Stärke","Geschwindigkeit","Stützen","Sonstige"].map((tab)=>`<button class="${s.qualityTab===tab?"active":""}" data-studio-tab="${esc(tab)}">${esc(tab)}</button>`).join("")}
+            </div>
+          </div>
+          <div class="studio-left-section">
+            <h4>Qualität</h4>
+            <div class="studio-quality-grid">
+              <span>Schichthöhe</span><input value="0.20 mm" readonly>
+              <span>Erste Schicht</span><input value="0.20 mm" readonly>
+              <span>Linienbreite</span><input value="0.42 mm" readonly>
+              <span>Füllung</span><input value="15 %" readonly>
+              <span>Stützen</span><input value="Aus" readonly>
+            </div>
+          </div>
+        </aside>
+        <main class="studio-center">
+          <div class="studio-topbar">
+            ${this.toolButton("import","Importieren")}
+            ${this.toolButton("move","Verschieben")}
+            ${this.toolButton("rotate","Drehen")}
+            ${this.toolButton("scale","Skalieren")}
+            ${this.toolButton("duplicate","Duplizieren")}
+            ${this.toolButton("delete","Löschen")}
+            ${this.toolButton("cut","Schneiden")}
+            <span class="spacer"></span>
+            <button class="studio-action" data-studio-action="center">Zentrieren</button>
+            <button class="studio-action" data-studio-action="lay-flat">Flach legen</button>
+            <button class="studio-action disabled">Druckplatte slicen</button>
+            <button class="studio-action disabled">Druckplatte drucken</button>
+          </div>
+          <div class="studio-bed-wrap">
+            <div class="studio-bed" data-studio-bed>
+              <div class="studio-model" data-studio-model>3MF</div>
+              <div class="studio-plate-number">01</div>
+            </div>
+            <div class="studio-view-buttons">
+              <button>Oben</button><button>Vorne</button><button>Rechts</button><button>Iso</button>
+            </div>
+            <div class="studio-axis"><span class="x">X</span> / <span class="y">Y</span> / <span class="z">Z</span></div>
+          </div>
+          <div class="studio-status" data-studio-status></div>
+        </main>
+        <aside class="studio-right">
+          ${this.panel("Position",this.field("x","X","mm")+this.field("y","Y","mm")+this.field("z","mm"))}
           ${this.panel("Rotation",this.field("rx","X","°")+this.field("ry","Y","°")+this.field("rz","Z","°"))}
           ${this.panel("Skalierung",this.field("sx","X","%")+this.field("sy","Y","%")+this.field("sz","Z","%"))}
           ${this.panel("Strecken",this.field("stretchX","X","%")+this.field("stretchY","Y","%")+this.field("stretchZ","Z","%"))}
           <section class="studio-panel">
-            <h4>Werkzeuge</h4>
+            <h4>Objekt-Werkzeuge</h4>
             <div class="studio-tools">
-              <button data-studio-tool="center">Zentrieren</button>
-              <button data-studio-tool="lay-flat">Flach legen</button>
-              <button data-studio-tool="mirror-x">X spiegeln</button>
-              <button data-studio-tool="mirror-y">Y spiegeln</button>
-              <button data-studio-tool="mirror-z">Z spiegeln</button>
-              <button data-studio-tool="reset">Reset</button>
+              <button data-studio-action="center">Zentrieren</button>
+              <button data-studio-action="lay-flat">Flach legen</button>
+              <button data-studio-action="mirror-x">X spiegeln</button>
+              <button data-studio-action="mirror-y">Y spiegeln</button>
+              <button data-studio-action="mirror-z">Z spiegeln</button>
+              <button data-studio-action="reset">Reset</button>
             </div>
           </section>
           <section class="studio-panel">
             <h4>Nächste v5-Schritte</h4>
             <div class="studio-note">
-              Als nächstes folgt die echte Persistenz pro Modell: transform.json neben der lokalen 3MF,
-              danach Galerie → In Studio öffnen und später Slicer-/Profil-Anbindung.
+              Danach folgen echtes Modell-Laden aus der Galerie, transform.json pro 3MF,
+              Profilimport aus Bambu-Studio-kompatiblen Quellen und später der Slicer-Worker.
             </div>
           </section>
-        </div>
+        </aside>
       </div>
     `)
     this.bindStudio()
     this.updatePreview()
+  }
+
+  filamentRow(key,slot,color){
+    const value=this.state()[key]||""
+    return `<div class="studio-filament-row"><div class="studio-filament-slot" style="--slot-color:${esc(color)}"></div><input data-studio-text="${esc(key)}" value="${esc(value)}"><span>${esc(slot)}</span></div>`
+  }
+
+  panel(title,html){
+    return `<section class="studio-panel"><h4>${esc(title)}</h4><div class="studio-fields">${html}</div></section>`
   }
 
   bindStudio(){
@@ -2950,50 +3059,97 @@ class StudioCard extends BaseCard {
         this.updatePreview()
       })
     })
+    this.shadowRoot.querySelectorAll("[data-studio-select]").forEach((select)=>{
+      select.addEventListener("change",()=>{
+        this.state()[select.getAttribute("data-studio-select")]=select.value
+        this.saveState()
+        this.updatePreview()
+      })
+    })
+    this.shadowRoot.querySelectorAll("[data-studio-text]").forEach((input)=>{
+      input.addEventListener("input",()=>{
+        this.state()[input.getAttribute("data-studio-text")]=input.value
+        this.saveState()
+      })
+    })
+    this.shadowRoot.querySelectorAll("[data-studio-tab]").forEach((button)=>{
+      button.addEventListener("click",()=>{
+        this.state().qualityTab=button.getAttribute("data-studio-tab")
+        this.saveState()
+        this.render()
+      })
+    })
     this.shadowRoot.querySelectorAll("[data-studio-tool]").forEach((button)=>{
       button.addEventListener("click",()=>{
-        this.applyTool(button.getAttribute("data-studio-tool"))
+        this.state().tool=button.getAttribute("data-studio-tool")
+        this.saveState()
+        this.render()
       })
+    })
+    this.shadowRoot.querySelectorAll("[data-studio-action]").forEach((button)=>{
+      button.addEventListener("click",()=>this.applyAction(button.getAttribute("data-studio-action")))
+    })
+    this.bindDrag()
+  }
+
+  bindDrag(){
+    const model=this.shadowRoot.querySelector("[data-studio-model]")
+    if(!model)return
+    model.addEventListener("pointerdown",(event)=>{
+      event.preventDefault()
+      const s=this.state()
+      const startX=event.clientX
+      const startY=event.clientY
+      const baseX=this.num(s.x,0)
+      const baseY=this.num(s.y,0)
+      const move=(moveEvent)=>{
+        s.x=Math.round(baseX+(moveEvent.clientX-startX))
+        s.y=Math.round(baseY-(moveEvent.clientY-startY))
+        this.saveState()
+        this.syncInputs()
+        this.updatePreview()
+      }
+      const up=()=>{
+        window.removeEventListener("pointermove",move)
+        window.removeEventListener("pointerup",up)
+      }
+      window.addEventListener("pointermove",move)
+      window.addEventListener("pointerup",up)
     })
   }
 
-  applyTool(tool){
+  applyAction(action){
     const s=this.state()
-    if(tool==="center"){s.x=0;s.y=0;s.z=0}
-    if(tool==="lay-flat"){s.rx=0;s.ry=0;s.rz=0}
-    if(tool==="mirror-x"){s.sx=this.num(s.sx,100)*-1}
-    if(tool==="mirror-y"){s.sy=this.num(s.sy,100)*-1}
-    if(tool==="mirror-z"){s.sz=this.num(s.sz,100)*-1}
-    if(tool==="reset"){this._studioState=this.defaults()}
+    if(action==="center"){s.x=0;s.y=0;s.z=0}
+    if(action==="lay-flat"){s.rx=0;s.ry=0;s.rz=0}
+    if(action==="mirror-x"){s.sx=this.num(s.sx,100)*-1}
+    if(action==="mirror-y"){s.sy=this.num(s.sy,100)*-1}
+    if(action==="mirror-z"){s.sz=this.num(s.sz,100)*-1}
+    if(action==="reset"){this._studioState=this.defaults()}
     this.saveState()
     this.render()
+  }
+
+  syncInputs(){
+    const s=this.state()
+    this.shadowRoot.querySelectorAll("[data-studio-input]").forEach((input)=>{
+      const key=input.getAttribute("data-studio-input")
+      if(Object.prototype.hasOwnProperty.call(s,key))input.value=String(s[key])
+    })
   }
 
   updatePreview(){
     const s=this.state()
     const model=this.shadowRoot.querySelector("[data-studio-model]")
-    const readout=this.shadowRoot.querySelector("[data-studio-readout]")
-    if(!model||!readout)return
-
+    const status=this.shadowRoot.querySelector("[data-studio-status]")
+    if(!model)return
     const scaleX=(this.num(s.sx,100)/100)*(this.num(s.stretchX,100)/100)
     const scaleY=(this.num(s.sy,100)/100)*(this.num(s.stretchY,100)/100)
     const translateX=this.num(s.x,0)
     const translateY=this.num(s.y,0)*-1
-    const rotateZ=this.num(s.rz,0)
-
-    model.style.transform=`translate(${translateX}px,${translateY}px) rotate(${rotateZ}deg) scale(${scaleX},${scaleY})`
-
-    readout.innerHTML=[
-      `X: ${esc(String(this.num(s.x,0)))} mm`,
-      `Y: ${esc(String(this.num(s.y,0)))} mm`,
-      `Z: ${esc(String(this.num(s.z,0)))} mm`,
-      `RX: ${esc(String(this.num(s.rx,0)))}°`,
-      `RY: ${esc(String(this.num(s.ry,0)))}°`,
-      `RZ: ${esc(String(this.num(s.rz,0)))}°`,
-      `SX: ${esc(String(this.num(s.sx,100)))} %`,
-      `SY: ${esc(String(this.num(s.sy,100)))} %`,
-      `SZ: ${esc(String(this.num(s.sz,100)))} %`
-    ].join("<br>")
+    const rz=this.num(s.rz,0)
+    model.style.transform=`translate(${translateX}px,${translateY}px) rotate(${rz}deg) scale(${scaleX},${scaleY})`
+    if(status)status.textContent=`Objekt: X ${s.x} mm · Y ${s.y} mm · Z ${s.z} mm · RZ ${s.rz}° · Skalierung ${s.sx}/${s.sy}/${s.sz} % · Werkzeug ${s.tool}`
   }
 }
 class TemplatesCard extends BaseCard {

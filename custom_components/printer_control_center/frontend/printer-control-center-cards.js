@@ -5026,6 +5026,6 @@ class TemplatesCard extends BaseCard {
   window.__printerControlCenterCards={version:VERSION,registeredCards:picker.map(([type,name])=>({type,name}))};
   console.info(`3D-Printer Control Center ${VERSION}: ${picker.length} cards registered`);
 
-if (!customElements.get(CARD_TYPES.studio)) customElements.define(CARD_TYPES.studio, StudioCard);
+if (!customElements.get(TYPES.studio)) customElements.define(TYPES.studio, StudioCard);
 })();
 

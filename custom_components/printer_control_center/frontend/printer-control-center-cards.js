@@ -5213,3 +5213,491 @@
     });
   }
 })();
+
+/* v5 alpha20.3: isolated Studio frontend card rebuilt on stable frontend baseline. */
+(() => {
+  const STUDIO_VERSION = "5.0.0-alpha20.3";
+
+  const escStudio = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;"
+  }[char]));
+
+  const toNumber = (value, fallback = 0) => {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+  };
+
+  class PrinterControlCenterStudioCard extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({mode:"open"});
+      this._mode = "move";
+      this._health = null;
+      this._status = "Studio frontend rebuilt. Real slicing and direct printing remain disabled.";
+      this._transform = {
+        x: 0,
+        y: 0,
+        z: 0,
+        rx: 0,
+        ry: 0,
+        rz: 0,
+        scale: 100,
+        sx: 100,
+        sy: 100,
+        sz: 100
+      };
+
+      this.shadowRoot.addEventListener("click", (event) => this.handleClick(event));
+      this.shadowRoot.addEventListener("change", (event) => this.handleChange(event));
+    }
+
+    setConfig(config) {
+      this._config = config || {};
+      this.render();
+    }
+
+    set hass(hass) {
+      this._hass = hass;
+      this.render();
+    }
+
+    handleChange(event) {
+      const field = event.target?.dataset?.field;
+      if (!field) return;
+
+      this._transform[field] = toNumber(event.target.value, this._transform[field] || 0);
+      this.render();
+    }
+
+    handleClick(event) {
+      const action = event.target?.dataset?.action;
+      if (!action) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (action === "mode") {
+        this._mode = event.target.dataset.mode || "move";
+        this.render();
+      }
+
+      if (action === "center") {
+        this._transform.x = 0;
+        this._transform.y = 0;
+        this._status = "Object centered on build plate.";
+        this.render();
+      }
+
+      if (action === "lay-flat") {
+        this._transform.rx = 0;
+        this._transform.ry = 0;
+        this._transform.z = 0;
+        this._status = "Lay-flat planning applied.";
+        this.render();
+      }
+
+      if (action === "reset") {
+        this._transform = {x:0,y:0,z:0,rx:0,ry:0,rz:0,scale:100,sx:100,sy:100,sz:100};
+        this._status = "Transform reset.";
+        this.render();
+      }
+
+      if (action === "duplicate") {
+        this._status = "Duplicate is planned for a later Studio state step.";
+        this.render();
+      }
+
+      if (action === "delete") {
+        this._status = "Delete is disabled in this recovery build.";
+        this.render();
+      }
+
+      if (action === "slice") {
+        this._status = "Dry planning only. Real slicing is disabled.";
+        this.render();
+      }
+
+      if (action === "health") {
+        this.runHealthCheck();
+      }
+    }
+
+    async runHealthCheck() {
+      if (!this._hass?.connection?.sendMessagePromise) {
+        this._health = {
+          status: "warnings",
+          summary: {ok: 0, warnings: 1, checks: 1},
+          checks: [{
+            name: "websocket_connection",
+            ok: false,
+            detail: "Home Assistant WebSocket connection is not available in this frontend context."
+          }],
+          safety: {
+            real_slicing_enabled: false,
+            direct_print_enabled: false,
+            stage: "frontend_only"
+          }
+        };
+        this._status = "Health check could not use Home Assistant WebSocket.";
+        this.render();
+        return;
+      }
+
+      this._status = "Running Studio health check ...";
+      this.render();
+
+      try {
+        this._health = await this._hass.connection.sendMessagePromise({
+          type: "printer_control_center/studio/health",
+          jobs: [],
+          dry_run: {}
+        });
+        this._status = "Studio health check completed.";
+      } catch (error) {
+        this._health = {
+          status: "warnings",
+          summary: {ok: 0, warnings: 1, checks: 1},
+          checks: [{
+            name: "studio_health_websocket",
+            ok: false,
+            detail: String(error?.message || error)
+          }],
+          safety: {
+            real_slicing_enabled: false,
+            direct_print_enabled: false,
+            stage: "diagnostics_only"
+          }
+        };
+        this._status = "Studio health check returned a warning.";
+      }
+
+      this.render();
+    }
+
+    toolButton(label, mode) {
+      const active = this._mode === mode ? " active" : "";
+      return `<button class="tool${active}" data-action="mode" data-mode="${escStudio(mode)}">${escStudio(label)}</button>`;
+    }
+
+    input(label, field, suffix = "") {
+      const value = this._transform[field];
+      return `
+        <label class="field">
+          <span>${escStudio(label)}</span>
+          <input type="number" data-field="${escStudio(field)}" value="${escStudio(value)}">
+          ${suffix ? `<em>${escStudio(suffix)}</em>` : ""}
+        </label>
+      `;
+    }
+
+    renderHealth() {
+      const health = this._health;
+      if (!health) {
+        return `
+          <div class="health-note">
+            No health result yet. Use "Health pruefen" after Home Assistant has fully restarted.
+          </div>
+        `;
+      }
+
+      const checks = Array.isArray(health.checks) ? health.checks : [];
+      const rows = checks.map((check) => `
+        <div class="health-row">
+          <span>${escStudio(check.name)}</span>
+          <strong>${check.ok ? "OK" : "Hinweis"} - ${escStudio(check.detail)}</strong>
+        </div>
+      `).join("");
+
+      return `
+        <div class="health-summary">
+          <span class="badge ${health.status === "ok" ? "ok" : "warn"}">${escStudio(health.status || "unknown")}</span>
+          <span class="badge">OK ${escStudio(health.summary?.ok ?? 0)} / Hinweise ${escStudio(health.summary?.warnings ?? 0)}</span>
+          <span class="badge">Slicen ${health.safety?.real_slicing_enabled ? "aktiv" : "aus"}</span>
+          <span class="badge">Druck ${health.safety?.direct_print_enabled ? "aktiv" : "aus"}</span>
+        </div>
+        ${rows}
+      `;
+    }
+
+    render() {
+      if (!this.shadowRoot) return;
+
+      const t = this._transform;
+      const objectStyle = `
+        transform:
+          translate(calc(-50% + ${t.x}px), calc(-50% + ${t.y}px))
+          rotateX(58deg)
+          rotateZ(${t.rz}deg)
+          scale(${Math.max(10, t.scale) / 100});
+      `;
+
+      this.shadowRoot.innerHTML = `
+        <ha-card>
+          <style>
+            :host{
+              display:block;
+              --pcc-accent:#00a9d6;
+              --pcc-panel:rgba(20,31,34,.92);
+              --pcc-border:rgba(0,169,214,.45);
+              --pcc-muted:rgba(255,255,255,.68);
+            }
+            .studio-shell{
+              min-height:720px;
+              background:linear-gradient(135deg,rgba(5,9,10,.96),rgba(14,30,34,.96));
+              color:var(--primary-text-color,#fff);
+              border:1px solid var(--pcc-border);
+              border-radius:12px;
+              overflow:hidden;
+            }
+            .studio-topbar{
+              display:flex;
+              gap:8px;
+              align-items:center;
+              flex-wrap:wrap;
+              padding:10px 12px;
+              border-bottom:1px solid var(--pcc-border);
+              background:rgba(0,0,0,.22);
+            }
+            .studio-topbar h2{
+              margin:0 14px 0 0;
+              font-size:18px;
+              white-space:nowrap;
+            }
+            button.tool,
+            button.action{
+              min-height:32px;
+              border:1px solid var(--pcc-border);
+              background:rgba(0,169,214,.10);
+              color:var(--primary-text-color,#fff);
+              border-radius:9px;
+              padding:5px 10px;
+              cursor:pointer;
+            }
+            button.tool.active{
+              background:rgba(0,169,214,.35);
+              box-shadow:0 0 0 1px rgba(0,169,214,.65) inset;
+            }
+            .studio-grid{
+              display:grid;
+              grid-template-columns:260px minmax(360px,1fr) 300px;
+              gap:12px;
+              padding:12px;
+            }
+            .panel{
+              border:1px solid var(--pcc-border);
+              border-radius:12px;
+              background:var(--pcc-panel);
+              padding:12px;
+            }
+            .panel h3{
+              margin:0 0 10px 0;
+              font-size:14px;
+            }
+            .profile-row,
+            .health-row{
+              display:flex;
+              justify-content:space-between;
+              gap:10px;
+              border-top:1px solid rgba(255,255,255,.12);
+              padding:7px 0;
+              font-size:12px;
+            }
+            .profile-row span,
+            .health-row span{
+              color:var(--pcc-muted);
+            }
+            .buildplate-wrap{
+              min-height:610px;
+              display:flex;
+              flex-direction:column;
+              gap:10px;
+            }
+            .buildplate{
+              position:relative;
+              flex:1;
+              min-height:520px;
+              border:1px solid var(--pcc-border);
+              border-radius:16px;
+              overflow:hidden;
+              background:
+                linear-gradient(rgba(0,169,214,.16) 1px,transparent 1px),
+                linear-gradient(90deg,rgba(0,169,214,.16) 1px,transparent 1px),
+                radial-gradient(circle at center,rgba(0,169,214,.16),rgba(0,0,0,.18));
+              background-size:32px 32px,32px 32px,100% 100%;
+              perspective:900px;
+            }
+            .plate-label{
+              position:absolute;
+              left:14px;
+              top:12px;
+              font-size:12px;
+              color:var(--pcc-muted);
+            }
+            .model{
+              position:absolute;
+              left:50%;
+              top:50%;
+              width:140px;
+              height:110px;
+              border-radius:18px;
+              background:linear-gradient(145deg,#00a9d6,#15576a);
+              border:1px solid rgba(255,255,255,.45);
+              box-shadow:0 22px 48px rgba(0,0,0,.45);
+              transform-origin:center center;
+              ${objectStyle}
+            }
+            .model::after{
+              content:"";
+              position:absolute;
+              inset:16px;
+              border-radius:14px;
+              border:1px solid rgba(255,255,255,.28);
+            }
+            .status{
+              border:1px solid rgba(255,255,255,.16);
+              border-radius:10px;
+              padding:10px;
+              font-size:12px;
+              color:var(--pcc-muted);
+              background:rgba(0,0,0,.20);
+            }
+            .field{
+              display:grid;
+              grid-template-columns:80px 1fr 32px;
+              gap:6px;
+              align-items:center;
+              margin:7px 0;
+              font-size:12px;
+            }
+            .field span{
+              color:var(--pcc-muted);
+            }
+            .field input{
+              width:100%;
+              box-sizing:border-box;
+              border:1px solid var(--pcc-border);
+              border-radius:8px;
+              background:rgba(0,0,0,.25);
+              color:var(--primary-text-color,#fff);
+              min-height:30px;
+              padding:4px 7px;
+            }
+            .field em{
+              font-style:normal;
+              color:var(--pcc-muted);
+            }
+            .action-grid{
+              display:grid;
+              grid-template-columns:1fr 1fr;
+              gap:7px;
+              margin-top:10px;
+            }
+            .badge{
+              display:inline-flex;
+              border:1px solid var(--pcc-border);
+              border-radius:999px;
+              min-height:22px;
+              align-items:center;
+              padding:2px 8px;
+              margin:2px 4px 2px 0;
+              font-size:11px;
+            }
+            .badge.ok{border-color:rgba(60,180,90,.65)}
+            .badge.warn{border-color:rgba(230,160,40,.75)}
+            .health-note{
+              color:var(--pcc-muted);
+              font-size:12px;
+              line-height:1.45;
+            }
+            @media(max-width:1100px){
+              .studio-grid{
+                grid-template-columns:1fr;
+              }
+              .buildplate-wrap{
+                min-height:520px;
+              }
+            }
+          </style>
+
+          <div class="studio-shell">
+            <div class="studio-topbar">
+              <h2>3D-Studio / CAD-Vorschau</h2>
+              ${this.toolButton("Importieren","import")}
+              ${this.toolButton("Verschieben","move")}
+              ${this.toolButton("Drehen","rotate")}
+              ${this.toolButton("Skalieren","scale")}
+              <button class="action" data-action="duplicate">Duplizieren</button>
+              <button class="action" data-action="delete">Loeschen</button>
+              <button class="action" data-action="center">Zentrieren</button>
+              <button class="action" data-action="lay-flat">Flach legen</button>
+              <button class="action" data-action="slice">Plan pruefen</button>
+              <button class="action" data-action="health">Health pruefen</button>
+            </div>
+
+            <div class="studio-grid">
+              <aside class="panel">
+                <h3>Projekt</h3>
+                <div class="profile-row"><span>Drucker</span><strong>Bambu A1 / X1 / P1 / H2</strong></div>
+                <div class="profile-row"><span>Druckplatte</span><strong>Standard Build Plate</strong></div>
+                <div class="profile-row"><span>Duese</span><strong>0.4 mm</strong></div>
+                <div class="profile-row"><span>Filament</span><strong>PLA / PETG Profilbank</strong></div>
+                <div class="profile-row"><span>Prozess</span><strong>0.20 mm Standard</strong></div>
+                <div class="profile-row"><span>Slicer</span><strong>planning_only</strong></div>
+                <div class="profile-row"><span>Direktdruck</span><strong>deaktiviert</strong></div>
+              </aside>
+
+              <main class="buildplate-wrap">
+                <div class="buildplate">
+                  <div class="plate-label">Buildplate · isolierter alpha20.3 Frontend-Rebuild</div>
+                  <div class="model"></div>
+                </div>
+                <div class="status">${escStudio(this._status)}</div>
+              </main>
+
+              <aside class="panel">
+                <h3>Transform</h3>
+                ${this.input("X", "x", "px")}
+                ${this.input("Y", "y", "px")}
+                ${this.input("Z", "z", "mm")}
+                ${this.input("Rot X", "rx", "deg")}
+                ${this.input("Rot Y", "ry", "deg")}
+                ${this.input("Rot Z", "rz", "deg")}
+                ${this.input("Scale", "scale", "%")}
+                ${this.input("Stretch X", "sx", "%")}
+                ${this.input("Stretch Y", "sy", "%")}
+                ${this.input("Stretch Z", "sz", "%")}
+
+                <div class="action-grid">
+                  <button class="action" data-action="center">Zentrieren</button>
+                  <button class="action" data-action="lay-flat">Flach legen</button>
+                  <button class="action" data-action="reset">Reset</button>
+                  <button class="action" data-action="health">Health</button>
+                </div>
+
+                <h3 style="margin-top:16px">Studio Health</h3>
+                ${this.renderHealth()}
+              </aside>
+            </div>
+          </div>
+        </ha-card>
+      `;
+    }
+  }
+
+  if (!customElements.get("printer-control-center-studio-card")) {
+    customElements.define("printer-control-center-studio-card", PrinterControlCenterStudioCard);
+  }
+
+  window.customCards = window.customCards || [];
+  if (!window.customCards.some((card) => card.type === "printer-control-center-studio-card")) {
+    window.customCards.push({
+      type: "printer-control-center-studio-card",
+      name: "3D-Studio / CAD-Vorschau",
+      description: "Isolated v5 Studio/CAD frontend rebuilt on the stable gallery frontend baseline."
+    });
+  }
+})();

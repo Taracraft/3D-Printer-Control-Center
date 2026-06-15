@@ -17,6 +17,7 @@ from .studio_jobs import (
     async_load_studio_jobs,
     async_update_studio_job,
 )
+from .studio_worker import build_dry_run_result
 
 REGISTERED_KEY = "_v5_studio_ws_registered"
 
@@ -33,6 +34,7 @@ def async_register_studio_websocket(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_studio_jobs_update)
     websocket_api.async_register_command(hass, ws_studio_jobs_clear)
     websocket_api.async_register_command(hass, ws_studio_selftest)
+    websocket_api.async_register_command(hass, ws_studio_worker_dry_run)
 
     domain_data[REGISTERED_KEY] = True
 
@@ -146,3 +148,47 @@ async def ws_studio_selftest(
         "readyForAlpha10Test": True,
     }
     connection.send_result(msg["id"], result)
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "printer_control_center/studio_worker/dry_run",
+        vol.Required("job_id"): str,
+    }
+)
+@websocket_api.async_response
+async def ws_studio_worker_dry_run(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    jobs = await async_load_studio_jobs(hass)
+    target_job = None
+
+    for job in jobs:
+        if str(job.get("id")) == str(msg["job_id"]):
+            target_job = job
+            break
+
+    if target_job is None:
+        connection.send_result(
+            msg["id"],
+            {
+                "ok": False,
+                "error": "job_not_found",
+                "job_id": msg["job_id"],
+            },
+        )
+    else:
+        patch = build_dry_run_result(target_job)
+        updated_job = await async_update_studio_job(
+            hass,
+            job_id=str(msg["job_id"]),
+            patch=patch,
+        )
+        connection.send_result(
+            msg["id"],
+            {
+                "ok": True,
+                "job": updated_job,
+                "dryRun": patch,
+            },
+        )

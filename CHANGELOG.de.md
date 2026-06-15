@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha12 - Slicer-Worker-Dry-Run-Grundlage
+
+### Hinzugefügt
+- Backend-Dry-Run-Worker-Grundlage zur Validierung von Studio-Slice-Jobs ergänzt, ohne einen echten Slicer auszuführen.
+- Studio-Worker-WebSocket-Kommando für Dry-Run-Validierung ergänzt.
+- Frontend-Dry-Run-Steuerung für vorbereitete Slice-Jobs ergänzt.
+- Validierungsausgabe für Modell, Drucker, Düse, Prozess und grundlegende Slice-Einstellungen ergänzt.
+
+### Hinweise
+- Echtes Slicen und Direktdruck bleiben deaktiviert. Dieses Alpha bereitet den Backend-Ausführungspfad sicher für die spätere Worker-Integration vor.
+
 ## 5.0.0-alpha11 - Alpha10-Testfenster-Diagnosefix
 
 ### Behoben

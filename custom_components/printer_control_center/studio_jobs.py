@@ -44,7 +44,7 @@ def _save_jobs_sync(path: Path, jobs: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "schema": "printer-control-center.v5.slice-jobs",
-        "version": "5.0.0-alpha11",
+        "version": "5.0.0-alpha12",
         "updatedAt": _utcnow(),
         "jobs": jobs[:MAX_JOBS],
     }
@@ -72,7 +72,7 @@ def build_studio_job(plan: dict[str, Any] | None = None, serial: str | None = No
     return {
         "id": f"job-{uuid4().hex[:12]}",
         "schema": "printer-control-center.v5.slice-job",
-        "version": "5.0.0-alpha11",
+        "version": "5.0.0-alpha12",
         "createdAt": created,
         "updatedAt": created,
         "serial": str(serial or plan_data.get("serial") or model.get("serial") or ""),

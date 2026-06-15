@@ -1,5 +1,16 @@
 # Changelog
 
+## 5.0.0-alpha12 - Slicer worker dry-run scaffold
+
+### Added
+- Added a backend dry-run worker scaffold for validating Studio slice jobs without executing a real slicer.
+- Added a Studio worker WebSocket command for dry-run validation.
+- Added frontend Dry-Run control for prepared slice jobs.
+- Added validation output for model, printer, nozzle, process and basic slice settings.
+
+### Notes
+- Real slicing and direct printing remain disabled. This alpha prepares the backend execution path safely for later worker integration.
+
 ## 5.0.0-alpha11 - Alpha10 test-window diagnostics fix
 
 ### Fixed

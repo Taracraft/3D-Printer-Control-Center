@@ -3194,6 +3194,50 @@ class StudioCard extends BaseCard {
     return updated;
   }
 
+  async runSliceWorkerDryRun(jobId){
+    const jobs=this.sliceJobs();
+    const id=String(jobId||jobs[0]?.id||"");
+    if(!id)return null;
+
+    let updated=null;
+    try{
+      if(this._hass&&this.ws){
+        const result=await this.ws({
+          type:"printer_control_center/studio_worker/dry_run",
+          job_id:id
+        });
+        updated=result?.job||null;
+      }
+    }catch(error){
+      const state=this.state();
+      state.lastStudioNotice=`Dry-Run Backend nicht verfügbar, lokaler Fallback: ${String(error?.message||error)}`;
+      this._studioState=state;
+    }
+
+    if(!updated){
+      updated={
+        ...jobs.find((job)=>String(job.id)===id),
+        status:"dry_run_local",
+        stage:"browser-local-dry-run",
+        progress:10,
+        workerStatus:"dry_run_local",
+        workerCommand:"dry_run",
+        workerMessage:"Lokaler Dry-Run-Fallback. Backend-Worker wurde nicht erreicht.",
+        message:"Lokaler Dry-Run-Fallback vorbereitet.",
+        updatedAt:new Date().toISOString()
+      };
+    }
+
+    const merged=jobs.map((job)=>String(job.id)===id?{...job,...updated}:job);
+    this.saveSliceJobs(merged);
+    const state=this.state();
+    state.activeSliceJobId=id;
+    state.lastStudioNotice=`Dry-Run vorbereitet: ${updated.modelName||updated?.plan?.model?.name||"Slice-Job"}`;
+    this._studioState=state;
+    this.saveState();
+    this.afterStudioDomChange();
+    return updated;
+  }
   async prepareSliceWorker(jobId){
     const patch={
       status:"queued",
@@ -3346,6 +3390,7 @@ class StudioCard extends BaseCard {
         <button data-studio-refresh-slice-jobs>Jobs laden</button>
         <button data-studio-create-slice-job>Slice-Job vorbereiten</button>
         <button data-studio-worker-prepare ${latest?"":"disabled"}>Worker vorbereiten</button>
+        <button data-studio-worker-dry-run ${latest?"":"disabled"}>Dry-Run</button>
         <button data-studio-worker-block ${latest?"":"disabled"}>Als wartend markieren</button>
         <button data-studio-cancel-slice-job ${latest?"":"disabled"}>Job abbrechen</button>
         <button data-studio-clear-slice-jobs ${jobs.length?"":"disabled"}>Jobliste leeren</button>

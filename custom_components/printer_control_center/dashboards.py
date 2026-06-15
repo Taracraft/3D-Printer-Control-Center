@@ -60,6 +60,17 @@ _DEFAULT_DASHBOARDS: tuple[dict[str, Any], ...] = (
                                 },
                             ],
                         },
+                        {
+                            "type": "grid",
+                            "cards": [
+                                {
+                                    "type": "custom:printer-control-center-studio-card",
+                                    "title": "3D-Studio / CAD-Vorschau",
+                                    "card_size": "xl",
+                                    "grid_options": {"columns": 8},
+                                },
+                            ],
+                        },
                     ],
                 }
             ],

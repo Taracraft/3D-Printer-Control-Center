@@ -1,5 +1,19 @@
 # Changelog
 
+## 5.0.0-alpha3 - v4 standalone backend sync and conflict recovery
+
+### Added
+- Added the v4.0.7 standalone Bambu backend foundation to the v5 development branch.
+- Added native payload normalization foundations for A1, P1, X1/X1C/X1E and H2 printer families.
+
+### Fixed
+- Recovered the v5 frontend after the v4.0.7 merge conflict.
+- Kept the v5 Studio/CAD frontend path clean with a single version declaration and no merge conflict markers.
+- Preserved the standalone architecture without functional dependency on external Bambu Lab Home Assistant integrations.
+
+### Notes
+- This alpha keeps the productive default dashboard stable while the v5 Studio/CAD workflow continues on the separate Studio page.
+
 ## [4.0.1] - 2026-06-14
 
 ### Fixed

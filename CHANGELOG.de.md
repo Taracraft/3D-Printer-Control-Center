@@ -1,5 +1,19 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha3 - v4-Standalone-Backend übernommen und Konflikt bereinigt
+
+### Hinzugefügt
+- Die v4.0.7-Standalone-Bambu-Backend-Basis wurde in den v5-Entwicklungsbranch übernommen.
+- Grundlagen für die eigene Payload-Normalisierung für A1, P1, X1/X1C/X1E und H2 wurden in v5 übernommen.
+
+### Behoben
+- Das v5-Frontend wurde nach dem v4.0.7-Mergekonflikt sauber wiederhergestellt.
+- Der v5-Studio-/CAD-Frontendpfad bleibt sauber mit genau einer Versionsdeklaration und ohne Konfliktmarker.
+- Die Standalone-Architektur bleibt erhalten, ohne funktionale Abhängigkeit zu externen Bambu-Lab-Home-Assistant-Integrationen.
+
+### Hinweise
+- Dieses Alpha hält das produktive Standard-Dashboard stabil, während der v5-Studio-/CAD-Workflow auf der separaten Studio-Seite weiterentwickelt wird.
+
 ## [4.0.1] - 2026-06-14
 
 ### Behoben

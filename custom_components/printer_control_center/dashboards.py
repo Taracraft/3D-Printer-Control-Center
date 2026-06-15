@@ -67,6 +67,28 @@ _DEFAULT_DASHBOARDS: tuple[dict[str, Any], ...] = (
         },
     },
     {
+        "url_path": "3d-printer-control-center-studio",
+        "title": "3D-Studio / CAD-Vorschau",
+        "icon": "mdi:cube-scan",
+        "config": {
+            "title": "3D-Studio / CAD-Vorschau",
+            "views": [
+                {
+                    "title": "3D-Studio / CAD-Vorschau",
+                    "path": "studio",
+                    "icon": "mdi:cube-scan",
+                    "type": "panel",
+                    "cards": [
+                        {
+                            "type": "custom:printer-control-center-studio-card",
+                            "title": "3D-Studio / CAD-Vorschau",
+                            "card_size": "xl",
+                        },
+                    ],
+                }
+            ],
+        },
+    },    {
         "url_path": "3d-printer-control-center-gallery",
         "title": "3D-Drucker-Dateimanager/Galerie",
         "icon": "mdi:folder-multiple-image",

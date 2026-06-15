@@ -162,7 +162,9 @@ async def ws_studio_selftest(
     {
         vol.Required("type"): "printer_control_center/studio_worker/dry_run",
         vol.Optional("profile_context", default={}): dict,
-        vol.Required("job_id"): str,
+        vol.Optional("job_id", default=""): str,
+        vol.Optional("target_job", default={}): dict,
+        vol.Optional("job", default={}): dict,
     }
 )
 @websocket_api.async_response
@@ -171,39 +173,64 @@ async def ws_studio_worker_dry_run(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
+    """Run a non-invasive Studio worker Dry-Run.
+
+    Alpha21 accepts the new transient target_job payload and the legacy job
+    payload while keeping the older persistent job_id path compatible.
+    """
     jobs = await async_load_studio_jobs(hass)
-    target_job = None
+    profile_context = msg.get("profile_context") or {}
+    target_job = msg.get("target_job") or msg.get("job") or {}
+    job_id = msg.get("job_id") or target_job.get("id") or ""
 
-    for job in jobs:
-        if str(job.get("id")) == str(msg["job_id"]):
-            target_job = job
-            break
+    matched_persistent_job = False
 
-    if target_job is None:
+    if target_job and job_id:
+        for existing_job in jobs:
+            if str(existing_job.get("id")) == str(job_id):
+                merged_job = {**existing_job, **target_job}
+                target_job = merged_job
+                matched_persistent_job = True
+                break
+
+    if not target_job and job_id:
+        for existing_job in jobs:
+            if str(existing_job.get("id")) == str(job_id):
+                target_job = existing_job
+                matched_persistent_job = True
+                break
+
+    if not target_job:
         connection.send_result(
             msg["id"],
             {
                 "ok": False,
                 "error": "job_not_found",
-                "job_id": msg["job_id"],
+                "job_id": job_id,
             },
         )
-    else:
-        patch = build_dry_run_result(target_job, msg.get("profile_context") or {})
+        return
+
+    patch = build_dry_run_result(target_job, profile_context)
+
+    if matched_persistent_job and job_id:
         updated_job = await async_update_studio_job(
             hass,
-            job_id=str(msg["job_id"]),
+            job_id=str(job_id),
             patch=patch,
         )
-        connection.send_result(
-            msg["id"],
-            {
-                "ok": True,
-                "job": updated_job,
-                "dryRun": patch,
-            },
-        )
+    else:
+        updated_job = {**target_job, **patch}
 
+    connection.send_result(
+        msg["id"],
+        {
+            "ok": True,
+            "job": updated_job,
+            "dryRun": patch,
+            "result": patch,
+        },
+    )
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "printer_control_center/studio_profiles/get",

@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-DIAGNOSTICS_VERSION = "5.0.0-alpha20.6"
+DIAGNOSTICS_VERSION = "5.0.0-alpha21"
 
 
 def _utcnow() -> str:

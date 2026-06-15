@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-alpha20.6*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-alpha21*/
 (() => {
-  const VERSION = "5.0.0-alpha20.6";
+  const VERSION = "5.0.0-alpha21";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4726,9 +4726,9 @@
   console.info(`3D-Printer Control Center ${VERSION}: ${picker.length} cards registered`);
 })();
 
-/* v5 alpha20.6: isolated Studio frontend card rebuilt on stable frontend baseline. */
+/* v5 alpha21: consolidated Studio frontend on stable gallery baseline. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-alpha20.6";
+  const STUDIO_VERSION = "5.0.0-alpha21";
 
   const escStudio = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -4751,7 +4751,7 @@
       this._health = null;
       this._lastDryRun = null;
       this._lastStudioPlan = null;
-      this._status = "Studio frontend ready. Real slicing and direct printing remain disabled.";
+      this._status = "alpha21 Studio release ready. Profile bank, Dry-Run and Health are connected. Real slicing and direct printing remain disabled.";
       this._transform = {
         x: 0,
         y: 0,
@@ -4776,13 +4776,37 @@
 
     set hass(hass) {
       this._hass = hass;
+      this.ensureStudioProfileBankLoaded?.();
       this.render();
     }
 
-    buildProfileContext() {
+    async ensureStudioProfileBankLoaded() {
+      if (this._profileBankLoading || this._profileBankLoaded) return;
+      if (!this._hass?.connection?.sendMessagePromise) return;
+
+      this._profileBankLoading = true;
+
+      try {
+        const response = await this._hass.connection.sendMessagePromise({
+          type: "printer_control_center/studio_profiles/get"
+        });
+
+        this._profileBank = response?.profile_bank || response?.bank || response || null;
+        this._profileBankLoaded = Boolean(this._profileBank);
+      } catch (error) {
+        this._profileBank = null;
+        this._profileBankLoaded = false;
+        this._status = "Profilbank konnte nicht geladen werden, statischer Fallback aktiv.";
+      } finally {
+        this._profileBankLoading = false;
+        this.render();
+      }
+    }
+
+    defaultProfileContext() {
       return {
         version: STUDIO_VERSION,
-        source: "isolated_studio_alpha20_6",
+        source: "isolated_studio_alpha21_fallback",
         selection: {
           printer_profile_id: "bambu_a1_x1_p1_h2_generic",
           filament_profile_id: "pla_generic",
@@ -4808,15 +4832,80 @@
           layer_height_mm: 0.2,
           sparse_infill_density_percent: 15,
           sparse_infill_pattern: "grid"
-        }
+        },
+        valid: true,
+        warnings: []
       };
     }
 
+    profileCollection(bank, key) {
+      const value = bank?.[key];
+      if (!value) return {};
+      if (Array.isArray(value)) {
+        return Object.fromEntries(value.filter(Boolean).map((entry, index) => [entry.id || String(index), entry]));
+      }
+      if (typeof value === "object") return value;
+      return {};
+    }
+
+    profileFromCollection(collection, id) {
+      if (!collection || typeof collection !== "object") return null;
+      if (id && collection[id]) return collection[id];
+      const values = Object.values(collection).filter((entry) => entry && typeof entry === "object");
+      return values[0] || null;
+    }
+
+    currentProfileContextFromBank() {
+      const bank = this._profileBank;
+      if (!bank) return null;
+
+      const selection = bank.selection || {};
+      const printerProfiles = this.profileCollection(bank, "printer_profiles");
+      const filamentProfiles = this.profileCollection(bank, "filaments");
+      const processProfiles = this.profileCollection(bank, "process_profiles");
+
+      const printer = this.profileFromCollection(printerProfiles, selection.printer_profile_id);
+      const filament = this.profileFromCollection(filamentProfiles, selection.filament_profile_id);
+      const process = this.profileFromCollection(processProfiles, selection.process_profile_id);
+
+      if (!printer || !filament || !process) return null;
+
+      return {
+        version: STUDIO_VERSION,
+        source: "studio_profile_bank_alpha21",
+        selection: {
+          printer_profile_id: printer.id || selection.printer_profile_id || "printer",
+          filament_profile_id: filament.id || selection.filament_profile_id || "filament",
+          process_profile_id: process.id || selection.process_profile_id || "process"
+        },
+        printer_profile: printer,
+        filament_profile: filament,
+        process_profile: process,
+        valid: true,
+        warnings: []
+      };
+    }
+
+    profileLabels() {
+      const context = this.currentProfileContextFromBank() || this.defaultProfileContext();
+      return {
+        printer: context.printer_profile?.name || "Bambu A1 / X1 / P1 / H2",
+        plate: Array.isArray(context.printer_profile?.build_plate_mm)
+          ? `${context.printer_profile.build_plate_mm[0]} x ${context.printer_profile.build_plate_mm[1]} mm`
+          : "Standard Build Plate",
+        nozzle: `${context.printer_profile?.default_nozzle_mm || 0.4} mm`,
+        filament: context.filament_profile?.name || context.filament_profile?.material || "PLA Generic",
+        process: context.process_profile?.name || "0.20 mm Standard"
+      };
+    }
+    buildProfileContext() {
+      return this.currentProfileContextFromBank?.() || this.defaultProfileContext();
+    }
     buildDryRunJob() {
       return {
         id: "isolated-studio-preview",
         name: "Isolated Studio Preview",
-        source: "frontend_alpha20_6",
+        source: "frontend_alpha21",
         transform: {...this._transform},
         real_slicing_enabled: false,
         direct_print_enabled: false
@@ -4831,12 +4920,12 @@
       return {
         version: STUDIO_VERSION,
         schema: 1,
-        source: "frontend_alpha20_6_fallback",
+        source: "frontend_alpha21_fallback",
         updated_at: now,
         job: {
           id: "isolated-studio-preview",
           name: "Isolated Studio Preview",
-          source: "frontend_alpha20_6",
+          source: "frontend_alpha21",
           updated_at: now
         },
         profile_context: {
@@ -4877,7 +4966,7 @@
       try {
         const result = await this._hass.connection.sendMessagePromise({
           type: "printer_control_center/studio_worker/dry_run",
-          job: this.buildDryRunJob(),
+          target_target_job: this.buildDryRunJob(),
           profile_context: this.buildProfileContext()
         });
 
@@ -5326,18 +5415,18 @@
             <div class="studio-grid">
               <aside class="panel">
                 <h3>Projekt</h3>
-                <div class="profile-row"><span>Drucker</span><strong>Bambu A1 / X1 / P1 / H2</strong></div>
-                <div class="profile-row"><span>Druckplatte</span><strong>Standard Build Plate</strong></div>
-                <div class="profile-row"><span>Duese</span><strong>0.4 mm</strong></div>
-                <div class="profile-row"><span>Filament</span><strong>PLA Generic</strong></div>
-                <div class="profile-row"><span>Prozess</span><strong>0.20 mm Standard</strong></div>
+                <div class="profile-row"><span>Drucker</span><strong>${escStudio(this.profileLabels().printer)}</strong></div>
+                <div class="profile-row"><span>Druckplatte</span><strong>${escStudio(this.profileLabels().plate)}</strong></div>
+                <div class="profile-row"><span>Duese</span><strong>${escStudio(this.profileLabels().nozzle)}</strong></div>
+                <div class="profile-row"><span>Filament</span><strong>${escStudio(this.profileLabels().filament)}</strong></div>
+                <div class="profile-row"><span>Prozess</span><strong>${escStudio(this.profileLabels().process)}</strong></div>
                 <div class="profile-row"><span>Slicer</span><strong>planning_only</strong></div>
                 <div class="profile-row"><span>Direktdruck</span><strong>deaktiviert</strong></div>
               </aside>
 
               <main class="buildplate-wrap">
                 <div class="buildplate">
-                  <div class="plate-label">Buildplate · isolierter alpha20.6 Dry-Run-Plan</div>
+                  <div class="plate-label">Buildplate · alpha21 Studio Dry-Run/Profile Release</div>
                   <div class="model"></div>
                 </div>
                 <div class="status">${escStudio(this._status)}</div>
@@ -5383,7 +5472,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "Isolated v5 Studio/CAD frontend with backend Dry-Run planning."
+      description: "v5 alpha21 Studio/CAD frontend with profile-bank backed Dry-Run planning."
     });
   }
 })();

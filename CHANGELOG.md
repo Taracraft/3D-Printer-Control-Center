@@ -1,5 +1,22 @@
 # Changelog
 
+## 5.0.0-alpha21 - Consolidated Studio Dry-Run/Profile release
+
+### Added
+- Connected the isolated Studio card to the persistent backend profile bank.
+- Added profile-bank backed printer, filament and process context for Dry-Run planning.
+- Added dynamic project labels in the Studio card based on backend profile data with a safe fallback.
+- Kept the local `studio_plan` fallback for Health validation.
+
+### Fixed
+- Changed the Studio Dry-Run WebSocket payload from `job` to `target_job`.
+- Added backend compatibility for legacy `job` payloads to prevent WebSocket schema log errors.
+- Consolidated the alpha20 recovery chain into a larger alpha21 test release.
+
+### Safety
+- Real slicing remains disabled.
+- Direct print remains disabled.
+
 ## 5.0.0-alpha20.6 - Studio plan fallback for isolated Dry-Run
 
 ### Fixed

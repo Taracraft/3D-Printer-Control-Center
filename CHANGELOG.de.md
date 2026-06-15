@@ -1,5 +1,22 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha21 - Konsolidiertes Studio-Dry-Run-/Profilbank-Release
+
+### Hinzugefügt
+- Isolierte Studio-Karte an die persistente Backend-Profilbank angebunden.
+- Drucker-, Filament- und Prozesskontext für die Dry-Run-Planung aus der Profilbank ergänzt.
+- Dynamische Projektanzeige in der Studio-Karte anhand der Backend-Profildaten mit sicherem Fallback ergänzt.
+- Lokaler `studio_plan`-Fallback für die Health-Validierung bleibt erhalten.
+
+### Behoben
+- Studio-Dry-Run-WebSocket-Nutzdaten von `job` auf `target_job` umgestellt.
+- Backend-Kompatibilität für alte `job`-Nutzdaten ergänzt, damit keine WebSocket-Schemafehler mehr geloggt werden.
+- alpha20-Recovery-Strang zu einem größeren alpha21-Testrelease konsolidiert.
+
+### Sicherheit
+- Echtes Slicen bleibt deaktiviert.
+- Direktdruck bleibt deaktiviert.
+
 ## 5.0.0-alpha20.6 - Studio-Plan-Fallback für isolierten Dry-Run
 
 ### Behoben

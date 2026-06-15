@@ -16,7 +16,7 @@ from typing import Any
 
 from .studio_plan import normalize_studio_plan
 
-WORKER_VERSION = "5.0.0-alpha20.3"
+WORKER_VERSION = "5.0.0-alpha20.4"
 
 
 def _utcnow() -> str:

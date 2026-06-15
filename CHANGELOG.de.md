@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha20.4 - Studio-Frontend-Deduplizierung
+
+### Behoben
+- Doppelte isolierte Studio-Frontend-Blöcke aus dem alpha20.3-Recovery-Build entfernt.
+- Exakt eine `printer-control-center-studio-card`-Implementierung auf stabiler Galerie-Frontendbasis beibehalten.
+- Funktionierende Galerie-/Dateimanager-Ansicht und isolierte Studio-Buildplate-Ansicht bleiben erhalten.
+
+### Hinweise
+- Dies ist ein Cleanup-Hotfix für das alpha20-Recovery-/Testfenster.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha20.3 - Isolierter Studio-Frontend-Rebuild
 
 ### Hinzugefügt

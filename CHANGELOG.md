@@ -1,5 +1,16 @@
 # Changelog
 
+## 5.0.0-alpha20.4 - Studio frontend deduplication cleanup
+
+### Fixed
+- Removed duplicate isolated Studio frontend blocks from the alpha20.3 recovery build.
+- Kept exactly one `printer-control-center-studio-card` implementation on the stable gallery frontend baseline.
+- Preserved the working gallery/file-manager frontend and the isolated Studio buildplate view.
+
+### Notes
+- This is a cleanup hotfix for the alpha20 recovery/test window.
+- Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha20.3 - Isolated Studio frontend rebuild
 
 ### Added

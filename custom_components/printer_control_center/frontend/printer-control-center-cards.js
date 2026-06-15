@@ -1,12 +1,6 @@
-<<<<<<< HEAD
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
   const VERSION = "5.0.0-alpha3";
-=======
-/* 3D-Printer Control Center - HACS Release 5.0.0-alpha3*/
-(() => {
-  const VERSION = "5.0.0-alpha3";
->>>>>>> master
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";

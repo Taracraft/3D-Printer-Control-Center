@@ -1,5 +1,20 @@
 # Changelog
 
+## 5.0.0-alpha5 - Slicer profile and slice-plan scaffold
+
+### Added
+- Added local Studio profile-bank groundwork for printers, build plates, nozzles, filaments and process profiles.
+- Added a Studio slice-plan panel with editable basic slicer settings.
+- Added local slice-plan persistence and JSON export for later slicer/direct-print integration.
+- Added safeguards for the v5 Studio model handoff introduced in alpha4.
+
+### Fixed
+- Repaired literal line-break artifacts from the alpha4 handoff patch.
+- Completed the native Gallery "Open in Studio" hooks where exact UI anchors were missed.
+
+### Notes
+- This alpha still prepares data only. Real slicing and direct printing remain disabled until later alpha steps.
+
 ## 5.0.0-alpha4 - Gallery to Studio handoff
 
 ### Added

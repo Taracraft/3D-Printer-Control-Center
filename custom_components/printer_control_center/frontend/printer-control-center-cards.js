@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha4";
+  const VERSION = "5.0.0-alpha5";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -324,6 +324,47 @@
         window.dispatchEvent(new Event("location-changed"));
       }
     }catch(_error){}
+  }
+
+
+  const PCC_V5_STUDIO_SLICE_PLAN_KEY = "printer_control_center.v5.studio.slice_plan.v1";
+  const PCC_V5_STUDIO_PROFILE_BANK_KEY = "printer_control_center.v5.studio.profile_bank.v1";
+
+  function pccV5DefaultProfileBank(){
+    return {
+      printers: ["Bambu Lab A1", "Bambu Lab P1S", "Bambu Lab X1 Carbon", "Bambu Lab H2D"],
+      plates: ["Bambu Smooth PEI Plate", "Bambu Textured PEI Plate", "Bambu Cool Plate", "High Temp Plate"],
+      nozzles: ["0.2 mm", "0.4 mm", "0.6 mm", "0.8 mm"],
+      filaments: ["PLA Basic", "PETG Basic", "ABS", "ASA", "TPU 95A", "Support for PLA"],
+      processes: ["0.20 mm Standard", "0.16 mm Optimal", "0.12 mm Fine", "0.28 mm Draft", "0.20 mm Strength"]
+    };
+  }
+
+  function pccV5LoadProfileBank(){
+    try{
+      const raw=JSON.parse(window.localStorage.getItem(PCC_V5_STUDIO_PROFILE_BANK_KEY)||"{}")||{};
+      return {...pccV5DefaultProfileBank(),...raw};
+    }catch(_error){
+      return pccV5DefaultProfileBank();
+    }
+  }
+
+  function pccV5SaveProfileBank(bank){
+    try{window.localStorage.setItem(PCC_V5_STUDIO_PROFILE_BANK_KEY,JSON.stringify({...pccV5DefaultProfileBank(),...(bank||{})}))}catch(_error){}
+  }
+
+  function pccV5DefaultSliceSettings(){
+    return {
+      layerHeight: 0.20,
+      wallLoops: 2,
+      infill: 15,
+      supports: "auto",
+      brim: "auto",
+      seam: "aligned",
+      ironing: false,
+      adaptiveLayer: false,
+      timelapse: false
+    };
   }
 
   const TYPES = {
@@ -2887,6 +2928,132 @@ class StudioCard extends BaseCard {
   }
 
   storageKey(){return "printer_control_center.v5.studio.ui.v2"}
+  profileBankKey(){return PCC_V5_STUDIO_PROFILE_BANK_KEY}
+  slicePlanKey(){return PCC_V5_STUDIO_SLICE_PLAN_KEY}
+
+  profileBank(){
+    return pccV5LoadProfileBank();
+  }
+
+  sliceSettings(){
+    const state=this.state?.()||{};
+    state.sliceSettings={...pccV5DefaultSliceSettings(),...(state.sliceSettings||{})};
+    return state.sliceSettings;
+  }
+
+  studioSelection(){
+    const state=this.state?.()||{};
+    return {
+      printer: state.printer || state.selectedPrinter || "Bambu Lab X1 Carbon",
+      plate: state.plate || state.buildPlate || "Bambu Smooth PEI Plate",
+      nozzle: state.nozzle || "0.4 mm",
+      process: state.process || state.quality || "0.20 mm Standard",
+      filaments: state.filaments || ["PLA Basic"]
+    };
+  }
+
+  buildSlicePlan(){
+    const state=this.state();
+    const model=this.currentStudioModel?.()||state.model||null;
+    const selection=this.studioSelection();
+    const plan={
+      schema:"printer-control-center.v5.slice-plan",
+      version:"5.0.0-alpha5",
+      createdAt:new Date().toISOString(),
+      model:model||{},
+      modelKey:pccV5StudioModelKey(model||{}),
+      printer:selection.printer,
+      buildPlate:selection.plate,
+      nozzle:selection.nozzle,
+      process:selection.process,
+      filaments:selection.filaments,
+      transform:state.transform||{},
+      sliceSettings:this.sliceSettings(),
+      status:"prepared",
+      directPrint:false
+    };
+    return plan;
+  }
+
+  saveSlicePlan(){
+    const plan=this.buildSlicePlan();
+    try{
+      window.localStorage.setItem(this.slicePlanKey(),JSON.stringify(plan));
+      const state=this.state();
+      state.slicePlan=plan;
+      this._studioState=state;
+      window.localStorage.setItem(this.storageKey(),JSON.stringify(state));
+    }catch(_error){}
+    return plan;
+  }
+
+  exportSlicePlan(){
+    const plan=this.saveSlicePlan();
+    try{
+      const blob=new Blob([JSON.stringify(plan,null,2)],{type:"application/json"});
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement("a");
+      const safeName=String(plan.model?.name||"model").replace(/[^a-z0-9_.-]+/gi,"_");
+      link.href=url;
+      link.download=`${safeName}.pcc-slice-plan.json`;
+      document.body.appendChild(link);
+      link.click();
+      window.setTimeout(()=>{URL.revokeObjectURL(url);link.remove()},500);
+    }catch(_error){}
+  }
+
+  decorateSlicePlanPanel(){
+    const host=this.shadowRoot?.querySelector(".studio-right")||null;
+    if(!host||host.querySelector(".studio-slice-panel"))return;
+    const model=this.currentStudioModel?.()||null;
+    const selection=this.studioSelection();
+    const settings=this.sliceSettings();
+    const panel=document.createElement("div");
+    panel.className="studio-panel studio-slice-panel";
+    panel.innerHTML=`<h4>Slice / Direct Print Vorbereitung</h4>
+      <div class="studio-quality-grid">
+        <span>Modell</span><strong>${esc(model?.name||"Noch kein Modell")}</strong>
+        <span>Drucker</span><strong>${esc(selection.printer)}</strong>
+        <span>Druckplatte</span><strong>${esc(selection.plate)}</strong>
+        <span>Düse</span><strong>${esc(selection.nozzle)}</strong>
+        <span>Prozess</span><strong>${esc(selection.process)}</strong>
+        <span>Layer</span><input data-studio-slice-setting="layerHeight" type="number" step="0.01" value="${esc(String(settings.layerHeight))}">
+        <span>Infill %</span><input data-studio-slice-setting="infill" type="number" step="1" value="${esc(String(settings.infill))}">
+        <span>Wände</span><input data-studio-slice-setting="wallLoops" type="number" step="1" value="${esc(String(settings.wallLoops))}">
+      </div>
+      <div class="studio-tools" style="margin-top:8px">
+        <button data-studio-slice-plan>Slice-Plan speichern</button>
+        <button data-studio-export-plan>Slice-Plan exportieren</button>
+        <button class="disabled" title="Kommt in späterem Alpha">Slicen</button>
+        <button class="disabled" title="Kommt in späterem Alpha">Direktdruck</button>
+      </div>
+      <p class="studio-note">Vorbereitung für Profile, Slicer und späteren Direktdruck. Noch kein echter Slice-Lauf.</p>`;
+    host.append(panel);
+
+    panel.querySelectorAll("[data-studio-slice-setting]").forEach((input)=>{
+      input.addEventListener("change",()=>{
+        const key=input.dataset.studioSliceSetting;
+        const state=this.state();
+        state.sliceSettings={...pccV5DefaultSliceSettings(),...(state.sliceSettings||{})};
+        const numeric=Number(input.value);
+        state.sliceSettings[key]=Number.isFinite(numeric)?numeric:input.value;
+        this._studioState=state;
+        this.saveState();
+      });
+    });
+
+    panel.querySelector("[data-studio-slice-plan]")?.addEventListener("click",()=>{
+      const plan=this.saveSlicePlan();
+      const state=this.state();
+      state.lastStudioNotice=`Slice-Plan vorbereitet: ${plan.model?.name||"Modell"}`;
+      this._studioState=state;
+      this.saveState();
+      this.render();
+    });
+
+    panel.querySelector("[data-studio-export-plan]")?.addEventListener("click",()=>this.exportSlicePlan());
+  }
+
   pendingModelKey(){return PCC_V5_STUDIO_PENDING_MODEL_KEY}
   transformStoreKey(){return PCC_V5_STUDIO_TRANSFORMS_KEY}
 
@@ -3999,6 +4166,7 @@ class TemplatesCard extends BaseCard {
             : `
               ${action("print","Drucken …","🖨",!project)}
               ${action("plan","Planen …","🗓",!project)}
+              ${action("studio-open","In Studio öffnen","🧊",!project)}
               ${action("model-open","In Bambu Studio öffnen (Original-3MF)","↗",!project)}
               ${action("model-download","Modell-3MF herunterladen","⬇",!project)}
               ${action("stl-download","Modell-STL herunterladen","⬇",!project)}
@@ -4089,13 +4257,17 @@ class TemplatesCard extends BaseCard {
         return;
       }
 
-      if(action==="studio-open"){`r`n
+      if(action==="studio-open"){
 
-        await this.openInStudio(map,item);`r`n
 
-        return;`r`n
+        await this.openInStudio(map,item);
 
-      }`r`n
+
+        return;
+
+
+      }
+
 
       if(action==="model-open"){
         // Bambuddy-compatible desktop handoff: serve the unchanged original 3MF.
@@ -4413,7 +4585,8 @@ class TemplatesCard extends BaseCard {
               ${project?`
                 <button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">🖨 Drucken …</button>
                 <button data-context-direct="plan" data-context-path="${esc(item.path)}">🗓 Planen …</button>
-                <button class="primary" data-context-direct="model-open" data-context-path="${esc(item.path)}">↗ In Bambu Studio öffnen (Original-3MF)</button>
+                <button class="primary" data-context-direct="studio-open" data-context-path="${esc(item.path)}">🧊 In Studio öffnen</button>
+                <button data-context-direct="model-open" data-context-path="${esc(item.path)}">↗ In Bambu Studio öffnen (Original-3MF)</button>
                 <button data-context-direct="model-download" data-context-path="${esc(item.path)}">⬇ Modell-3MF herunterladen</button>
                 <button data-context-direct="stl-download" data-context-path="${esc(item.path)}">⬇ Modell-STL herunterladen</button>
               `:""}

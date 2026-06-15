@@ -1,5 +1,20 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha5 - Slicer-Profil- und Slice-Plan-Grundlage
+
+### Hinzugefügt
+- Lokale Studio-Profilbank-Grundlage für Drucker, Druckplatten, Düsen, Filamente und Prozessprofile ergänzt.
+- Studio-Slice-Plan-Panel mit editierbaren Basis-Slicer-Einstellungen ergänzt.
+- Lokale Slice-Plan-Speicherung und JSON-Export für spätere Slicer-/Direktdruck-Integration ergänzt.
+- Schutzmaßnahmen für die in alpha4 eingeführte v5-Studio-Modellübergabe ergänzt.
+
+### Behoben
+- Literal-Zeilenumbruch-Artefakte aus dem alpha4-Handoff-Patch bereinigt.
+- Native Galerie-Aktion „In Studio öffnen“ an Stellen ergänzt, an denen exakte UI-Anker zuvor nicht getroffen wurden.
+
+### Hinweise
+- Dieses Alpha bereitet weiterhin nur Daten vor. Echtes Slicen und Direktdruck bleiben bis spätere Alpha-Schritte deaktiviert.
+
 ## 5.0.0-alpha4 - Galerie-zu-Studio-Übergabe
 
 ### Hinzugefügt

@@ -1,4 +1,5 @@
 """Data model and telemetry helpers."""
+
 from __future__ import annotations
 
 from copy import deepcopy
@@ -13,6 +14,12 @@ from .const import (
     AMS_HT,
     AMS_BMCU_370,
     AMS_4_SLOT_COMPATIBLE,
+)
+
+from .bambu_standalone import (
+    extract_print_value,
+    extract_ams_summary,
+    get_model_capabilities,
 )
 
 
@@ -41,132 +48,78 @@ def safe_state(value: Any, default: str = "unknown", limit: int = 240) -> str:
     return text[:limit] if text else default
 
 
-PRINTER_MODEL_LABELS: tuple[tuple[str, str], ...] = (
-    ("x1carbon", "Bambu Lab X1 Carbon"),
-    ("x1c", "Bambu Lab X1 Carbon"),
-    ("x1e", "Bambu Lab X1E"),
-    ("p1s", "Bambu Lab P1S"),
-    ("p1p", "Bambu Lab P1P"),
-    ("a1mini", "Bambu Lab A1 mini"),
-    ("a1", "Bambu Lab A1"),
-    ("h2d", "Bambu Lab H2D"),
-    ("h2s", "Bambu Lab H2S"),
-)
-
-PRINTER_MODEL_KEYS: set[str] = {
-    "devmodel",
-    "devmodelbambucom",
-    "dev_model",
-    "device_model",
-    "machine_type",
-    "model",
-    "printer_model",
-    "printer_type",
-    "product_name",
-}
+def _is_empty(value: Any) -> bool:
+    if value is None:
+        return True
+    if value == "":
+        return True
+    if value == "unknown":
+        return True
+    if value == "unavailable":
+        return True
+    return False
 
 
-def _normalized_key(value: Any) -> str:
-    return "".join(char for char in str(value).lower() if char.isalnum() or char == "_")
+def _set_if_present(target: dict[str, Any], key: str, value: Any, overwrite_empty_only: bool = True) -> None:
+    if _is_empty(value):
+        return
+    if overwrite_empty_only and not _is_empty(target.get(key)):
+        return
+    target[key] = value
 
 
-def _normalized_model_token(value: Any) -> str:
-    return "".join(char for char in str(value).lower() if char.isalnum())
+def _as_int(value: Any) -> int | None:
+    try:
+        if value is None or value == "":
+            return None
+        return int(float(str(value)))
+    except (TypeError, ValueError):
+        return None
 
 
-def _walk_printer_model_values(value: Any) -> list[Any]:
-    found: list[Any] = []
-    if isinstance(value, dict):
-        for key, child in value.items():
-            normalized_key = _normalized_key(key)
-            if normalized_key in PRINTER_MODEL_KEYS and not isinstance(child, (dict, list, tuple, set)):
-                found.append(child)
-            found.extend(_walk_printer_model_values(child))
-    elif isinstance(value, list):
-        for child in value:
-            found.extend(_walk_printer_model_values(child))
-    return found
-
-
-def readable_printer_model(value: Any) -> str:
-    raw = safe_state(value, default="", limit=80).strip()
-    if not raw:
+def _flatten_text(value: Any) -> str:
+    try:
+        return repr(value).lower()
+    except Exception:
         return ""
-    normalized = _normalized_model_token(raw)
-    for token, label in PRINTER_MODEL_LABELS:
-        if token in normalized:
-            return label
-    if raw.lower().startswith("bambu"):
-        return raw
-    return raw
 
 
-
-def _is_serial_like_model(value: Any) -> bool:
-    raw = safe_state(value, default="", limit=120).strip()
-    if not raw:
-        return False
-    normalized = _normalized_model_token(raw)
-    if not normalized:
-        return False
-    if any(token in normalized for token in ("bambu", "lab", "a1", "a2", "p1", "p2", "x1", "x2", "h2", "carbon", "mini")):
-        return False
-    return len(normalized) >= 10 and normalized.isalnum()
-
-
-def _module_product_names(data: dict[str, Any]) -> list[str]:
-    names: list[str] = []
-    info = data.get("info")
-    if not isinstance(info, dict):
-        return names
-    modules = info.get("module")
-    if not isinstance(modules, list):
-        return names
-    for module in modules:
-        if not isinstance(module, dict):
-            continue
-        product = safe_state(module.get("product_name"), default="", limit=120).strip()
-        if not product:
-            continue
-        if "ams" in product.lower():
-            continue
-        names.append(product)
-    return names
-
-def detect_printer_model(data: dict[str, Any]) -> str:
-    for candidate in _module_product_names(data):
-        label = readable_printer_model(candidate)
-        if label and not _is_serial_like_model(label):
-            return label
-
-    candidates = _walk_printer_model_values(data)
-    for candidate in candidates:
-        label = readable_printer_model(candidate)
-        if label and not _is_serial_like_model(label):
-            if "ams" not in label.lower():
-                return label
-
-    return "Bambu Lab 3D Printer"
+def _printer_family_label(model_text: Any) -> str:
+    capabilities = get_model_capabilities(str(model_text or ""))
+    return capabilities.family.value
 
 
 def detect_ams_type(data: dict[str, Any]) -> tuple[str, str]:
-    """Best-effort AMS type detection with manual override support."""
+    """Best-effort AMS type detection using only our own parsed printer payload."""
     p = print_data(data)
     ams = p.get("ams")
-    # Only inspect the actual AMS subtree.  Printer OTA payloads may contain
-    # a generic firmware bundle label such as "AMS/AMS 2 Pro/AMS HT".  Using
-    # the complete printer payload caused false AMS-HT detections for BMCU
-    # hardware.
-    raw = repr(ams).lower()
+    summary = extract_ams_summary({"print": p})
 
-    if "bmcu" in raw or "bcmu" in raw:
+    raw = _flatten_text(ams)
+    summary_raw = _flatten_text(summary)
+    combined = f"{raw} {summary_raw}"
+
+    if "bmcu" in combined or "bcmu" in combined:
         return AMS_BMCU_370, "high"
-    if "ams ht" in raw or "ams_ht" in raw:
+    if "ams ht" in combined or "ams_ht" in combined:
         return AMS_HT, "high"
-    if "ams 2 pro" in raw or "ams2" in raw or "ams_2_pro" in raw:
+    if "ams 2 pro" in combined or "ams2" in combined or "ams_2_pro" in combined:
         return AMS_2_PRO, "high"
-    if "ams lite" in raw or "ams_lite" in raw:
+    if "ams lite" in combined or "ams_lite" in combined:
         return AMS_LITE, "high"
+
+    if summary.get("has_ams"):
+        unit_count = int(summary.get("unit_count") or 0)
+        tray_count = 0
+        for unit in summary.get("units") or []:
+            if isinstance(unit, dict):
+                trays = unit.get("trays") or []
+                if isinstance(trays, list):
+                    tray_count += len(trays)
+        if tray_count == 4:
+            return AMS_4_SLOT_COMPATIBLE, "high"
+        if unit_count > 0:
+            return AMS_ORIGINAL, "medium"
 
     units: list[Any] = []
     if isinstance(ams, dict):
@@ -238,7 +191,6 @@ def normalize_tray(raw: dict[str, Any]) -> dict[str, Any]:
         or tray.get("tray_info_idx")
         or ""
     )
-
     brand = (
         tray.get("normalized_brand")
         or tray.get("tray_sub_brands")
@@ -247,13 +199,11 @@ def normalize_tray(raw: dict[str, Any]) -> dict[str, Any]:
         or tray.get("name")
         or ""
     )
-
     remaining = (
         tray.get("remain")
         if tray.get("remain") not in (None, "")
         else tray.get("remaining")
     )
-
     raw_color = (
         tray.get("tray_color")
         or tray.get("color")
@@ -283,8 +233,35 @@ def normalize_tray(raw: dict[str, Any]) -> dict[str, Any]:
     tray["normalized_color"] = normalize_color(raw_color)
     tray["normalized_remaining"] = remaining
     tray["normalized_loaded"] = bool(meaningful)
-
     return tray
+
+
+_STANDARD_VALUE_MAP: dict[str, tuple[str, ...]] = {
+    "printer_model": ("printer_model",),
+    "serial": ("serial",),
+    "firmware_version": ("firmware",),
+    "wifi_signal": ("wifi_signal",),
+    "gcode_state": ("print_status",),
+    "stg_cur": ("current_stage",),
+    "subtask_name": ("task_name",),
+    "gcode_file": ("task_name",),
+    "nozzle_temper": ("nozzle_temperature",),
+    "nozzle_target_temper": ("nozzle_target_temperature",),
+    "nozzle_diameter": ("nozzle_diameter",),
+    "nozzle_type": ("nozzle_type",),
+    "bed_temper": ("bed_temperature",),
+    "bed_target_temper": ("bed_target_temperature",),
+    "chamber_temper": ("chamber_temperature",),
+    "chamber_target_temper": ("chamber_target_temperature",),
+    "mc_percent": ("progress_percent",),
+    "mc_remaining_time": ("remaining_time_minutes",),
+    "layer_num": ("current_layer",),
+    "total_layer_num": ("total_layers",),
+    "spd_lvl": ("speed_level",),
+    "sdcard": ("sdcard_state",),
+    "home_flag": ("home_flag",),
+    "fun": ("print_fun",),
+}
 
 
 @dataclass
@@ -294,18 +271,58 @@ class PrinterSnapshot:
     telemetry: dict[str, Any] = field(default_factory=dict)
     detected_ams_type: str = AMS_NONE
     detection_confidence: str = "unknown"
-    printer_model: str = "Bambu Lab 3D Printer"
 
     def update(self, telemetry: dict[str, Any], transport: str) -> None:
         deep_merge(self.telemetry, telemetry)
         self.transport = transport
         self.online = True
+        self._normalize_standalone_payload()
         self.detected_ams_type, self.detection_confidence = detect_ams_type(self.telemetry)
-        self.printer_model = detect_printer_model(self.telemetry)
 
     @property
     def print(self) -> dict[str, Any]:
         return print_data(self.telemetry)
+
+    @property
+    def printer_model(self) -> str:
+        return safe_state(
+            self.value("printer_model", "dev_model_name", "machine_model", default=""),
+            default="",
+        )
+
+    @property
+    def printer_family(self) -> str:
+        return _printer_family_label(self.printer_model)
+
+    def _normalize_standalone_payload(self) -> None:
+        """Normalize A1/P1/X1/H2 payload differences into stable PCC keys."""
+        p = self.print
+        if not isinstance(p, dict):
+            return
+
+        for target_key, source_keys in _STANDARD_VALUE_MAP.items():
+            for source_key in source_keys:
+                value = extract_print_value({"print": p}, source_key)
+                if _is_empty(value):
+                    value = extract_print_value(self.telemetry, source_key)
+                if not _is_empty(value):
+                    _set_if_present(p, target_key, value)
+                    break
+
+        # Make get_version/module payloads useful for the firmware sensor.
+        firmware = p.get("firmware_version") or extract_print_value(self.telemetry, "firmware")
+        _set_if_present(p, "firmware_version", firmware)
+        _set_if_present(p, "upgrade_display_state", firmware)
+
+        model = p.get("printer_model") or extract_print_value(self.telemetry, "printer_model")
+        _set_if_present(p, "printer_model", model)
+
+        # Store our normalized AMS summary without destroying the raw Bambu AMS tree.
+        try:
+            summary = extract_ams_summary({"print": p})
+        except Exception:
+            summary = {"has_ams": False, "unit_count": 0, "units": []}
+        self.telemetry["_pcc_ams_summary"] = summary
 
     def value(self, *keys: str, default: Any = None) -> Any:
         for key in keys:
@@ -316,9 +333,13 @@ class PrinterSnapshot:
         return default
 
     def firmware_state(self) -> str:
-        direct = self.value("upgrade_display_state", default=None)
+        direct = self.value("firmware_version", "sw_ver", "ota_version", default=None)
         if direct not in (None, ""):
             return safe_state(direct)
+
+        display = self.value("upgrade_display_state", default=None)
+        if display not in (None, ""):
+            return safe_state(display)
 
         raw = self.value("upgrade_state", default=None)
         if isinstance(raw, dict):
@@ -326,45 +347,74 @@ class PrinterSnapshot:
                 raw.get("status")
                 or raw.get("message")
                 or raw.get("module")
+                or raw.get("version")
                 or "unknown"
             )
         return safe_state(raw)
 
     def firmware_attributes(self) -> dict[str, Any]:
+        attrs: dict[str, Any] = {}
+        for key in ("firmware_version", "sw_ver", "ota_version", "hardware", "hw_ver"):
+            value = self.value(key, default=None)
+            if value not in (None, ""):
+                attrs[key] = value
+
         raw = self.value("upgrade_state", default={})
-        return raw if isinstance(raw, dict) else {}
+        if isinstance(raw, dict):
+            attrs.update(raw)
+
+        version_payload = self.value("get_version", default={})
+        if isinstance(version_payload, dict):
+            attrs["get_version"] = version_payload
+
+        return attrs
+
+    def _raw_ams_units(self) -> list[Any]:
+        root = self.print.get("ams")
+        if isinstance(root, dict) and isinstance(root.get("ams"), list):
+            return root["ams"]
+        if isinstance(root, list):
+            return root
+        return []
 
     def ams_slots(self) -> list[dict[str, Any]]:
         """Return four deterministic AMS/BMCU tray records ordered by slot id."""
-        root = self.print.get("ams")
         by_slot: dict[int, dict[str, Any]] = {}
 
-        units: list[Any] = []
-        if isinstance(root, dict) and isinstance(root.get("ams"), list):
-            units = root["ams"]
-        elif isinstance(root, list):
-            units = root
-
-        for unit in units:
+        for unit in self._raw_ams_units():
             if not isinstance(unit, dict):
                 continue
             trays = unit.get("tray")
             if not isinstance(trays, list):
                 continue
-
             for tray in trays:
                 if not isinstance(tray, dict):
                     continue
-                raw_id = tray.get("id", tray.get("tray_id"))
-                try:
-                    slot = int(raw_id)
-                except (TypeError, ValueError):
-                    continue
-                if 0 <= slot <= 3:
+                raw_id = tray.get("id", tray.get("tray_id", tray.get("tray_info_idx")))
+                slot = _as_int(raw_id)
+                if slot is not None and 0 <= slot <= 3:
                     by_slot[slot] = tray
 
-        # Fallback for non-standard BMCU payloads.
-        if not by_slot and root is not None:
+        # Fallback for non-standard BMCU/AMS 2 Pro/H2 payloads.
+        if not by_slot:
+            summary = self.telemetry.get("_pcc_ams_summary")
+            if not isinstance(summary, dict):
+                summary = extract_ams_summary({"print": self.print})
+            for unit in summary.get("units") or []:
+                if not isinstance(unit, dict):
+                    continue
+                for tray_index, tray in enumerate(unit.get("trays") or []):
+                    if not isinstance(tray, dict):
+                        continue
+                    raw_id = tray.get("id")
+                    slot = _as_int(raw_id)
+                    if slot is None:
+                        slot = tray_index
+                    if 0 <= slot <= 3:
+                        by_slot.setdefault(slot, tray)
+
+        # Deep fallback for odd third-party controllers.
+        if not by_slot and self.print.get("ams") is not None:
             def visit(value: Any) -> None:
                 if isinstance(value, list):
                     for item in value:
@@ -372,12 +422,12 @@ class PrinterSnapshot:
                     return
                 if not isinstance(value, dict):
                     return
-
-                raw_id = value.get("id", value.get("tray_id"))
+                raw_id = value.get("id", value.get("tray_id", value.get("tray_info_idx")))
                 if raw_id is not None and any(
                     key in value
                     for key in (
                         "tray_type",
+                        "filament_type",
                         "tray_info_idx",
                         "tray_color",
                         "cols",
@@ -385,20 +435,19 @@ class PrinterSnapshot:
                         "tag_uid",
                     )
                 ):
-                    try:
-                        slot = int(raw_id)
-                    except (TypeError, ValueError):
-                        slot = -1
-                    if 0 <= slot <= 3:
+                    slot = _as_int(raw_id)
+                    if slot is not None and 0 <= slot <= 3:
                         by_slot.setdefault(slot, value)
-
                 for item in value.values():
                     visit(item)
 
-            visit(root)
+            visit(self.print.get("ams"))
 
         return [by_slot.get(slot, {"id": str(slot)}) for slot in range(4)]
 
     def external_spool(self) -> dict[str, Any]:
-        value = self.print.get("vt_tray")
-        return value if isinstance(value, dict) else {}
+        for key in ("vt_tray", "virtual_tray", "external_spool"):
+            value = self.print.get(key)
+            if isinstance(value, dict):
+                return value
+        return {}

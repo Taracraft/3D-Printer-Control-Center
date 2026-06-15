@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha20";
+  const VERSION = "5.0.0-alpha20.1";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha20",
+      version:"5.0.0-alpha20.1",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -4632,7 +4632,7 @@ class StudioCard extends BaseCard {
     const model=this.currentStudioModel?.()||state.model||null;
     return {
       schema:"printer-control-center.v5.local-selftest",
-      version:"5.0.0-alpha20",
+      version:"5.0.0-alpha20.1",
       source:"browser-local",
       websocketRegistered:false,
       jobsCount:jobs.length,
@@ -4793,7 +4793,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha20",
+      version:"5.0.0-alpha20.1",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),

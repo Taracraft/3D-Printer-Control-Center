@@ -1,5 +1,16 @@
 # Changelog
 
+## 5.0.0-alpha20.1 - Init syntax hotfix
+
+### Fixed
+- Repaired `__init__.py` formatting after the alpha20 test-window build.
+- Moved the Studio WebSocket import out of the `const` import block.
+- Restored a valid multi-line Home Assistant integration module layout.
+
+### Notes
+- This is a syntax hotfix for the alpha20 test window, not a new feature alpha.
+- Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha20 - Studio health test window
 
 ### Added

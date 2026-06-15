@@ -1,4 +1,5 @@
 """3D-Printer Control Center."""
+
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -8,12 +9,10 @@ from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
 )
-
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
-from .studio_ws import async_register_studio_websocket
     CONF_AUTO_CREATE_DASHBOARDS,
     DOMAIN,
     PLATFORMS,
@@ -24,20 +23,22 @@ from .coordinator import PrinterControlCenterCoordinator
 from .dashboards import async_ensure_default_dashboards
 from .frontend import async_register_frontend
 from .http_api import async_register_http_views
+from .studio_ws import async_register_studio_websocket
 from .websocket_api import async_register_websocket_commands
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-
 _DATA_SERVICE_REGISTERED = "_service_registered"
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up component-level resources exactly once."""
     hass.data.setdefault(DOMAIN, {})
+
     await async_register_http_views(hass)
     async_register_websocket_commands(hass)
 
     if not hass.services.has_service(DOMAIN, SERVICE_INSTALL_DASHBOARDS):
+
         async def async_install_dashboards(_call: ServiceCall) -> None:
             await async_ensure_default_dashboards(hass, force_config=True)
 
@@ -62,6 +63,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up one printer entry."""
     async_register_studio_websocket(hass)
     await async_register_frontend(hass)
+
     current_config = {**entry.data, **entry.options}
     if current_config.get(CONF_AUTO_CREATE_DASHBOARDS, True):
         await async_ensure_default_dashboards(hass, force_config=True)
@@ -73,6 +75,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(entry.add_update_listener(_async_reload_entry))
 
     if not hass.data[DOMAIN].get(_DATA_SERVICE_REGISTERED):
+
         async def async_scan_network(call: ServiceCall) -> None:
             for current in list(hass.data.get(DOMAIN, {}).values()):
                 if isinstance(current, PrinterControlCenterCoordinator):
@@ -90,11 +93,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload one printer entry."""
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
     coordinator: PrinterControlCenterCoordinator = hass.data[DOMAIN].pop(entry.entry_id)
     await coordinator.async_stop()
+
     return unloaded
 
 
 async def _async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload one config entry."""
     await hass.config_entries.async_reload(entry.entry_id)

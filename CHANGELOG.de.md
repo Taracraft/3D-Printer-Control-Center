@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha20.1 - Init-Syntax-Hotfix
+
+### Behoben
+- Formatierung von `__init__.py` nach dem alpha20-Testfenster repariert.
+- Studio-WebSocket-Import aus dem `const`-Importblock herausgelöst.
+- Gültigen mehrzeiligen Home-Assistant-Integrationsaufbau wiederhergestellt.
+
+### Hinweise
+- Dies ist ein Syntax-Hotfix für das alpha20-Testfenster, keine neue Feature-Alpha.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha20 - Studio-Health-Testfenster
 
 ### Hinzugefügt

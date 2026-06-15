@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha3";
+  const VERSION = "5.0.0-alpha4";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -272,6 +272,59 @@
   }
 
   function activateUiLanguage(hass, map) { ACTIVE_LANGUAGE = resolveUiLanguage(hass, map); }
+
+
+  const PCC_V5_STUDIO_PENDING_MODEL_KEY = "printer_control_center.v5.studio.pending_model";
+  const PCC_V5_STUDIO_STATE_KEY = "printer_control_center.v5.studio.ui.v2";
+  const PCC_V5_STUDIO_TRANSFORMS_KEY = "printer_control_center.v5.studio.transforms.v1";
+  const PCC_V5_STUDIO_PATH = "/3d-printer-control-center-studio/studio";
+
+  function pccV5StudioModelKey(model){
+    const serial = String(model?.serial || "").trim();
+    const source = String(model?.source || "archive").trim();
+    const path = String(model?.path || model?.url || model?.name || "").trim();
+    return `${serial}|${source}|${path}`;
+  }
+
+  function pccV5StudioPayload(map,item,source,serial){
+    const safeItem = item || {};
+    const name = String(safeItem.name || safeItem.filename || safeItem.title || safeItem.path || "3MF model").split(/[\\/]/).pop();
+    return {
+      name,
+      path: String(safeItem.path || safeItem.file_path || safeItem.url || ""),
+      source: String(source || safeItem.source || "archive"),
+      serial: String(serial || map?.serial || map?.serialNumber || map?.prefix || ""),
+      size: Number(safeItem.size || safeItem.bytes || 0),
+      modified: safeItem.modified || safeItem.updated || safeItem.created || "",
+      preview: safeItem.preview || safeItem.thumbnail || safeItem.image || "",
+      openedAt: new Date().toISOString()
+    };
+  }
+
+  function pccV5StoreStudioModel(model){
+    try{
+      const payload = {...model, key:pccV5StudioModelKey(model)};
+      window.localStorage.setItem(PCC_V5_STUDIO_PENDING_MODEL_KEY, JSON.stringify(payload));
+      let state = {};
+      try{ state = JSON.parse(window.localStorage.getItem(PCC_V5_STUDIO_STATE_KEY) || "{}") || {}; }catch(_error){ state = {}; }
+      state.model = payload;
+      state.activeModelKey = payload.key;
+      window.localStorage.setItem(PCC_V5_STUDIO_STATE_KEY, JSON.stringify(state));
+      window.dispatchEvent(new CustomEvent("printer-control-center-studio-open",{detail:payload}));
+      return payload;
+    }catch(_error){
+      return model;
+    }
+  }
+
+  function pccV5NavigateStudio(){
+    try{
+      if(window.location.pathname !== PCC_V5_STUDIO_PATH){
+        window.history.pushState(null, "", PCC_V5_STUDIO_PATH);
+        window.dispatchEvent(new Event("location-changed"));
+      }
+    }catch(_error){}
+  }
 
   const TYPES = {
     complete: "printer-control-center-card",
@@ -2834,6 +2887,108 @@ class StudioCard extends BaseCard {
   }
 
   storageKey(){return "printer_control_center.v5.studio.ui.v2"}
+  pendingModelKey(){return PCC_V5_STUDIO_PENDING_MODEL_KEY}
+  transformStoreKey(){return PCC_V5_STUDIO_TRANSFORMS_KEY}
+
+  currentStudioModel(){
+    const state=this.state?.()||{};
+    return state.model || state.selectedModel || null;
+  }
+
+  modelStorageKey(model=this.currentStudioModel()){
+    return pccV5StudioModelKey(model||{});
+  }
+
+  applyPendingStudioModel(){
+    try{
+      const raw=window.localStorage.getItem(this.pendingModelKey());
+      if(!raw)return false;
+      const payload=JSON.parse(raw);
+      if(!payload||!payload.path&&!payload.name)return false;
+      const state=this.state();
+      state.model=payload;
+      state.activeModelKey=pccV5StudioModelKey(payload);
+      const storedTransform=this.loadStoredTransform(payload);
+      if(storedTransform)state.transform=storedTransform;
+      this._studioState=state;
+      window.localStorage.setItem(this.storageKey(),JSON.stringify(state));
+      window.localStorage.removeItem(this.pendingModelKey());
+      return true;
+    }catch(_error){
+      return false;
+    }
+  }
+
+  loadStoredTransform(model){
+    try{
+      const key=pccV5StudioModelKey(model);
+      if(!key)return null;
+      const all=JSON.parse(window.localStorage.getItem(this.transformStoreKey())||"{}")||{};
+      return all[key]||null;
+    }catch(_error){
+      return null;
+    }
+  }
+
+  saveCurrentModelTransform(){
+    try{
+      const state=this.state();
+      const model=state.model||null;
+      if(!model||!state.transform)return;
+      const key=pccV5StudioModelKey(model);
+      if(!key)return;
+      const all=JSON.parse(window.localStorage.getItem(this.transformStoreKey())||"{}")||{};
+      all[key]=state.transform;
+      window.localStorage.setItem(this.transformStoreKey(),JSON.stringify(all));
+    }catch(_error){}
+  }
+
+  decorateStudioModel(){
+    const model=this.currentStudioModel();
+    if(!model)return;
+    const host=this.shadowRoot?.querySelector(".studio-center")||this.shadowRoot?.querySelector(".studio-left")||null;
+    if(!host||host.querySelector(".studio-model-banner"))return;
+    const banner=document.createElement("div");
+    banner.className="studio-model-banner";
+    banner.innerHTML=`<strong>🧊 ${esc(model.name||"3MF model")}</strong>
+      <small>${esc(model.path||"")}</small>
+      <div class="studio-model-badge-row">
+        <span class="studio-model-badge">${esc(model.source||"archive")}</span>
+        <span class="studio-model-badge">${esc(model.serial||"printer")}</span>
+        ${model.size?`<span class="studio-model-badge">${esc(bytesLabel(model.size))}</span>`:""}
+      </div>`;
+    host.prepend(banner);
+    const preview=this.shadowRoot?.querySelector(".studio-model");
+    if(preview){
+      preview.setAttribute("title",`${model.name||"3MF model"} · ${model.path||""}`);
+      const label=preview.querySelector("strong");
+      if(label)label.textContent=String(model.name||"3MF").slice(0,22);
+    }
+  }
+
+  connectedCallback(){
+    if(super.connectedCallback)super.connectedCallback();
+    this._studioOpenHandler=(event)=>{
+      const payload=event?.detail||null;
+      if(!payload)return;
+      const state=this.state();
+      state.model=payload;
+      state.activeModelKey=pccV5StudioModelKey(payload);
+      const storedTransform=this.loadStoredTransform(payload);
+      if(storedTransform)state.transform=storedTransform;
+      this._studioState=state;
+      this.saveState();
+      this.render();
+    };
+    window.addEventListener("printer-control-center-studio-open",this._studioOpenHandler);
+    if(this.applyPendingStudioModel())this.render();
+  }
+
+  disconnectedCallback(){
+    if(this._studioOpenHandler)window.removeEventListener("printer-control-center-studio-open",this._studioOpenHandler);
+    if(super.disconnectedCallback)super.disconnectedCallback();
+  }
+
 
   state(){
     if(!this._studioState)this._studioState=this.loadState()
@@ -2851,9 +3006,7 @@ class StudioCard extends BaseCard {
     }
   }
 
-  saveState(){
-    try{window.localStorage.setItem(this.storageKey(),JSON.stringify(this.state()))}catch(_error){}
-  }
+  saveState(){try{window.localStorage.setItem(this.storageKey(),JSON.stringify(this.state()));this.saveCurrentModelTransform()}catch(_error){}}
 
   num(value,fallback=0){
     const parsed=Number(value)
@@ -2901,6 +3054,29 @@ class StudioCard extends BaseCard {
         .studio-topbar button.active,.studio-action.primary{background:rgba(0,155,210,.42);box-shadow:0 0 0 1px rgba(0,220,255,.35) inset}
         .studio-topbar .spacer{flex:1}
         .studio-action.disabled{opacity:.45;cursor:not-allowed}
+        .studio-model-banner{
+          margin:8px;
+          padding:10px 12px;
+          border:1px solid rgba(0,190,255,.42);
+          border-radius:12px;
+          background:rgba(0,120,170,.16);
+          display:grid;
+          gap:4px;
+          box-shadow:0 0 0 1px rgba(0,190,255,.10) inset;
+        }
+        .studio-model-banner strong{font-size:14px}
+        .studio-model-banner small{opacity:.78;overflow-wrap:anywhere}
+        .studio-model-badge-row{display:flex;gap:6px;flex-wrap:wrap}
+        .studio-model-badge{
+          display:inline-flex;
+          align-items:center;
+          gap:4px;
+          border:1px solid rgba(0,190,255,.28);
+          border-radius:999px;
+          padding:3px 7px;
+          font-size:11px;
+          background:rgba(255,255,255,.045);
+        }
         .studio-left-section{padding:10px;border-bottom:1px solid rgba(0,190,255,.22)}
         .studio-left-section h4,.studio-panel h4{margin:0 0 9px 0;font-size:14px}
         .studio-printer-card{display:grid;grid-template-columns:50px 1fr;gap:8px;align-items:center;border:1px solid rgba(0,190,255,.35);border-radius:10px;padding:8px;background:rgba(255,255,255,.04)}
@@ -3484,6 +3660,17 @@ class TemplatesCard extends BaseCard {
         : `${safe.includes(".")?safe.replace(/\.[^.]*$/,""):safe}${suffix}`;
     }
 
+    async openInStudio(map,item){
+      if(!item)return;
+      const payload=pccV5StoreStudioModel(pccV5StudioPayload(map,item,this._source||"archive",this.serial(map)));
+      this._notice=`Für Studio vorbereitet: ${payload.name}`;
+      this._error="";
+      this._contextMenu=null;
+      this._previewItem=null;
+      this._dialog=null;
+      this.render();
+      pccV5NavigateStudio();
+    }
     openBambuStudio(downloadUrl){
       const absolute=new URL(downloadUrl,window.location.origin).href;
       const protocol=`bambustudio://open?file=${encodeURIComponent(absolute)}`;
@@ -3901,6 +4088,14 @@ class TemplatesCard extends BaseCard {
         this.projectLink(map,this._source,item.path,"studio");
         return;
       }
+
+      if(action==="studio-open"){`r`n
+
+        await this.openInStudio(map,item);`r`n
+
+        return;`r`n
+
+      }`r`n
 
       if(action==="model-open"){
         // Bambuddy-compatible desktop handoff: serve the unchanged original 3MF.
@@ -4906,6 +5101,12 @@ class TemplatesCard extends BaseCard {
     }
 
     async openStudio(map,item){
+      const payload=pccV5StoreStudioModel(pccV5StudioPayload(map,item,"queue",this.serial(map)));
+      this._queueNotice=`Für Studio vorbereitet: ${payload.name}`;
+      this._queueError="";
+      this.render();
+      pccV5NavigateStudio();
+      return;
       try{
         const data=await this.ws({
           type:"printer_control_center/project/link",

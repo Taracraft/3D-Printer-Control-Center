@@ -1,5 +1,21 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha4 - Galerie-zu-Studio-Übergabe
+
+### Hinzugefügt
+- Native Aktion „In Studio öffnen“ für Galerie-/Archivmodelle ergänzt.
+- Eigene v5-Studio-Übergabe per lokalem Speicher ergänzt, damit ausgewählte 3MF-Modelle im internen Studio-/CAD-Arbeitsbereich geöffnet werden können.
+- Modell-Metadatenbanner im Studio-Arbeitsbereich ergänzt.
+- Transformationen werden pro Modell lokal im Browser gespeichert.
+- Grundlage für die Übergabe aus der Druckwarteschlange in den internen v5-Studio-Workflow ergänzt.
+
+### Geändert
+- Neue Studio-Aktionen bevorzugen jetzt die interne Home-Assistant-Studio-Seite statt der externen Bambu-Studio-Übergabe.
+- Die bestehende Bambu-Studio-Übergabe bleibt als manueller Fallback erhalten.
+
+### Hinweise
+- Dieses Alpha slicet und druckt noch nicht direkt. Es bereitet Modellübergabe und Transformationsstatus für die nächsten Slicer-/Profil-Schritte vor.
+
 ## 5.0.0-alpha3 - v4-Standalone-Backend übernommen und Konflikt bereinigt
 
 ### Hinzugefügt

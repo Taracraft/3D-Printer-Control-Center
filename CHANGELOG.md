@@ -1,5 +1,21 @@
 # Changelog
 
+## 5.0.0-alpha4 - Gallery to Studio handoff
+
+### Added
+- Added native "Open in Studio" actions for gallery/archive models.
+- Added native v5 Studio handoff storage so selected 3MF models can be opened in the internal Studio/CAD workspace.
+- Added model metadata banner inside the Studio workspace.
+- Added per-model transform persistence in local browser storage.
+- Added queue-to-Studio handoff groundwork for the internal v5 workflow.
+
+### Changed
+- The v5 Studio workflow now prefers the internal Home Assistant Studio page instead of the external Bambu Studio handoff for new Studio actions.
+- Existing Bambu Studio handoff actions remain available as a manual fallback.
+
+### Notes
+- This alpha still does not slice or print directly. It prepares the model handoff and transform state needed for the next slicer/profile steps.
+
 ## 5.0.0-alpha3 - v4 standalone backend sync and conflict recovery
 
 ### Added

@@ -1,5 +1,20 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha6 - Mobile Studio-Stabilität und Slice-Job-Grundlage
+
+### Hinzugefügt
+- Mobile Scroll- und Fokus-Erhaltung für den v5-Studio-/CAD-Manager ergänzt.
+- DOM-Mutation-Handling ergänzt, damit Studio-Panels nachgerüstet werden können, ohne die mobile App wieder nach oben springen zu lassen.
+- Lokale Slice-Job-Speicherung, vorbereiteter Jobstatus und Joblisten-Verwaltung ergänzt.
+- Aktion zum Vorbereiten eines Slice-Jobs als Grundlage für den späteren Slicer-Worker ergänzt.
+
+### Behoben
+- Ungewollte Scroll-Resets bei Studio-/CAD-Render- und State-Updates reduziert.
+- Aktives Studio-Eingabefeld und Cursorposition werden soweit möglich erhalten.
+
+### Hinweise
+- Dieses Alpha führt noch keinen echten Slicer aus. Es bereitet das interne Job-/Statusmodell für die spätere Worker-Integration vor.
+
 ## 5.0.0-alpha5 - Slicer-Profil- und Slice-Plan-Grundlage
 
 ### Hinzugefügt

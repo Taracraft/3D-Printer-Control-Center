@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha5";
+  const VERSION = "5.0.0-alpha6";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -364,6 +364,44 @@
       ironing: false,
       adaptiveLayer: false,
       timelapse: false
+    };
+  }
+
+
+  const PCC_V5_STUDIO_JOBS_KEY = "printer_control_center.v5.studio.jobs.v1";
+
+  function pccV5LoadSliceJobs(){
+    try{
+      const jobs=JSON.parse(window.localStorage.getItem(PCC_V5_STUDIO_JOBS_KEY)||"[]");
+      return Array.isArray(jobs)?jobs:[];
+    }catch(_error){
+      return [];
+    }
+  }
+
+  function pccV5SaveSliceJobs(jobs){
+    try{
+      window.localStorage.setItem(PCC_V5_STUDIO_JOBS_KEY,JSON.stringify(Array.isArray(jobs)?jobs:[]));
+    }catch(_error){}
+  }
+
+  function pccV5CreateSliceJob(plan){
+    const modelName=String(plan?.model?.name||"3MF model");
+    return {
+      id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
+      schema:"printer-control-center.v5.slice-job",
+      version:"5.0.0-alpha6",
+      createdAt:new Date().toISOString(),
+      updatedAt:new Date().toISOString(),
+      modelName,
+      modelKey:String(plan?.modelKey||""),
+      plan:plan||{},
+      status:"prepared",
+      progress:0,
+      stage:"waiting",
+      message:"Slice-Job vorbereitet. Echter Slicer-Lauf ist noch deaktiviert.",
+      output:null,
+      directPrint:false
     };
   }
 
@@ -2928,6 +2966,193 @@ class StudioCard extends BaseCard {
   }
 
   storageKey(){return "printer_control_center.v5.studio.ui.v2"}
+  studioCssValue(value){
+    const text=String(value||"");
+    try{
+      if(window.CSS&&CSS.escape)return CSS.escape(text);
+    }catch(_error){}
+    return text.replace(/\\/g,"\\\\").replace(/"/g,'\\"');
+  }
+
+  studioFocusSelector(element){
+    if(!element||!element.dataset)return "";
+    const candidates=[
+      ["studioInput","data-studio-input"],
+      ["studioSelect","data-studio-select"],
+      ["studioSliceSetting","data-studio-slice-setting"],
+      ["studioTool","data-studio-tool"]
+    ];
+    for(const [key,attr] of candidates){
+      if(element.dataset[key])return `[${attr}="${this.studioCssValue(element.dataset[key])}"]`;
+    }
+    if(element.id)return `#${this.studioCssValue(element.id)}`;
+    return "";
+  }
+
+  captureStudioInteraction(){
+    const root=this.shadowRoot;
+    const active=root?.activeElement||document.activeElement;
+    const focusSelector=root?.contains(active)?this.studioFocusSelector(active):"";
+    const focus={
+      selector:focusSelector,
+      value:active&&"value" in active?active.value:null,
+      start:active&&"selectionStart" in active?active.selectionStart:null,
+      end:active&&"selectionEnd" in active?active.selectionEnd:null
+    };
+    const selectors=[".studio-shell",".studio-left",".studio-center",".studio-right",".studio-bed-wrap",".studio-slice-panel"];
+    const scrolls=[];
+    for(const selector of selectors){
+      const element=root?.querySelector(selector);
+      if(element)scrolls.push({selector,left:element.scrollLeft||0,top:element.scrollTop||0});
+    }
+    const page=document.scrollingElement||document.documentElement||document.body;
+    this._lastStudioInteraction={
+      pageX:window.scrollX||page?.scrollLeft||0,
+      pageY:window.scrollY||page?.scrollTop||0,
+      focus,
+      scrolls,
+      at:Date.now()
+    };
+    return this._lastStudioInteraction;
+  }
+
+  restoreStudioInteraction(snapshot=this._lastStudioInteraction){
+    if(!snapshot)return;
+    const root=this.shadowRoot;
+    const restore=()=>{
+      try{
+        for(const item of snapshot.scrolls||[]){
+          const element=root?.querySelector(item.selector);
+          if(element){
+            element.scrollLeft=Number(item.left||0);
+            element.scrollTop=Number(item.top||0);
+          }
+        }
+        if(Number.isFinite(snapshot.pageX)&&Number.isFinite(snapshot.pageY)){
+          window.scrollTo(snapshot.pageX,snapshot.pageY);
+        }
+        const selector=snapshot.focus?.selector||"";
+        if(selector){
+          const element=root?.querySelector(selector);
+          if(element){
+            if(snapshot.focus.value!==null&&"value" in element&&element.value!==snapshot.focus.value)element.value=snapshot.focus.value;
+            element.focus({preventScroll:true});
+            if("setSelectionRange" in element&&snapshot.focus.start!==null&&snapshot.focus.end!==null){
+              element.setSelectionRange(snapshot.focus.start,snapshot.focus.end);
+            }
+          }
+        }
+      }catch(_error){}
+    };
+    window.requestAnimationFrame(()=>window.requestAnimationFrame(restore));
+  }
+
+  installStudioStability(){
+    if(this._studioStabilityInstalled)return;
+    this._studioStabilityInstalled=true;
+    const root=this.shadowRoot;
+    if(!root)return;
+
+    this._studioCaptureHandler=()=>this.captureStudioInteraction();
+    ["scroll","focusin","input","change","touchstart","pointerdown"].forEach((eventName)=>{
+      root.addEventListener(eventName,this._studioCaptureHandler,true);
+    });
+
+    this._studioResizeHandler=()=>this.restoreStudioInteraction();
+    window.addEventListener("resize",this._studioResizeHandler,{passive:true});
+
+    this._studioMutationObserver=new MutationObserver(()=>{
+      const snapshot=this._lastStudioInteraction;
+      window.requestAnimationFrame(()=>this.afterStudioDomChange(snapshot));
+    });
+    this._studioMutationObserver.observe(root,{childList:true,subtree:true});
+
+    window.setTimeout(()=>this.afterStudioDomChange(),0);
+  }
+
+  afterStudioDomChange(snapshot=this._lastStudioInteraction){
+    if(this._studioDecorating)return;
+    this._studioDecorating=true;
+    try{
+      if(this.decorateStudioModel)this.decorateStudioModel();
+      if(this.decorateSlicePlanPanel)this.decorateSlicePlanPanel();
+      if(this.decorateSliceJobPanel)this.decorateSliceJobPanel();
+    }catch(_error){}finally{
+      this._studioDecorating=false;
+      this.restoreStudioInteraction(snapshot);
+    }
+  }
+
+  sliceJobs(){
+    return pccV5LoadSliceJobs();
+  }
+
+  saveSliceJobs(jobs){
+    pccV5SaveSliceJobs(jobs);
+    const state=this.state();
+    state.sliceJobs=Array.isArray(jobs)?jobs:[];
+    this._studioState=state;
+    this.saveState();
+  }
+
+  createSliceJob(){
+    const plan=this.saveSlicePlan?this.saveSlicePlan():null;
+    const job=pccV5CreateSliceJob(plan||{});
+    const jobs=[job,...this.sliceJobs()].slice(0,20);
+    this.saveSliceJobs(jobs);
+    const state=this.state();
+    state.activeSliceJobId=job.id;
+    state.lastStudioNotice=`Slice-Job vorbereitet: ${job.modelName}`;
+    this._studioState=state;
+    this.saveState();
+    this.afterStudioDomChange();
+    return job;
+  }
+
+  clearSliceJobs(){
+    this.saveSliceJobs([]);
+    const state=this.state();
+    state.activeSliceJobId="";
+    state.lastStudioNotice="Slice-Jobliste geleert.";
+    this._studioState=state;
+    this.saveState();
+    this.afterStudioDomChange();
+  }
+
+  decorateSliceJobPanel(){
+    const host=this.shadowRoot?.querySelector(".studio-right")||null;
+    if(!host||host.querySelector(".studio-job-panel"))return;
+    const jobs=this.sliceJobs();
+    const latest=jobs[0]||null;
+    const panel=document.createElement("div");
+    panel.className="studio-panel studio-job-panel";
+    panel.innerHTML=`<h4>Slice-Jobs</h4>
+      <div class="studio-quality-grid">
+        <span>Status</span><strong>${esc(latest?.status||"kein Job")}</strong>
+        <span>Phase</span><strong>${esc(latest?.stage||"bereit")}</strong>
+        <span>Fortschritt</span><strong>${esc(String(latest?.progress||0))}%</strong>
+        <span>Letztes Modell</span><strong>${esc(latest?.modelName||"—")}</strong>
+      </div>
+      <div class="studio-tools" style="margin-top:8px">
+        <button data-studio-create-slice-job>Slice-Job vorbereiten</button>
+        <button data-studio-clear-slice-jobs ${jobs.length?"":"disabled"}>Jobliste leeren</button>
+        <button class="disabled" title="Kommt nach dem Worker-Gerüst">Worker starten</button>
+      </div>
+      <p class="studio-note">${esc(latest?.message||"Noch kein Slice-Job vorbereitet.")}</p>
+      ${jobs.length?`<div class="studio-note">${jobs.slice(0,5).map((job)=>`${esc(job.createdAt||"")} · ${esc(job.modelName||"Modell")} · ${esc(job.status||"prepared")}`).join("<br>")}</div>`:""}`;
+    host.append(panel);
+
+    panel.querySelector("[data-studio-create-slice-job]")?.addEventListener("click",()=>{
+      panel.remove();
+      this.createSliceJob();
+    });
+
+    panel.querySelector("[data-studio-clear-slice-jobs]")?.addEventListener("click",()=>{
+      panel.remove();
+      this.clearSliceJobs();
+    });
+  }
+
   profileBankKey(){return PCC_V5_STUDIO_PROFILE_BANK_KEY}
   slicePlanKey(){return PCC_V5_STUDIO_SLICE_PLAN_KEY}
 
@@ -2958,7 +3183,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha5",
+      version:"5.0.0-alpha6",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),
@@ -3135,6 +3360,7 @@ class StudioCard extends BaseCard {
 
   connectedCallback(){
     if(super.connectedCallback)super.connectedCallback();
+    this.installStudioStability();
     this._studioOpenHandler=(event)=>{
       const payload=event?.detail||null;
       if(!payload)return;
@@ -3152,6 +3378,8 @@ class StudioCard extends BaseCard {
   }
 
   disconnectedCallback(){
+    if(this._studioMutationObserver){this._studioMutationObserver.disconnect();this._studioMutationObserver=null;}
+    if(this._studioResizeHandler){window.removeEventListener("resize",this._studioResizeHandler);this._studioResizeHandler=null;}
     if(this._studioOpenHandler)window.removeEventListener("printer-control-center-studio-open",this._studioOpenHandler);
     if(super.disconnectedCallback)super.disconnectedCallback();
   }
@@ -3570,6 +3798,8 @@ class TemplatesCard extends BaseCard {
     }
 
     disconnectedCallback(){
+    if(this._studioMutationObserver){this._studioMutationObserver.disconnect();this._studioMutationObserver=null;}
+    if(this._studioResizeHandler){window.removeEventListener("resize",this._studioResizeHandler);this._studioResizeHandler=null;}
       if(this._backgroundUploadUnsubscribe){this._backgroundUploadUnsubscribe();this._backgroundUploadUnsubscribe=null}
     }
 
@@ -4623,6 +4853,8 @@ class TemplatesCard extends BaseCard {
     }
 
     disconnectedCallback(){
+    if(this._studioMutationObserver){this._studioMutationObserver.disconnect();this._studioMutationObserver=null;}
+    if(this._studioResizeHandler){window.removeEventListener("resize",this._studioResizeHandler);this._studioResizeHandler=null;}
       this.removePortal();
       if(this._escapeHandler){
         window.removeEventListener("keydown",this._escapeHandler);
@@ -5312,7 +5544,9 @@ class TemplatesCard extends BaseCard {
     }
 
     removePickerPortal(){this._pickerPortal?.remove?.();this._pickerPortal=null}
-    disconnectedCallback(){this.removePickerPortal()}
+    disconnectedCallback(){
+    if(this._studioMutationObserver){this._studioMutationObserver.disconnect();this._studioMutationObserver=null;}
+    if(this._studioResizeHandler){window.removeEventListener("resize",this._studioResizeHandler);this._studioResizeHandler=null;}this.removePickerPortal()}
 
     pickerItemHtml(item){
       const folder=item.kind==="folder";

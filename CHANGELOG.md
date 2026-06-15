@@ -1,5 +1,20 @@
 # Changelog
 
+## 5.0.0-alpha6 - Mobile Studio stability and slice-job scaffold
+
+### Added
+- Added mobile scroll and focus preservation for the v5 Studio/CAD manager.
+- Added DOM mutation handling so Studio panels can be re-decorated without forcing the mobile app back to the top.
+- Added local slice-job storage, prepared job status and job list handling.
+- Added a prepared slice-job action as groundwork for the future slicer worker.
+
+### Fixed
+- Reduced unwanted scroll resets during Studio/CAD render and state updates.
+- Preserved active Studio input focus and cursor position where possible.
+
+### Notes
+- This alpha still does not run a real slicer. It prepares the internal job/status model for later worker integration.
+
 ## 5.0.0-alpha5 - Slicer profile and slice-plan scaffold
 
 ### Added

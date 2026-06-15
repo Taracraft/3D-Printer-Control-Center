@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha2-ui";
+  const VERSION = "5.0.0-alpha2-ui2";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -2826,7 +2826,10 @@ class StudioCard extends BaseCard {
       x:0,y:0,z:0,
       rx:0,ry:0,rz:0,
       sx:100,sy:100,sz:100,
-      stretchX:100,stretchY:100,stretchZ:100
+      stretchX:100,stretchY:100,stretchZ:100,
+      objectVisible:true,
+      duplicateVisible:false,
+      status:"Bereit. Wähle ein Werkzeug oder ziehe das Objekt auf der Druckplatte."
     }
   }
 
@@ -2926,6 +2929,8 @@ class StudioCard extends BaseCard {
         .studio-axis .x{color:#ff5252}.studio-axis .y{color:#00e676}.studio-axis .z{color:#40c4ff}
         .studio-model{position:absolute;left:50%;top:50%;width:150px;height:96px;margin-left:-75px;margin-top:-48px;border:2px solid rgba(0,220,255,.95);border-radius:16px;background:linear-gradient(135deg,rgba(0,190,255,.82),rgba(0,100,150,.62));display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 26px rgba(0,190,255,.35);transform-origin:center center;cursor:grab;user-select:none}
         .studio-model:active{cursor:grabbing}
+        .studio-model.duplicate{opacity:.72;filter:hue-rotate(55deg);transform-origin:center center}
+        .studio-action.disabled,.studio-topbar button.disabled{opacity:.45;cursor:not-allowed}
         .studio-view-buttons{position:absolute;right:18px;top:20px;display:flex;flex-direction:column;gap:6px}
         .studio-view-buttons button{border:1px solid rgba(255,255,255,.35);border-radius:6px;background:rgba(0,0,0,.42);color:white;padding:6px 8px}
         .studio-panel{border:1px solid rgba(0,190,255,.34);border-radius:12px;padding:10px;background:rgba(255,255,255,.035)}
@@ -2939,9 +2944,9 @@ class StudioCard extends BaseCard {
       <div class="row between">
         <div>
           <h3>${esc(this._config.title||"3D-Studio / CAD-Vorschau")}</h3>
-          <p class="muted">v5-alpha2-ui: Studio-Arbeitsbereich mit Druckplatte, Werkzeugleiste, Filamenten und Prozessprofilen. Original-3MF-Dateien bleiben unverändert.</p>
+          <p class="muted">v5-alpha2-ui2: Studio-Arbeitsbereich mit Druckplatte, Werkzeugleiste, Filamenten und Prozessprofilen. Original-3MF-Dateien bleiben unverändert.</p>
         </div>
-        <span class="badge">v5-alpha2-ui</span>
+        <span class="badge">v5-alpha2-ui2</span>
       </div>
       <div class="studio-shell">
         <aside class="studio-left">
@@ -2996,12 +3001,13 @@ class StudioCard extends BaseCard {
             <span class="spacer"></span>
             <button class="studio-action" data-studio-action="center">Zentrieren</button>
             <button class="studio-action" data-studio-action="lay-flat">Flach legen</button>
-            <button class="studio-action disabled">Druckplatte slicen</button>
-            <button class="studio-action disabled">Druckplatte drucken</button>
+            <button class="studio-action disabled" data-studio-action="slice-disabled">Druckplatte slicen</button>
+            <button class="studio-action disabled" data-studio-action="print-disabled">Druckplatte drucken</button>
           </div>
           <div class="studio-bed-wrap">
             <div class="studio-bed" data-studio-bed>
-              <div class="studio-model" data-studio-model>3MF</div>
+              ${s.objectVisible?`<div class="studio-model" data-studio-model>3MF</div>`:""}
+              ${s.duplicateVisible?`<div class="studio-model duplicate" data-studio-duplicate>3MF Kopie</div>`:""}
               <div class="studio-plate-number">01</div>
             </div>
             <div class="studio-view-buttons">
@@ -3081,9 +3087,15 @@ class StudioCard extends BaseCard {
     })
     this.shadowRoot.querySelectorAll("[data-studio-tool]").forEach((button)=>{
       button.addEventListener("click",()=>{
-        this.state().tool=button.getAttribute("data-studio-tool")
+        const tool=button.getAttribute("data-studio-tool")
+        this.state().tool=tool
+        this.state().status=`Werkzeug aktiv: ${tool}`
         this.saveState()
-        this.render()
+        if(["import","duplicate","delete"].includes(tool)){
+          this.applyAction(tool)
+        }else{
+          this.render()
+        }
       })
     })
     this.shadowRoot.querySelectorAll("[data-studio-action]").forEach((button)=>{
@@ -3094,6 +3106,10 @@ class StudioCard extends BaseCard {
 
   bindDrag(){
     const model=this.shadowRoot.querySelector("[data-studio-model]")
+    const duplicate=this.shadowRoot.querySelector("[data-studio-duplicate]")
+    if(duplicate){
+      duplicate.style.transform="translate(110px,-70px) rotate(-8deg) scale(.92,.92)"
+    }
     if(!model)return
     model.addEventListener("pointerdown",(event)=>{
       event.preventDefault()
@@ -3120,11 +3136,16 @@ class StudioCard extends BaseCard {
 
   applyAction(action){
     const s=this.state()
-    if(action==="center"){s.x=0;s.y=0;s.z=0}
-    if(action==="lay-flat"){s.rx=0;s.ry=0;s.rz=0}
-    if(action==="mirror-x"){s.sx=this.num(s.sx,100)*-1}
-    if(action==="mirror-y"){s.sy=this.num(s.sy,100)*-1}
-    if(action==="mirror-z"){s.sz=this.num(s.sz,100)*-1}
+    if(action==="center"){s.x=0;s.y=0;s.z=0;s.status="Objekt wurde auf der Druckplatte zentriert."}
+    if(action==="lay-flat"){s.rx=0;s.ry=0;s.rz=0;s.status="Objekt wurde flach auf die Druckplatte gelegt."}
+    if(action==="mirror-x"){s.sx=this.num(s.sx,100)*-1;s.status="Objekt wurde auf X gespiegelt."}
+    if(action==="mirror-y"){s.sy=this.num(s.sy,100)*-1;s.status="Objekt wurde auf Y gespiegelt."}
+    if(action==="mirror-z"){s.sz=this.num(s.sz,100)*-1;s.status="Objekt wurde auf Z gespiegelt."}
+    if(action==="import"){s.status="Import folgt als Galerie → In Studio öffnen. Original-3MF bleibt unverändert."}
+    if(action==="duplicate"){s.duplicateVisible=true;s.status="Demo-Objekt wurde dupliziert. Echte Objektliste folgt in v5-alpha3."}
+    if(action==="delete"){s.objectVisible=false;s.duplicateVisible=false;s.status="Demo-Objekt wurde entfernt. Reset stellt es wieder her."}
+    if(action==="slice-disabled"){s.status="Slicer ist noch deaktiviert. Nächster Backend-Schritt: Slicer-Worker und Profilübergabe."}
+    if(action==="print-disabled"){s.status="Direktdruck ist noch deaktiviert. Erst nach Slicer-Worker und Sicherheitsdialog aktivieren."}
     if(action==="reset"){this._studioState=this.defaults()}
     this.saveState()
     this.render()
@@ -3142,14 +3163,17 @@ class StudioCard extends BaseCard {
     const s=this.state()
     const model=this.shadowRoot.querySelector("[data-studio-model]")
     const status=this.shadowRoot.querySelector("[data-studio-status]")
-    if(!model)return
+    if(!model){
+      if(status)status.textContent=this.state().status||"Kein Objekt auf der Druckplatte."
+      return
+    }
     const scaleX=(this.num(s.sx,100)/100)*(this.num(s.stretchX,100)/100)
     const scaleY=(this.num(s.sy,100)/100)*(this.num(s.stretchY,100)/100)
     const translateX=this.num(s.x,0)
     const translateY=this.num(s.y,0)*-1
     const rz=this.num(s.rz,0)
     model.style.transform=`translate(${translateX}px,${translateY}px) rotate(${rz}deg) scale(${scaleX},${scaleY})`
-    if(status)status.textContent=`Objekt: X ${s.x} mm · Y ${s.y} mm · Z ${s.z} mm · RZ ${s.rz}° · Skalierung ${s.sx}/${s.sy}/${s.sz} % · Werkzeug ${s.tool}`
+    if(status)status.textContent=`${s.status||"Bereit."} | Objekt: X ${s.x} mm · Y ${s.y} mm · Z ${s.z} mm · RZ ${s.rz}° · Skalierung ${s.sx}/${s.sy}/${s.sz} % · Werkzeug ${s.tool}`
   }
 }
 class TemplatesCard extends BaseCard {

@@ -1,5 +1,15 @@
 # Changelog
 
+## 5.0.0-alpha13 - Dry-run UI binding fix
+
+### Fixed
+- Added robust event binding for the Studio Dry-Run button.
+- Bound the Dry-Run action after Studio job-panel decoration and DOM updates.
+- Preserved Studio scroll/focus state while running the Dry-Run action from the mobile Home Assistant app.
+
+### Notes
+- This fixes the alpha12 UI binding warning. Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha12 - Slicer worker dry-run scaffold
 
 ### Added

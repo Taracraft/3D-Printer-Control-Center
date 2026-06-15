@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha13 - Dry-Run-UI-Binding-Fix
+
+### Behoben
+- Robustes Event-Binding für den Studio-Dry-Run-Button ergänzt.
+- Dry-Run-Aktion nach Studio-Jobpanel-Dekoration und DOM-Aktualisierungen angebunden.
+- Studio-Scroll- und Fokuszustand beim Ausführen der Dry-Run-Aktion in der mobilen Home-Assistant-App geschützt.
+
+### Hinweise
+- Dieser Stand behebt die alpha12-UI-Binding-Warnung. Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha12 - Slicer-Worker-Dry-Run-Grundlage
 
 ### Hinzugefügt

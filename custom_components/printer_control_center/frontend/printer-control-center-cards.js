@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha11";
+  const VERSION = "5.0.0-alpha13";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha11",
+      version:"5.0.0-alpha13",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3078,6 +3078,7 @@ class StudioCard extends BaseCard {
       if(this.decorateSlicePlanPanel)this.decorateSlicePlanPanel();
       if(this.decorateSliceJobPanel)this.decorateSliceJobPanel();
       if(this.decorateStudioSelfTestPanel)this.decorateStudioSelfTestPanel();
+      if(this.bindStudioDryRunButton)this.bindStudioDryRunButton();
     }catch(_error){}finally{
       this._studioDecorating=false;
       this.restoreStudioInteraction(snapshot);
@@ -3297,7 +3298,7 @@ class StudioCard extends BaseCard {
     const model=this.currentStudioModel?.()||state.model||null;
     return {
       schema:"printer-control-center.v5.local-selftest",
-      version:"5.0.0-alpha11",
+      version:"5.0.0-alpha13",
       source:"browser-local",
       websocketRegistered:false,
       jobsCount:jobs.length,
@@ -3361,6 +3362,7 @@ class StudioCard extends BaseCard {
       </div>
       <p class="studio-note">${esc(result.websocketError||result.jobsStorePath||"Alpha10 Diagnosepanel bereit.")}</p>`;
     host.append(panel);
+    this.bindStudioDryRunButton?.();
 
     panel.querySelector("[data-studio-selftest-run]")?.addEventListener("click",()=>{
       panel.remove();
@@ -3370,6 +3372,22 @@ class StudioCard extends BaseCard {
     panel.querySelector("[data-studio-selftest-refresh]")?.addEventListener("click",()=>{
       panel.remove();
       this.refreshSliceJobs?.();
+    });
+  }
+  bindStudioDryRunButton(){
+    const root=this.shadowRoot;
+    const panel=root?.querySelector(".studio-job-panel");
+    const button=panel?.querySelector("[data-studio-worker-dry-run]");
+    if(!panel||!button||button.dataset.pccDryRunBound==="1")return;
+    button.dataset.pccDryRunBound="1";
+    button.addEventListener("click",(event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+      const snapshot=this.captureStudioInteraction?this.captureStudioInteraction():null;
+      panel.remove();
+      Promise.resolve(this.runSliceWorkerDryRun?.()).finally(()=>{
+        if(this.restoreStudioInteraction)this.restoreStudioInteraction(snapshot);
+      });
     });
   }
   decorateSliceJobPanel(){
@@ -3398,6 +3416,7 @@ class StudioCard extends BaseCard {
       <p class="studio-note">${esc(latest?.message||"Noch kein Slice-Job vorbereitet.")}</p>
       ${jobs.length?`<div class="studio-note">${jobs.slice(0,5).map((job)=>`${esc(job.createdAt||"")} · ${esc(job.modelName||"Modell")} · ${esc(job.status||"prepared")}`).join("<br>")}</div>`:""}`;
     host.append(panel);
+    this.bindStudioDryRunButton?.();
 
     panel.querySelector("[data-studio-create-slice-job]")?.addEventListener("click",()=>{
       panel.remove();
@@ -3440,7 +3459,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha11",
+      version:"5.0.0-alpha13",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),
@@ -3511,6 +3530,7 @@ class StudioCard extends BaseCard {
       </div>
       <p class="studio-note">Vorbereitung für Profile, Slicer und späteren Direktdruck. Noch kein echter Slice-Lauf.</p>`;
     host.append(panel);
+    this.bindStudioDryRunButton?.();
 
     panel.querySelectorAll("[data-studio-slice-setting]").forEach((input)=>{
       input.addEventListener("change",()=>{

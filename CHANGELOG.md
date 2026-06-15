@@ -1,5 +1,19 @@
 # Changelog
 
+## 5.0.0-alpha9 - Backend job sync and worker-control UI
+
+### Added
+- Added Studio job-list synchronization against the persistent backend job store.
+- Added worker-control UI groundwork for preparing, blocking and cancelling slice jobs.
+- Added frontend status updates through the existing Studio job WebSocket update command.
+- Added worker status fields to persistent Studio slice jobs.
+
+### Changed
+- Studio job handling now prefers backend-persistent jobs and keeps local browser storage as a fallback.
+
+### Notes
+- This alpha still does not start a real slicer worker. It prepares the control and status surface for the alpha10 test window.
+
 ## 5.0.0-alpha8 - Studio WebSocket registration repair
 
 ### Added

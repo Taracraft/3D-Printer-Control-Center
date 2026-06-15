@@ -1,5 +1,19 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha9 - Backend-Job-Sync und Worker-Control-UI
+
+### Hinzugefügt
+- Studio-Jobliste wird gegen den persistenten Backend-Job-Speicher synchronisiert.
+- Worker-Control-UI-Grundlage zum Vorbereiten, Blockieren und Abbrechen von Slice-Jobs ergänzt.
+- Frontend-Statusupdates über das vorhandene Studio-Job-WebSocket-Update-Kommando ergänzt.
+- Worker-Statusfelder in persistenten Studio-Slice-Jobs ergänzt.
+
+### Geändert
+- Studio-Jobverwaltung bevorzugt jetzt persistente Backend-Jobs und nutzt lokalen Browser-Speicher weiterhin als Fallback.
+
+### Hinweise
+- Dieses Alpha startet noch keinen echten Slicer-Worker. Es bereitet Steuerung und Statusanzeige für das alpha10-Testfenster vor.
+
 ## 5.0.0-alpha8 - Studio-WebSocket-Registrierung repariert
 
 ### Hinzugefügt

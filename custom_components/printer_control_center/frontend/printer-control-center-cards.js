@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha8";
+  const VERSION = "5.0.0-alpha9";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha8",
+      version:"5.0.0-alpha9",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3152,6 +3152,100 @@ class StudioCard extends BaseCard {
 
 
 
+  async refreshSliceJobs(){
+    const jobs=await this.syncSliceJobsFromBackend();
+    const state=this.state();
+    state.lastStudioNotice=`Slice-Jobs aktualisiert: ${jobs.length}`;
+    this._studioState=state;
+    this.saveState();
+    this.afterStudioDomChange();
+    return jobs;
+  }
+
+  async updateSliceJobStatus(jobId,patch){
+    const jobs=this.sliceJobs();
+    const id=String(jobId||jobs[0]?.id||"");
+    if(!id)return null;
+    let updated=null;
+    try{
+      if(this._hass&&this.ws){
+        const result=await this.ws({
+          type:"printer_control_center/studio_jobs/update",
+          job_id:id,
+          patch:patch||{}
+        });
+        updated=result?.job||null;
+      }
+    }catch(error){
+      const state=this.state();
+      state.lastStudioNotice=`Backend-Update nicht verfügbar, lokaler Status-Fallback: ${String(error?.message||error)}`;
+      this._studioState=state;
+    }
+
+    const merged=jobs.map((job)=>{
+      if(String(job.id)!==id)return job;
+      updated={...job,...(patch||{}),...(updated||{}),updatedAt:new Date().toISOString()};
+      return updated;
+    });
+
+    this.saveSliceJobs(merged);
+    this.afterStudioDomChange();
+    return updated;
+  }
+
+  async prepareSliceWorker(jobId){
+    const patch={
+      status:"queued",
+      stage:"worker-prepared",
+      progress:0,
+      workerStatus:"prepared",
+      workerCommand:"prepare",
+      workerMessage:"Worker-Steuerung vorbereitet. Echter Slicer-Lauf bleibt bis zum Testfenster deaktiviert.",
+      message:"Slice-Job ist für den späteren Worker-Lauf vorgemerkt."
+    };
+    const job=await this.updateSliceJobStatus(jobId,patch);
+    const state=this.state();
+    state.lastStudioNotice=`Worker vorbereitet: ${job?.modelName||"Slice-Job"}`;
+    this._studioState=state;
+    this.saveState();
+    this.afterStudioDomChange();
+  }
+
+  async markSliceJobBlocked(jobId){
+    const patch={
+      status:"blocked",
+      stage:"waiting-for-worker",
+      progress:0,
+      workerStatus:"blocked",
+      workerCommand:"wait",
+      workerMessage:"Echter Slicer-Worker ist noch nicht aktiviert.",
+      message:"Job wartet auf den späteren Slicer-Worker."
+    };
+    const job=await this.updateSliceJobStatus(jobId,patch);
+    const state=this.state();
+    state.lastStudioNotice=`Job wartet auf Worker: ${job?.modelName||"Slice-Job"}`;
+    this._studioState=state;
+    this.saveState();
+    this.afterStudioDomChange();
+  }
+
+  async cancelSliceJob(jobId){
+    const patch={
+      status:"cancelled",
+      stage:"cancelled",
+      progress:0,
+      workerStatus:"cancelled",
+      workerCommand:"cancel",
+      workerMessage:"Job wurde vor dem echten Slicer-Lauf abgebrochen.",
+      message:"Slice-Job wurde abgebrochen."
+    };
+    const job=await this.updateSliceJobStatus(jobId,patch);
+    const state=this.state();
+    state.lastStudioNotice=`Slice-Job abgebrochen: ${job?.modelName||"Job"}`;
+    this._studioState=state;
+    this.saveState();
+    this.afterStudioDomChange();
+  }
   decorateSliceJobPanel(){
     const host=this.shadowRoot?.querySelector(".studio-right")||null;
     if(!host||host.querySelector(".studio-job-panel"))return;
@@ -3167,9 +3261,12 @@ class StudioCard extends BaseCard {
         <span>Letztes Modell</span><strong>${esc(latest?.modelName||"—")}</strong>
       </div>
       <div class="studio-tools" style="margin-top:8px">
+        <button data-studio-refresh-slice-jobs>Jobs laden</button>
         <button data-studio-create-slice-job>Slice-Job vorbereiten</button>
+        <button data-studio-worker-prepare ${latest?"":"disabled"}>Worker vorbereiten</button>
+        <button data-studio-worker-block ${latest?"":"disabled"}>Als wartend markieren</button>
+        <button data-studio-cancel-slice-job ${latest?"":"disabled"}>Job abbrechen</button>
         <button data-studio-clear-slice-jobs ${jobs.length?"":"disabled"}>Jobliste leeren</button>
-        <button class="disabled" title="Kommt nach dem Worker-Gerüst">Worker starten</button>
       </div>
       <p class="studio-note">${esc(latest?.message||"Noch kein Slice-Job vorbereitet.")}</p>
       ${jobs.length?`<div class="studio-note">${jobs.slice(0,5).map((job)=>`${esc(job.createdAt||"")} · ${esc(job.modelName||"Modell")} · ${esc(job.status||"prepared")}`).join("<br>")}</div>`:""}`;
@@ -3216,7 +3313,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha8",
+      version:"5.0.0-alpha9",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),
@@ -3408,6 +3505,7 @@ class StudioCard extends BaseCard {
     };
     window.addEventListener("printer-control-center-studio-open",this._studioOpenHandler);
     if(this.applyPendingStudioModel())this.render();
+    if(this.syncSliceJobsFromBackend)this.syncSliceJobsFromBackend().then(()=>this.afterStudioDomChange()).catch(()=>{});
   }
 
   disconnectedCallback(){

@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha14";
+  const VERSION = "5.0.0-alpha15";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha14",
+      version:"5.0.0-alpha15",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3079,6 +3079,7 @@ class StudioCard extends BaseCard {
       if(this.decorateSliceJobPanel)this.decorateSliceJobPanel();
       if(this.decorateStudioSelfTestPanel)this.decorateStudioSelfTestPanel();
       if(this.bindStudioDryRunButton)this.bindStudioDryRunButton();
+      if(this.decorateStudioProfileBankPanel)this.decorateStudioProfileBankPanel();
     }catch(_error){}finally{
       this._studioDecorating=false;
       this.restoreStudioInteraction(snapshot);
@@ -3195,6 +3196,284 @@ class StudioCard extends BaseCard {
     return updated;
   }
 
+  pccStudioEscape(value){
+    return String(value??"").replace(/[&<>"']/g,(char)=>({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    }[char]||char));
+  }
+
+  studioProfileValues(section){
+    const bank=this._studioProfileBank||{};
+    const values=Object.values(bank[section]||{});
+    return values.filter((entry)=>entry&&entry.enabled!==false);
+  }
+
+  renderStudioProfileOptions(section,selectedId){
+    return this.studioProfileValues(section).map((entry)=>{
+      const id=this.pccStudioEscape(entry.id);
+      const name=this.pccStudioEscape(entry.name||entry.id);
+      const selected=entry.id===selectedId?" selected":"";
+      return `<option value="${id}"${selected}>${name}</option>`;
+    }).join("");
+  }
+
+  currentStudioProfileSelection(){
+    const bank=this._studioProfileBank||{};
+    const selection=bank.selection||{};
+    return {
+      printer_profile_id:selection.printer_profile_id||"bambu_a1",
+      process_profile_id:selection.process_profile_id||"standard_020",
+      filament_profile_id:selection.filament_profile_id||"pla_basic"
+    };
+  }
+
+  selectedStudioProfileDetails(){
+    const bank=this._studioProfileBank||{};
+    const selection=this.currentStudioProfileSelection();
+    return {
+      printer:(bank.printer_profiles||{})[selection.printer_profile_id]||null,
+      process:(bank.process_profiles||{})[selection.process_profile_id]||null,
+      filament:(bank.filaments||{})[selection.filament_profile_id]||null,
+      selection
+    };
+  }
+
+  ensureStudioProfileBankStyles(){
+    const root=this.shadowRoot;
+    if(!root||root.querySelector("#pcc-studio-profile-bank-style"))return;
+    const style=document.createElement("style");
+    style.id="pcc-studio-profile-bank-style";
+    style.textContent=`
+      .studio-profile-bank-panel{
+        border:1px solid var(--divider-color,rgba(128,128,128,.28));
+        border-radius:14px;
+        padding:12px;
+        margin:10px 0;
+        background:var(--card-background-color,rgba(0,0,0,.04));
+        box-shadow:0 1px 2px rgba(0,0,0,.06);
+      }
+      .studio-profile-bank-panel h3{
+        font-size:14px;
+        line-height:1.25;
+        margin:0 0 10px 0;
+      }
+      .studio-profile-bank-panel label{
+        display:block;
+        font-size:12px;
+        opacity:.78;
+        margin:8px 0 3px 0;
+      }
+      .studio-profile-bank-panel select{
+        width:100%;
+        box-sizing:border-box;
+        min-height:32px;
+        border-radius:9px;
+        border:1px solid var(--divider-color,rgba(128,128,128,.35));
+        background:var(--card-background-color,#fff);
+        color:var(--primary-text-color,#111);
+        padding:4px 8px;
+      }
+      .studio-profile-bank-panel .profile-bank-summary{
+        margin-top:10px;
+        display:grid;
+        gap:5px;
+        font-size:12px;
+      }
+      .studio-profile-bank-panel .profile-bank-row{
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+        border-top:1px solid var(--divider-color,rgba(128,128,128,.18));
+        padding-top:5px;
+      }
+      .studio-profile-bank-panel .profile-bank-row span:first-child{
+        opacity:.72;
+      }
+      .studio-profile-bank-panel .profile-bank-actions{
+        display:flex;
+        gap:6px;
+        margin-top:10px;
+        flex-wrap:wrap;
+      }
+      .studio-profile-bank-panel button{
+        border-radius:9px;
+        border:1px solid var(--divider-color,rgba(128,128,128,.35));
+        background:var(--secondary-background-color,rgba(128,128,128,.12));
+        color:var(--primary-text-color,#111);
+        min-height:30px;
+        padding:4px 9px;
+        cursor:pointer;
+      }
+      .studio-profile-bank-panel .profile-bank-note{
+        margin-top:8px;
+        font-size:11px;
+        opacity:.68;
+      }
+    `;
+    root.append(style);
+  }
+
+  renderStudioProfileBankPanel(){
+    const bank=this._studioProfileBank;
+    if(!bank){
+      return `
+        <h3>Studio Profile</h3>
+        <div class="profile-bank-note">Profilbank wird geladen …</div>
+      `;
+    }
+
+    const details=this.selectedStudioProfileDetails();
+    const selection=details.selection;
+    const printer=details.printer||{};
+    const process=details.process||{};
+    const filament=details.filament||{};
+    const plate=printer.build_plate_mm||{};
+
+    return `
+      <h3>Studio Profile</h3>
+
+      <label>Druckerprofil</label>
+      <select data-studio-profile-select="printer_profile_id">
+        ${this.renderStudioProfileOptions("printer_profiles",selection.printer_profile_id)}
+      </select>
+
+      <label>Filamentprofil</label>
+      <select data-studio-profile-select="filament_profile_id">
+        ${this.renderStudioProfileOptions("filaments",selection.filament_profile_id)}
+      </select>
+
+      <label>Prozessprofil</label>
+      <select data-studio-profile-select="process_profile_id">
+        ${this.renderStudioProfileOptions("process_profiles",selection.process_profile_id)}
+      </select>
+
+      <div class="profile-bank-summary">
+        <div class="profile-bank-row">
+          <span>Druckplatte</span>
+          <strong>${this.pccStudioEscape(plate.x||"?")} × ${this.pccStudioEscape(plate.y||"?")} × ${this.pccStudioEscape(plate.z||"?")} mm</strong>
+        </div>
+        <div class="profile-bank-row">
+          <span>Düse</span>
+          <strong>${this.pccStudioEscape(printer.default_nozzle_mm||"?")} mm</strong>
+        </div>
+        <div class="profile-bank-row">
+          <span>Material</span>
+          <strong>${this.pccStudioEscape(filament.material||"?")}</strong>
+        </div>
+        <div class="profile-bank-row">
+          <span>Nozzle / Bed</span>
+          <strong>${this.pccStudioEscape(filament.nozzle_temp_c||"?")} / ${this.pccStudioEscape(filament.bed_temp_c||"?")} °C</strong>
+        </div>
+        <div class="profile-bank-row">
+          <span>Volumenstrom</span>
+          <strong>${this.pccStudioEscape(filament.max_volumetric_speed_mm3_s||"?")} mm³/s</strong>
+        </div>
+        <div class="profile-bank-row">
+          <span>Layer / Infill</span>
+          <strong>${this.pccStudioEscape(process.layer_height_mm||"?")} mm / ${this.pccStudioEscape(process.sparse_infill_density_percent||"?")}%</strong>
+        </div>
+      </div>
+
+      <div class="profile-bank-actions">
+        <button type="button" data-studio-profile-reload>Neu laden</button>
+        <button type="button" data-studio-profile-reset>Standard</button>
+      </div>
+
+      <div class="profile-bank-note">
+        Lokale Profilbank. Echtes Slicen und Direktdruck sind in alpha15 weiterhin deaktiviert.
+      </div>
+    `;
+  }
+
+  async setStudioProfileSelection(key,value){
+    const snapshot=this.captureStudioInteraction?this.captureStudioInteraction():null;
+    const bank=this._studioProfileBank||await this.loadStudioProfileBank?.();
+    const selection=Object.assign({},bank?.selection||{},{
+      [key]:value
+    });
+    const updated=await this.updateStudioProfileBank?.({selection});
+    if(updated)this._studioProfileBank=updated;
+    if(this.restoreStudioInteraction)this.restoreStudioInteraction(snapshot);
+    this.decorateStudioProfileBankPanel?.();
+    return updated;
+  }
+
+  findStudioProfileBankHost(){
+    const root=this.shadowRoot;
+    if(!root)return null;
+
+    return root.querySelector(".studio-sidebar,.studio-left-sidebar,.studio-side-left,.studio-panel-left,.studio-aside,.studio-settings,.studio-left,aside")
+      || root.querySelector(".studio-workspace,.studio-shell,.studio-root,.studio-card")
+      || root;
+  }
+
+  decorateStudioProfileBankPanel(){
+    const root=this.shadowRoot;
+    if(!root)return;
+
+    this.ensureStudioProfileBankStyles?.();
+
+    const host=this.findStudioProfileBankHost?.();
+    if(!host)return;
+
+    let panel=root.querySelector("[data-studio-profile-bank-panel]");
+    if(!panel){
+      panel=document.createElement("section");
+      panel.className="studio-profile-bank-panel";
+      panel.setAttribute("data-studio-profile-bank-panel","1");
+
+      const knownAnchor=host.querySelector?.("[data-studio-printer-section],[data-studio-filament-section],[data-studio-process-section]");
+      if(knownAnchor&&knownAnchor.parentElement){
+        knownAnchor.parentElement.insertBefore(panel,knownAnchor.nextSibling);
+      }else if(host.children&&host.children.length>1){
+        host.insertBefore(panel,host.children[1]);
+      }else{
+        host.append(panel);
+      }
+    }
+
+    if(!this._studioProfileBank&&!this._studioProfileBankLoading){
+      this._studioProfileBankLoading=true;
+      Promise.resolve(this.loadStudioProfileBank?.()).finally(()=>{
+        this._studioProfileBankLoading=false;
+        this.decorateStudioProfileBankPanel?.();
+      });
+    }
+
+    panel.innerHTML=this.renderStudioProfileBankPanel();
+
+    panel.querySelectorAll("[data-studio-profile-select]").forEach((select)=>{
+      select.addEventListener("change",(event)=>{
+        const key=event.currentTarget.getAttribute("data-studio-profile-select");
+        const value=event.currentTarget.value;
+        if(key&&value)this.setStudioProfileSelection?.(key,value);
+      });
+    });
+
+    panel.querySelector("[data-studio-profile-reload]")?.addEventListener("click",(event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+      const snapshot=this.captureStudioInteraction?this.captureStudioInteraction():null;
+      Promise.resolve(this.loadStudioProfileBank?.()).finally(()=>{
+        if(this.restoreStudioInteraction)this.restoreStudioInteraction(snapshot);
+        this.decorateStudioProfileBankPanel?.();
+      });
+    });
+
+    panel.querySelector("[data-studio-profile-reset]")?.addEventListener("click",(event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+      const snapshot=this.captureStudioInteraction?this.captureStudioInteraction():null;
+      Promise.resolve(this.resetStudioProfileBank?.()).finally(()=>{
+        if(this.restoreStudioInteraction)this.restoreStudioInteraction(snapshot);
+        this.decorateStudioProfileBankPanel?.();
+      });
+    });
+  }
   async loadStudioProfileBank(){
     if(!this.hass?.connection)return null;
     try{
@@ -3343,7 +3622,7 @@ class StudioCard extends BaseCard {
     const model=this.currentStudioModel?.()||state.model||null;
     return {
       schema:"printer-control-center.v5.local-selftest",
-      version:"5.0.0-alpha14",
+      version:"5.0.0-alpha15",
       source:"browser-local",
       websocketRegistered:false,
       jobsCount:jobs.length,
@@ -3504,7 +3783,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha14",
+      version:"5.0.0-alpha15",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),

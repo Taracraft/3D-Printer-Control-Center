@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha15 - Studio-Profilbank-UI-Anbindung
+
+### Hinzugefügt
+- Sichtbare Studio-UI-Anbindung für die persistente lokale Profilbank ergänzt.
+- Auswahlfelder für Drucker-, Filament- und Prozessprofile im Studio-Workspace ergänzt.
+- Profilzusammenfassung für Druckplattengröße, Düsengröße, Material, Temperaturen, Volumenstrom, Layerhöhe und Infill ergänzt.
+- Neu-laden- und Zurücksetzen-Steuerung für die lokale Profilbank ergänzt.
+
+### Hinweise
+- Die UI verwendet die standalone lokale Profilbank aus alpha14.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha14 - Persistente Studio-Profilbank im Backend
 
 ### Hinzugefügt

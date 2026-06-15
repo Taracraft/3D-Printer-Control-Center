@@ -1,5 +1,17 @@
 # Changelog
 
+## 5.0.0-alpha15 - Studio profile bank UI binding
+
+### Added
+- Added visible Studio UI binding for the persistent local profile bank.
+- Added printer, filament and process profile selectors to the Studio workspace.
+- Added profile summary values for build plate size, nozzle size, material, temperatures, volumetric speed, layer height and infill.
+- Added reload and reset controls for the local profile bank.
+
+### Notes
+- The UI uses the standalone local profile bank introduced in alpha14.
+- Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha14 - Persistent Studio profile bank backend
 
 ### Added

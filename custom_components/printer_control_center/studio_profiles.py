@@ -16,7 +16,7 @@ from homeassistant.helpers.storage import Store
 STORAGE_VERSION = 1
 STORAGE_KEY = "printer_control_center.studio_profiles"
 
-BANK_VERSION = "5.0.0-alpha14"
+BANK_VERSION = "5.0.0-alpha15"
 
 
 DEFAULT_PROFILE_BANK: dict[str, Any] = {
@@ -26,6 +26,7 @@ DEFAULT_PROFILE_BANK: dict[str, Any] = {
     "notes": [
         "Local persistent Studio profile bank.",
         "Values are defaults/placeholders for planning and dry-run validation.",
+        "Studio profile bank UI binding was added in alpha15.",
         "Real slicing and direct printing are disabled.",
     ],
     "filaments": {

@@ -1,5 +1,17 @@
 # Changelog
 
+## 5.0.0-alpha20 - Studio health test window
+
+### Added
+- Added a Studio health diagnostics backend for profile bank, Studio plan, Dry-Run and job UI state.
+- Added `printer_control_center/studio/health` WebSocket command.
+- Added a visible Studio Health panel with manual health check action.
+- Added diagnostics-only safety reporting for real slicing and direct print flags.
+
+### Notes
+- This alpha is intended as the v5.20 practical test window.
+- Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha19 - Studio job UI reads studio_plan
 
 ### Added

@@ -18,6 +18,7 @@ from .studio_jobs import (
     async_update_studio_job,
 )
 from .studio_worker import build_dry_run_result
+from .studio_diagnostics import build_studio_health_report
 from .studio_profiles import (
     async_load_profile_bank,
     async_reset_profile_bank,
@@ -43,6 +44,7 @@ def async_register_studio_websocket(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_studio_profiles_get)
     websocket_api.async_register_command(hass, ws_studio_profiles_update)
     websocket_api.async_register_command(hass, ws_studio_profiles_reset)
+    websocket_api.async_register_command(hass, ws_studio_health)
 
     domain_data[REGISTERED_KEY] = True
 
@@ -249,3 +251,25 @@ async def ws_studio_profiles_reset(
     """Reset and return the persistent Studio profile bank."""
     bank = await async_reset_profile_bank(hass)
     connection.send_result(msg["id"], bank)
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "printer_control_center/studio/health",
+        vol.Optional("jobs", default=[]): list,
+        vol.Optional("dry_run", default={}): dict,
+    }
+)
+@websocket_api.async_response
+async def ws_studio_health(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Return a non-invasive Studio health report."""
+    profile_bank = await async_load_profile_bank(hass)
+    report = build_studio_health_report(
+        profile_bank=profile_bank,
+        jobs=msg.get("jobs") or [],
+        dry_run=msg.get("dry_run") or {},
+    )
+    connection.send_result(msg["id"], report)

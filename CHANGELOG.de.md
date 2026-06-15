@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha20 - Studio-Health-Testfenster
+
+### Hinzugefügt
+- Studio-Health-Diagnosebackend für Profilbank, Studio-Plan, Dry-Run und Job-UI-Zustand ergänzt.
+- WebSocket-Befehl `printer_control_center/studio/health` ergänzt.
+- Sichtbares Studio-Health-Panel mit manueller Prüfaktion ergänzt.
+- Reine Diagnoseausgabe für Safety-Flags zu echtem Slicen und Direktdruck ergänzt.
+
+### Hinweise
+- Diese Alpha ist als praktisches v5.20-Testfenster vorgesehen.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha19 - Studio-Job-UI liest studio_plan
 
 ### Hinzugefügt

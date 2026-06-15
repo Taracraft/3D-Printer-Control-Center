@@ -2,6 +2,7 @@
 
 Alpha18 introduces a shared planning structure for persistent Studio jobs.
 Alpha19 makes the Studio job UI consume studio_plan as primary status data.
+Alpha20 adds diagnostics test-window support.
 The plan is intentionally validation/planning data only.
 Real slicing and direct printing remain disabled.
 """
@@ -12,7 +13,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
 
-PLAN_VERSION = "5.0.0-alpha19"
+PLAN_VERSION = "5.0.0-alpha20"
 
 
 def _utcnow() -> str:

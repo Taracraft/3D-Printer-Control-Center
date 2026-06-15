@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha19";
+  const VERSION = "5.0.0-alpha20";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha19",
+      version:"5.0.0-alpha20",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3083,6 +3083,7 @@ class StudioCard extends BaseCard {
       if(this.installStudioDryRunResultWrapper)this.installStudioDryRunResultWrapper();
       if(this.decorateStudioDryRunResultPanel)this.decorateStudioDryRunResultPanel();
       if(this.decorateStudioPlanDrivenJobUi)this.decorateStudioPlanDrivenJobUi();
+      if(this.decorateStudioHealthPanel)this.decorateStudioHealthPanel();
     }catch(_error){}finally{
       this._studioDecorating=false;
       this.restoreStudioInteraction(snapshot);
@@ -4072,6 +4073,231 @@ class StudioCard extends BaseCard {
     panel.innerHTML=this.renderStudioPlanDetailsPanel();
   }
 
+  ensureStudioHealthStyles(){
+    const root=this.shadowRoot;
+    if(!root||root.querySelector("#pcc-studio-health-style"))return;
+
+    const style=document.createElement("style");
+    style.id="pcc-studio-health-style";
+    style.textContent=`
+      .studio-health-panel{
+        border:1px solid var(--divider-color,rgba(128,128,128,.28));
+        border-radius:14px;
+        padding:12px;
+        margin:10px 0;
+        background:var(--card-background-color,rgba(0,0,0,.04));
+        box-shadow:0 1px 2px rgba(0,0,0,.06);
+      }
+      .studio-health-panel h3{
+        font-size:14px;
+        margin:0 0 9px 0;
+      }
+      .studio-health-row{
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+        border-top:1px solid var(--divider-color,rgba(128,128,128,.18));
+        padding-top:5px;
+        font-size:12px;
+      }
+      .studio-health-row span:first-child{
+        opacity:.72;
+      }
+      .studio-health-chip{
+        display:inline-flex;
+        border-radius:999px;
+        padding:2px 8px;
+        min-height:22px;
+        align-items:center;
+        border:1px solid var(--divider-color,rgba(128,128,128,.32));
+        font-size:11px;
+        margin:2px 4px 2px 0;
+      }
+      .studio-health-chip.ok{
+        border-color:rgba(60,180,90,.55);
+      }
+      .studio-health-chip.warn{
+        border-color:rgba(230,160,40,.65);
+      }
+      .studio-health-actions{
+        display:flex;
+        gap:6px;
+        flex-wrap:wrap;
+        margin-top:10px;
+      }
+      .studio-health-actions button{
+        border-radius:9px;
+        border:1px solid var(--divider-color,rgba(128,128,128,.35));
+        background:var(--secondary-background-color,rgba(128,128,128,.12));
+        color:var(--primary-text-color,#111);
+        min-height:30px;
+        padding:4px 9px;
+        cursor:pointer;
+      }
+      .studio-health-note{
+        margin-top:8px;
+        font-size:11px;
+        opacity:.68;
+      }
+    `;
+    root.append(style);
+  }
+
+  buildStudioHealthPayload(){
+    const jobs=[
+      ...(Array.isArray(this._studioSliceJobs)?this._studioSliceJobs:[]),
+      ...(Array.isArray(this._studioJobs)?this._studioJobs:[]),
+      ...(Array.isArray(this._studioJobList)?this._studioJobList:[]),
+      ...(Array.isArray(this._sliceJobs)?this._sliceJobs:[])
+    ];
+
+    return {
+      jobs,
+      dry_run:this._lastStudioDryRunResult||{},
+      frontend:{
+        version:VERSION,
+        has_profile_bank:Boolean(this._studioProfileBank),
+        has_last_plan:Boolean(this._lastStudioPlan),
+        plan_sources:(this.findStudioPlanSources?.()||[]).length
+      }
+    };
+  }
+
+  async runStudioHealthCheck(){
+    if(!this.hass?.connection?.sendMessagePromise){
+      this._lastStudioHealthReport={
+        version:VERSION,
+        status:"warnings",
+        summary:{ok:0,warnings:1,checks:1},
+        checks:[{
+          name:"websocket_connection",
+          ok:false,
+          detail:"Home Assistant WebSocket connection is not available in the current frontend context."
+        }],
+        safety:{
+          real_slicing_enabled:false,
+          direct_print_enabled:false,
+          stage:"diagnostics_only"
+        }
+      };
+      this.decorateStudioHealthPanel?.();
+      return this._lastStudioHealthReport;
+    }
+
+    const payload=this.buildStudioHealthPayload?.()||{};
+    const report=await this.hass.connection.sendMessagePromise({
+      type:"printer_control_center/studio/health",
+      jobs:payload.jobs||[],
+      dry_run:payload.dry_run||{}
+    });
+
+    this._lastStudioHealthReport=report;
+    this.decorateStudioHealthPanel?.();
+    return report;
+  }
+
+  renderStudioHealthPanel(){
+    const esc=this.pccStudioEscape?this.pccStudioEscape.bind(this):(value)=>String(value??"");
+    const report=this._lastStudioHealthReport;
+
+    if(!report){
+      return `
+        <h3>Studio Health</h3>
+        <span class="studio-health-chip warn">Noch nicht geprüft</span>
+        <div class="studio-health-note">
+          alpha20-Testfenster: prüft Profilbank, Studio-Plan, Dry-Run und Safety-Flags.
+        </div>
+        <div class="studio-health-actions">
+          <button type="button" data-studio-health-run>Health prüfen</button>
+        </div>
+      `;
+    }
+
+    const checks=Array.isArray(report.checks)?report.checks:[];
+    const summary=report.summary||{};
+    const statusClass=report.status==="ok"?"ok":"warn";
+
+    const rows=checks.map((check)=>`
+      <div class="studio-health-row">
+        <span>${esc(check.name)}</span>
+        <strong>${check.ok?"OK":"Hinweis"} · ${esc(check.detail)}</strong>
+      </div>
+    `).join("");
+
+    return `
+      <h3>Studio Health</h3>
+      <span class="studio-health-chip ${statusClass}">${esc(report.status||"unknown")}</span>
+      <span class="studio-health-chip">OK ${esc(summary.ok??0)} / Hinweise ${esc(summary.warnings??0)}</span>
+
+      <div class="studio-health-row">
+        <span>Version</span>
+        <strong>${esc(report.version||VERSION)}</strong>
+      </div>
+      <div class="studio-health-row">
+        <span>Safety</span>
+        <strong>Slicen ${report.safety?.real_slicing_enabled?"aktiv":"aus"} · Druck ${report.safety?.direct_print_enabled?"aktiv":"aus"} · ${esc(report.safety?.stage||"diagnostics_only")}</strong>
+      </div>
+
+      ${rows}
+
+      <div class="studio-health-actions">
+        <button type="button" data-studio-health-run>Erneut prüfen</button>
+      </div>
+
+      <div class="studio-health-note">
+        ${report.updated_at?`Aktualisiert: ${esc(report.updated_at)} · `:""}alpha20 aktiviert keine Produktivfunktionen.
+      </div>
+    `;
+  }
+
+  findStudioHealthHost(){
+    const root=this.shadowRoot;
+    if(!root)return null;
+
+    return root.querySelector("[data-studio-plan-details-panel]")?.parentElement
+      || root.querySelector("[data-studio-dry-run-result-panel]")?.parentElement
+      || root.querySelector("[data-studio-profile-bank-panel]")?.parentElement
+      || this.findStudioProfileBankHost?.()
+      || root;
+  }
+
+  decorateStudioHealthPanel(){
+    const root=this.shadowRoot;
+    if(!root)return;
+
+    this.ensureStudioHealthStyles?.();
+
+    const host=this.findStudioHealthHost?.();
+    if(!host)return;
+
+    let panel=root.querySelector("[data-studio-health-panel]");
+    if(!panel){
+      panel=document.createElement("section");
+      panel.className="studio-health-panel";
+      panel.setAttribute("data-studio-health-panel","1");
+
+      const planPanel=root.querySelector("[data-studio-plan-details-panel]");
+      if(planPanel&&planPanel.parentElement){
+        planPanel.insertAdjacentElement("afterend",panel);
+      }else{
+        host.append(panel);
+      }
+    }
+
+    panel.innerHTML=this.renderStudioHealthPanel();
+
+    panel.querySelector("[data-studio-health-run]")?.addEventListener("click",(event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+
+      const snapshot=this.captureStudioInteraction?this.captureStudioInteraction():null;
+
+      Promise.resolve(this.runStudioHealthCheck?.()).finally(()=>{
+        if(this.restoreStudioInteraction)this.restoreStudioInteraction(snapshot);
+        this.decorateStudioHealthPanel?.();
+      });
+    });
+  }
   decorateStudioPlanDrivenJobUi(){
     this.decorateStudioJobPlanBadges?.();
     this.decorateStudioPlanDetailsPanel?.();
@@ -4406,7 +4632,7 @@ class StudioCard extends BaseCard {
     const model=this.currentStudioModel?.()||state.model||null;
     return {
       schema:"printer-control-center.v5.local-selftest",
-      version:"5.0.0-alpha19",
+      version:"5.0.0-alpha20",
       source:"browser-local",
       websocketRegistered:false,
       jobsCount:jobs.length,
@@ -4567,7 +4793,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha19",
+      version:"5.0.0-alpha20",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),

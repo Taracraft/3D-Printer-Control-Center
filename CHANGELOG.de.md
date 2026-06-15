@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha17 - Dry-Run-Ergebnis im Studio-Jobpanel
+
+### Hinzugefügt
+- Sichtbares Dry-Run-Ergebnispanel für den Studio-Jobworkflow ergänzt.
+- Frontend-Anzeige für ausgewählten Drucker-, Filament- und Prozessprofilkontext ergänzt.
+- Anzeige von Dry-Run-Validierungsstatus, Warnungen, Zeitstempel sowie deaktiviertem echtem Slicen und Direktdruck ergänzt.
+- Wrapper um die Dry-Run-Aktion ergänzt, damit das letzte Validierungsergebnis übernommen und aktualisiert wird.
+
+### Hinweise
+- Dieser Stand visualisiert ausschließlich Validierungs- und Planungsdaten.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha16 - Studio-Profilkontext für Dry-Run-Jobs
 
 ### Hinzugefügt

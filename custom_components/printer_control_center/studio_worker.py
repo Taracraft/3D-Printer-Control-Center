@@ -1,6 +1,7 @@
 """Studio worker dry-run helpers for Printer Control Center v5.
 
 Alpha16 adds profile-context validation for dry-run jobs.
+Alpha17 adds dry-run result visualization support in the Studio UI.
 This module still does not perform real slicing and never starts direct printing.
 """
 
@@ -10,7 +11,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
 
-WORKER_VERSION = "5.0.0-alpha16"
+WORKER_VERSION = "5.0.0-alpha17"
 
 
 def _utcnow() -> str:

@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha16";
+  const VERSION = "5.0.0-alpha17";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha16",
+      version:"5.0.0-alpha17",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3080,6 +3080,8 @@ class StudioCard extends BaseCard {
       if(this.decorateStudioSelfTestPanel)this.decorateStudioSelfTestPanel();
       if(this.bindStudioDryRunButton)this.bindStudioDryRunButton();
       if(this.decorateStudioProfileBankPanel)this.decorateStudioProfileBankPanel();
+      if(this.installStudioDryRunResultWrapper)this.installStudioDryRunResultWrapper();
+      if(this.decorateStudioDryRunResultPanel)this.decorateStudioDryRunResultPanel();
     }catch(_error){}finally{
       this._studioDecorating=false;
       this.restoreStudioInteraction(snapshot);
@@ -3519,6 +3521,329 @@ class StudioCard extends BaseCard {
       return null;
     }
   }
+  ensureStudioDryRunResultStyles(){
+    const root=this.shadowRoot;
+    if(!root||root.querySelector("#pcc-studio-dry-run-result-style"))return;
+
+    const style=document.createElement("style");
+    style.id="pcc-studio-dry-run-result-style";
+    style.textContent=`
+      .studio-dry-run-result-panel{
+        border:1px solid var(--divider-color,rgba(128,128,128,.28));
+        border-radius:14px;
+        padding:12px;
+        margin:10px 0;
+        background:var(--card-background-color,rgba(0,0,0,.04));
+        box-shadow:0 1px 2px rgba(0,0,0,.06);
+      }
+      .studio-dry-run-result-panel h3{
+        font-size:14px;
+        line-height:1.25;
+        margin:0 0 9px 0;
+      }
+      .studio-dry-run-state{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        min-height:24px;
+        border-radius:999px;
+        padding:2px 9px;
+        font-size:12px;
+        border:1px solid var(--divider-color,rgba(128,128,128,.32));
+        background:var(--secondary-background-color,rgba(128,128,128,.12));
+      }
+      .studio-dry-run-state.ok{
+        border-color:rgba(60,180,90,.55);
+      }
+      .studio-dry-run-state.warn{
+        border-color:rgba(230,160,40,.65);
+      }
+      .studio-dry-run-grid{
+        display:grid;
+        gap:5px;
+        margin-top:10px;
+        font-size:12px;
+      }
+      .studio-dry-run-row{
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+        border-top:1px solid var(--divider-color,rgba(128,128,128,.18));
+        padding-top:5px;
+      }
+      .studio-dry-run-row span:first-child{
+        opacity:.72;
+      }
+      .studio-dry-run-warnings{
+        margin:10px 0 0 0;
+        padding-left:18px;
+        font-size:12px;
+      }
+      .studio-dry-run-warnings li{
+        margin:2px 0;
+      }
+      .studio-dry-run-note{
+        margin-top:8px;
+        font-size:11px;
+        opacity:.68;
+      }
+    `;
+    root.append(style);
+  }
+
+  flattenStudioDryRunCandidates(value,seen){
+    if(value===null||value===undefined)return [];
+    if(!seen)seen=new WeakSet();
+
+    if(Array.isArray(value)){
+      return value.flatMap((entry)=>this.flattenStudioDryRunCandidates(entry,seen));
+    }
+
+    if(typeof value==="object"){
+      if(seen.has(value))return [];
+      seen.add(value);
+
+      const directHit=value.dry_run||value.worker||value.profile_context;
+      const nestedHit=value.result||value.patch||value.job;
+      const current=directHit?[value]:[];
+
+      if(nestedHit&&typeof nestedHit==="object"){
+        current.push(...this.flattenStudioDryRunCandidates(nestedHit,seen));
+      }
+
+      const nested=Object.values(value)
+        .filter((entry)=>entry&&typeof entry==="object")
+        .flatMap((entry)=>this.flattenStudioDryRunCandidates(entry,seen));
+
+      return current.concat(nested);
+    }
+
+    return [];
+  }
+
+  findLatestStudioDryRunResult(){
+    if(this._lastStudioDryRunResult)return this._lastStudioDryRunResult;
+
+    const pools=[
+      this._studioSliceJobs,
+      this._studioJobs,
+      this._studioJobList,
+      this._sliceJobs,
+      this._jobs,
+      this._studioWorkerJobs,
+      this._studioJobState
+    ];
+
+    const candidates=pools.flatMap((pool)=>this.flattenStudioDryRunCandidates(pool));
+    const withDryRun=candidates.filter((entry)=>entry&&(entry.dry_run||entry.worker||entry.profile_context));
+
+    if(!withDryRun.length)return null;
+
+    return withDryRun.sort((a,b)=>{
+      const ad=Date.parse(a?.dry_run?.updated_at||a?.worker?.updated_at||a?.updated_at||0)||0;
+      const bd=Date.parse(b?.dry_run?.updated_at||b?.worker?.updated_at||b?.updated_at||0)||0;
+      return bd-ad;
+    })[0]||null;
+  }
+
+  captureStudioDryRunResult(result){
+    if(!result)return result;
+
+    const candidate=result.result||result.patch||result.job||result;
+    if(candidate&&typeof candidate==="object"){
+      this._lastStudioDryRunResult=candidate;
+    }
+
+    return result;
+  }
+
+  normalizeStudioDryRunResultForUi(result){
+    const source=result?.result||result?.patch||result?.job||result||{};
+    const dryRun=source.dry_run||source.dryRun||{};
+    const worker=source.worker||{};
+    const profileContext=source.profile_context||dryRun.profile_context||worker.profile_context||{};
+    const selection=profileContext.selection||{};
+
+    const printer=profileContext.printer_profile||{};
+    const filament=profileContext.filament_profile||{};
+    const process=profileContext.process_profile||{};
+
+    const warnings=[
+      ...(Array.isArray(source.warnings)?source.warnings:[]),
+      ...(Array.isArray(worker.warnings)?worker.warnings:[]),
+      ...(Array.isArray(dryRun.warnings)?dryRun.warnings:[]),
+      ...(Array.isArray(profileContext.warnings)?profileContext.warnings:[])
+    ].filter((value,index,self)=>value&&self.indexOf(value)===index);
+
+    const ok=Boolean(dryRun.ok||worker.state==="dry_run_ready"||source.status==="dry_run_ready");
+    const profileContextValid=profileContext.valid!==false&&dryRun.profile_context_valid!==false;
+
+    return {
+      ok,
+      status:source.status||worker.state||(ok?"dry_run_ready":"dry_run_incomplete"),
+      message:worker.message||"",
+      updated_at:dryRun.updated_at||worker.updated_at||source.updated_at||"",
+      real_slicing_enabled:dryRun.real_slicing_enabled===true||worker.real_slicing_enabled===true,
+      direct_print_enabled:dryRun.direct_print_enabled===true||worker.direct_print_enabled===true,
+      profile_context_valid:profileContextValid,
+      warnings,
+      printer_name:printer.name||selection.printer_profile_id||"",
+      filament_name:filament.name||selection.filament_profile_id||"",
+      filament_material:filament.material||"",
+      process_name:process.name||selection.process_profile_id||"",
+      layer_height:process.layer_height_mm,
+      infill:process.sparse_infill_density_percent,
+      nozzle_temp:filament.nozzle_temp_c,
+      bed_temp:filament.bed_temp_c
+    };
+  }
+
+  renderStudioDryRunResultPanel(){
+    const raw=this.findLatestStudioDryRunResult();
+    const esc=this.pccStudioEscape?this.pccStudioEscape.bind(this):(value)=>String(value??"");
+
+    if(!raw){
+      return `
+        <h3>Dry-Run Ergebnis</h3>
+        <span class="studio-dry-run-state warn">Noch kein Dry-Run ausgeführt</span>
+        <div class="studio-dry-run-note">
+          Der Worker ist vorbereitet. Echtes Slicen und Direktdruck sind weiterhin deaktiviert.
+        </div>
+      `;
+    }
+
+    const result=this.normalizeStudioDryRunResultForUi(raw);
+    const stateClass=result.ok&&result.profile_context_valid?"ok":"warn";
+    const statusLabel=result.ok&&result.profile_context_valid?"Dry-Run bereit":"Dry-Run mit Hinweisen";
+    const warnings=result.warnings.length
+      ? `<ul class="studio-dry-run-warnings">${result.warnings.map((warning)=>`<li>${esc(warning)}</li>`).join("")}</ul>`
+      : `<div class="studio-dry-run-note">Keine Validierungswarnungen.</div>`;
+
+    return `
+      <h3>Dry-Run Ergebnis</h3>
+      <span class="studio-dry-run-state ${stateClass}">${esc(statusLabel)}</span>
+
+      <div class="studio-dry-run-grid">
+        <div class="studio-dry-run-row">
+          <span>Status</span>
+          <strong>${esc(result.status)}</strong>
+        </div>
+        <div class="studio-dry-run-row">
+          <span>Druckerprofil</span>
+          <strong>${esc(result.printer_name||"—")}</strong>
+        </div>
+        <div class="studio-dry-run-row">
+          <span>Filament</span>
+          <strong>${esc(result.filament_name||"—")} ${result.filament_material?`(${esc(result.filament_material)})`:""}</strong>
+        </div>
+        <div class="studio-dry-run-row">
+          <span>Prozessprofil</span>
+          <strong>${esc(result.process_name||"—")}</strong>
+        </div>
+        <div class="studio-dry-run-row">
+          <span>Nozzle / Bed</span>
+          <strong>${esc(result.nozzle_temp??"?")} / ${esc(result.bed_temp??"?")} °C</strong>
+        </div>
+        <div class="studio-dry-run-row">
+          <span>Layer / Infill</span>
+          <strong>${esc(result.layer_height??"?")} mm / ${esc(result.infill??"?")}%</strong>
+        </div>
+        <div class="studio-dry-run-row">
+          <span>Profilkontext</span>
+          <strong>${result.profile_context_valid?"gültig":"unvollständig"}</strong>
+        </div>
+        <div class="studio-dry-run-row">
+          <span>Echtes Slicen</span>
+          <strong>${result.real_slicing_enabled?"aktiv":"deaktiviert"}</strong>
+        </div>
+        <div class="studio-dry-run-row">
+          <span>Direktdruck</span>
+          <strong>${result.direct_print_enabled?"aktiv":"deaktiviert"}</strong>
+        </div>
+      </div>
+
+      ${warnings}
+
+      <div class="studio-dry-run-note">
+        ${result.updated_at?`Aktualisiert: ${esc(result.updated_at)} · `:""}alpha17 zeigt nur Validierungsdaten an.
+      </div>
+    `;
+  }
+
+  findStudioDryRunResultHost(){
+    const root=this.shadowRoot;
+    if(!root)return null;
+
+    return root.querySelector(".studio-job-panel")
+      || root.querySelector("[data-studio-job-panel]")
+      || root.querySelector("[data-studio-worker-panel]")
+      || root.querySelector("[data-studio-profile-bank-panel]")?.parentElement
+      || this.findStudioProfileBankHost?.()
+      || root;
+  }
+
+  decorateStudioDryRunResultPanel(){
+    const root=this.shadowRoot;
+    if(!root)return;
+
+    this.ensureStudioDryRunResultStyles?.();
+
+    const host=this.findStudioDryRunResultHost?.();
+    if(!host)return;
+
+    let panel=root.querySelector("[data-studio-dry-run-result-panel]");
+    if(!panel){
+      panel=document.createElement("section");
+      panel.className="studio-dry-run-result-panel";
+      panel.setAttribute("data-studio-dry-run-result-panel","1");
+
+      const dryRunButton=host.querySelector?.("[data-studio-worker-dry-run]");
+      if(dryRunButton&&dryRunButton.parentElement){
+        dryRunButton.parentElement.insertAdjacentElement("afterend",panel);
+      }else{
+        host.append(panel);
+      }
+    }
+
+    panel.innerHTML=this.renderStudioDryRunResultPanel();
+  }
+
+  installStudioDryRunResultWrapper(){
+    if(this._pccDryRunResultWrapperInstalled)return;
+    if(typeof this.runSliceWorkerDryRun!=="function")return;
+
+    const original=this.runSliceWorkerDryRun.bind(this);
+    this._pccDryRunResultWrapperInstalled=true;
+
+    this.runSliceWorkerDryRun=async(...args)=>{
+      try{
+        const result=await original(...args);
+        this.captureStudioDryRunResult?.(result);
+        this.decorateStudioDryRunResultPanel?.();
+        return result;
+      }catch(error){
+        this.captureStudioDryRunResult?.({
+          status:"dry_run_incomplete",
+          worker:{
+            state:"dry_run_incomplete",
+            dry_run:true,
+            real_slicing_enabled:false,
+            direct_print_enabled:false,
+            message:"Dry-Run failed before completion.",
+            warnings:[String(error?.message||error)]
+          },
+          dry_run:{
+            ok:false,
+            real_slicing_enabled:false,
+            direct_print_enabled:false,
+            warnings:[String(error?.message||error)]
+          }
+        });
+        this.decorateStudioDryRunResultPanel?.();
+        throw error;
+      }
+    };
+  }
   buildStudioProfileContext(){
     const details=this.selectedStudioProfileDetails?this.selectedStudioProfileDetails():null;
     const bank=this._studioProfileBank||{};
@@ -3646,7 +3971,7 @@ class StudioCard extends BaseCard {
     const model=this.currentStudioModel?.()||state.model||null;
     return {
       schema:"printer-control-center.v5.local-selftest",
-      version:"5.0.0-alpha16",
+      version:"5.0.0-alpha17",
       source:"browser-local",
       websocketRegistered:false,
       jobsCount:jobs.length,
@@ -3807,7 +4132,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha16",
+      version:"5.0.0-alpha17",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),

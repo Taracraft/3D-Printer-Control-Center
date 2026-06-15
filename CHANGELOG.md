@@ -1,5 +1,17 @@
 # Changelog
 
+## 5.0.0-alpha17 - Dry-run result UI in Studio job panel
+
+### Added
+- Added a visible Dry-Run result panel for the Studio job workflow.
+- Added frontend rendering for selected printer, filament and process profile context.
+- Added display of Dry-Run validation status, warnings, timestamps and disabled real slicing/direct print flags.
+- Added a wrapper around the Dry-Run action to capture and refresh the latest validation result.
+
+### Notes
+- This release only visualizes validation/planning data.
+- Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha16 - Studio profile context for dry-run jobs
 
 ### Added

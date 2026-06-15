@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha18 - Persistente Studio-Job-Planstruktur
+
+### Hinzugefügt
+- Gemeinsame `studio_plan`-Struktur für persistente Studio-Jobs ergänzt.
+- Neues Modul `studio_plan.py` mit normalisierten Job-, Profilkontext-, Dry-Run- und Slicer-Planungsdaten ergänzt.
+- Dry-Run-Worker-Ergebnisse enthalten jetzt zusätzlich `studio_plan`.
+- Frontend-Anzeige der Studio-Plan-Zusammenfassung im Dry-Run-Ergebnispanel ergänzt.
+
+### Hinweise
+- Die neue Planstruktur ist ein Planungs- und Validierungsgerüst für spätere Slicer-/Worker-Anbindung.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha17 - Dry-Run-Ergebnis im Studio-Jobpanel
 
 ### Hinzugefügt

@@ -1,5 +1,17 @@
 # Changelog
 
+## 5.0.0-alpha18 - Persistent Studio job plan structure
+
+### Added
+- Added a shared `studio_plan` structure for persistent Studio jobs.
+- Added `studio_plan.py` with normalized job, profile context, dry-run and slicer planning data.
+- Added `studio_plan` output to Dry-Run worker results.
+- Added frontend Studio plan summary rendering inside the Dry-Run result panel.
+
+### Notes
+- The new plan structure is a planning and validation scaffold for later slicer/worker integration.
+- Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha17 - Dry-run result UI in Studio job panel
 
 ### Added

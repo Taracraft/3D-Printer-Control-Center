@@ -2,6 +2,7 @@
 
 Alpha16 adds profile-context validation for dry-run jobs.
 Alpha17 adds dry-run result visualization support in the Studio UI.
+Alpha18 adds shared persistent Studio plan data for jobs.
 This module still does not perform real slicing and never starts direct printing.
 """
 
@@ -11,7 +12,9 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
 
-WORKER_VERSION = "5.0.0-alpha17"
+from .studio_plan import normalize_studio_plan
+
+WORKER_VERSION = "5.0.0-alpha18"
 
 
 def _utcnow() -> str:
@@ -162,5 +165,11 @@ def build_dry_run_result(
             "updated_at": now,
         },
     }
+
+    result["studio_plan"] = normalize_studio_plan(
+        target_job,
+        normalized_profile_context,
+        result.get("dry_run"),
+    )
 
     return result

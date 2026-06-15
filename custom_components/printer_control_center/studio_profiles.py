@@ -16,7 +16,7 @@ from homeassistant.helpers.storage import Store
 STORAGE_VERSION = 1
 STORAGE_KEY = "printer_control_center.studio_profiles"
 
-BANK_VERSION = "5.0.0-alpha17"
+BANK_VERSION = "5.0.0-alpha18"
 
 
 DEFAULT_PROFILE_BANK: dict[str, Any] = {
@@ -29,6 +29,7 @@ DEFAULT_PROFILE_BANK: dict[str, Any] = {
         "Studio profile bank UI binding was added in alpha15.",
         "Profile selections are forwarded to dry-run jobs in alpha16.",
         "Dry-run result visualization was added in alpha17.",
+        "Persistent Studio job plan structure was added in alpha18.",
         "Real slicing and direct printing are disabled.",
     ],
     "filaments": {

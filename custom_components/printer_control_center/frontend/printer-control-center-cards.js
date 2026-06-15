@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha17";
+  const VERSION = "5.0.0-alpha18";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha17",
+      version:"5.0.0-alpha18",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3652,6 +3652,9 @@ class StudioCard extends BaseCard {
     const candidate=result.result||result.patch||result.job||result;
     if(candidate&&typeof candidate==="object"){
       this._lastStudioDryRunResult=candidate;
+      if(candidate?.studio_plan){
+        this._lastStudioPlan=candidate.studio_plan;
+      }
     }
 
     return result;
@@ -3698,6 +3701,60 @@ class StudioCard extends BaseCard {
     };
   }
 
+  normalizeStudioPlanForUi(result){
+    const source=result?.result||result?.patch||result?.job||result||{};
+    const plan=source.studio_plan||source.studioPlan||{};
+    const profileContext=plan.profile_context||source.profile_context||{};
+    const dryRun=plan.dry_run||source.dry_run||{};
+    const slicer=plan.slicer||{};
+
+    return {
+      version:plan.version||source.version||VERSION,
+      valid:plan.valid!==false,
+      updated_at:plan.updated_at||dryRun.updated_at||source.updated_at||"",
+      job_name:plan.job?.name||source.name||source.title||source.file_name||"Studio job",
+      profile_context:profileContext,
+      dry_run:dryRun,
+      slicer:{
+        stage:slicer.stage||"planning_only",
+        real_slicing_enabled:slicer.real_slicing_enabled===true,
+        direct_print_enabled:slicer.direct_print_enabled===true,
+        worker_enabled:slicer.worker_enabled===true
+      },
+      warnings:Array.from(new Set([
+        ...(Array.isArray(plan.warnings)?plan.warnings:[]),
+        ...(Array.isArray(profileContext.warnings)?profileContext.warnings:[]),
+        ...(Array.isArray(dryRun.warnings)?dryRun.warnings:[])
+      ].filter(Boolean)))
+    };
+  }
+
+  renderStudioPlanSummary(result){
+    const esc=this.pccStudioEscape?this.pccStudioEscape.bind(this):(value)=>String(value??"");
+    const plan=this.normalizeStudioPlanForUi(result);
+    const printer=plan.profile_context?.printer_profile||{};
+    const filament=plan.profile_context?.filament_profile||{};
+    const process=plan.profile_context?.process_profile||{};
+
+    return `
+      <div class="studio-dry-run-row">
+        <span>Planstruktur</span>
+        <strong>${esc(plan.version)} · ${plan.valid?"gültig":"unvollständig"}</strong>
+      </div>
+      <div class="studio-dry-run-row">
+        <span>Plan-Job</span>
+        <strong>${esc(plan.job_name)}</strong>
+      </div>
+      <div class="studio-dry-run-row">
+        <span>Plan-Profile</span>
+        <strong>${esc(printer.name||"—")} / ${esc(filament.name||"—")} / ${esc(process.name||"—")}</strong>
+      </div>
+      <div class="studio-dry-run-row">
+        <span>Plan-Modus</span>
+        <strong>${esc(plan.slicer.stage)} · Slicen ${plan.slicer.real_slicing_enabled?"aktiv":"aus"} · Druck ${plan.slicer.direct_print_enabled?"aktiv":"aus"}</strong>
+      </div>
+    `;
+  }
   renderStudioDryRunResultPanel(){
     const raw=this.findLatestStudioDryRunResult();
     const esc=this.pccStudioEscape?this.pccStudioEscape.bind(this):(value)=>String(value??"");
@@ -3748,6 +3805,7 @@ class StudioCard extends BaseCard {
           <span>Layer / Infill</span>
           <strong>${esc(result.layer_height??"?")} mm / ${esc(result.infill??"?")}%</strong>
         </div>
+        ${this.renderStudioPlanSummary(raw)}
         <div class="studio-dry-run-row">
           <span>Profilkontext</span>
           <strong>${result.profile_context_valid?"gültig":"unvollständig"}</strong>
@@ -3971,7 +4029,7 @@ class StudioCard extends BaseCard {
     const model=this.currentStudioModel?.()||state.model||null;
     return {
       schema:"printer-control-center.v5.local-selftest",
-      version:"5.0.0-alpha17",
+      version:"5.0.0-alpha18",
       source:"browser-local",
       websocketRegistered:false,
       jobsCount:jobs.length,
@@ -4132,7 +4190,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha17",
+      version:"5.0.0-alpha18",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),

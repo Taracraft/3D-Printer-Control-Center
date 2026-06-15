@@ -13,6 +13,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
+from .studio_ws import async_register_studio_websocket
     CONF_AUTO_CREATE_DASHBOARDS,
     DOMAIN,
     PLATFORMS,

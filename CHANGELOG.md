@@ -1,5 +1,18 @@
 # Changelog
 
+## 5.0.0-alpha7 - Persistent Studio slice-job backend scaffold
+
+### Added
+- Added a persistent backend slice-job store for the v5 Studio workflow.
+- Added Home Assistant WebSocket commands for listing, creating, updating and clearing Studio slice jobs.
+- Added frontend job creation through the new backend WebSocket commands with local browser fallback.
+
+### Fixed
+- Scoped Studio mobile-stability cleanup to the Studio card instead of unrelated disconnected callbacks.
+
+### Notes
+- This alpha still does not execute a real slicer. It creates the backend job/status structure required for the later slicer worker.
+
 ## 5.0.0-alpha6 - Mobile Studio stability and slice-job scaffold
 
 ### Added

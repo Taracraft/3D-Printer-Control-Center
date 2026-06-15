@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha6";
+  const VERSION = "5.0.0-alpha7";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha6",
+      version:"5.0.0-alpha7",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3095,10 +3095,25 @@ class StudioCard extends BaseCard {
     this.saveState();
   }
 
-  createSliceJob(){
+  async createSliceJob(){
     const plan=this.saveSlicePlan?this.saveSlicePlan():null;
-    const job=pccV5CreateSliceJob(plan||{});
-    const jobs=[job,...this.sliceJobs()].slice(0,20);
+    let job=null;
+    try{
+      if(this._hass&&this.ws){
+        const result=await this.ws({
+          type:"printer_control_center/studio_jobs/create",
+          serial:String(plan?.serial||plan?.model?.serial||""),
+          plan:plan||{}
+        });
+        job=result?.job||null;
+      }
+    }catch(error){
+      const state=this.state();
+      state.lastStudioNotice=`Lokaler Slice-Job-Fallback aktiv: ${String(error?.message||error)}`;
+      this._studioState=state;
+    }
+    if(!job)job=pccV5CreateSliceJob(plan||{});
+    const jobs=[job,...this.sliceJobs().filter((existing)=>existing.id!==job.id)].slice(0,20);
     this.saveSliceJobs(jobs);
     const state=this.state();
     state.activeSliceJobId=job.id;
@@ -3183,7 +3198,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha6",
+      version:"5.0.0-alpha7",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),
@@ -3798,8 +3813,7 @@ class TemplatesCard extends BaseCard {
     }
 
     disconnectedCallback(){
-    if(this._studioMutationObserver){this._studioMutationObserver.disconnect();this._studioMutationObserver=null;}
-    if(this._studioResizeHandler){window.removeEventListener("resize",this._studioResizeHandler);this._studioResizeHandler=null;}
+
       if(this._backgroundUploadUnsubscribe){this._backgroundUploadUnsubscribe();this._backgroundUploadUnsubscribe=null}
     }
 
@@ -4853,8 +4867,7 @@ class TemplatesCard extends BaseCard {
     }
 
     disconnectedCallback(){
-    if(this._studioMutationObserver){this._studioMutationObserver.disconnect();this._studioMutationObserver=null;}
-    if(this._studioResizeHandler){window.removeEventListener("resize",this._studioResizeHandler);this._studioResizeHandler=null;}
+
       this.removePortal();
       if(this._escapeHandler){
         window.removeEventListener("keydown",this._escapeHandler);
@@ -5545,8 +5558,7 @@ class TemplatesCard extends BaseCard {
 
     removePickerPortal(){this._pickerPortal?.remove?.();this._pickerPortal=null}
     disconnectedCallback(){
-    if(this._studioMutationObserver){this._studioMutationObserver.disconnect();this._studioMutationObserver=null;}
-    if(this._studioResizeHandler){window.removeEventListener("resize",this._studioResizeHandler);this._studioResizeHandler=null;}this.removePickerPortal()}
+this.removePickerPortal()}
 
     pickerItemHtml(item){
       const folder=item.kind==="folder";

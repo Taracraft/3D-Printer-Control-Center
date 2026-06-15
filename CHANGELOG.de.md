@@ -1,5 +1,18 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha7 - Persistente Studio-Slice-Job-Backend-Grundlage
+
+### Hinzugefügt
+- Persistente Backend-Speicherung für v5-Studio-Slice-Jobs ergänzt.
+- Home-Assistant-WebSocket-Kommandos zum Auflisten, Erstellen, Aktualisieren und Leeren von Studio-Slice-Jobs ergänzt.
+- Frontend-Joberstellung über die neuen Backend-WebSocket-Kommandos mit lokalem Browser-Fallback ergänzt.
+
+### Behoben
+- Cleanup der mobilen Studio-Stabilisierung auf die Studio-Karte begrenzt, statt fremde disconnectedCallback-Blöcke zu beeinflussen.
+
+### Hinweise
+- Dieses Alpha führt weiterhin keinen echten Slicer aus. Es erstellt die Backend-Job-/Statusstruktur für den späteren Slicer-Worker.
+
 ## 5.0.0-alpha6 - Mobile Studio-Stabilität und Slice-Job-Grundlage
 
 ### Hinzugefügt

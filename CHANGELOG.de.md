@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha20.3 - Isolierter Studio-Frontend-Rebuild
+
+### Hinzugefügt
+- alpha20.2-Platzhalter durch eine isolierte Studio-/CAD-Karte auf stabiler Frontendbasis ersetzt.
+- Sichtbaren Studio-Arbeitsbereich mit Werkzeugleiste, Druckplatte, Transform-Inspector und Health-Check-Schaltfläche wieder eingeführt.
+- Galerie-/Dateimanager-Frontend bleibt von der experimentellen Studio-Karte getrennt.
+
+### Hinweise
+- Dieser Stand gehört weiterhin zum alpha20-Recovery-/Testfenster.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha20.2 - Notfall-Frontend-Rollback
 
 ### Behoben

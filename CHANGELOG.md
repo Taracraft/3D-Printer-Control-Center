@@ -1,5 +1,16 @@
 # Changelog
 
+## 5.0.0-alpha20.3 - Isolated Studio frontend rebuild
+
+### Added
+- Replaced the alpha20.2 placeholder with an isolated Studio/CAD card on top of the stable frontend baseline.
+- Reintroduced a visible Studio workspace with toolbar, build plate, transform inspector and health check button.
+- Kept gallery/file-manager frontend behavior isolated from the experimental Studio card.
+
+### Notes
+- This is still part of the alpha20 recovery/test window.
+- Real slicing and direct printing remain disabled.
+
 ## 5.0.0-alpha20.2 - Emergency frontend rollback
 
 ### Fixed

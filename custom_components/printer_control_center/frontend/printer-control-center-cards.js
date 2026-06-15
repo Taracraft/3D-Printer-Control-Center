@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha9";
+  const VERSION = "5.0.0-alpha10";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha9",
+      version:"5.0.0-alpha10",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3246,6 +3246,85 @@ class StudioCard extends BaseCard {
     this.saveState();
     this.afterStudioDomChange();
   }
+  localStudioSelfTest(){
+    const state=this.state();
+    const jobs=this.sliceJobs?this.sliceJobs():[];
+    const model=this.currentStudioModel?.()||state.model||null;
+    return {
+      schema:"printer-control-center.v5.local-selftest",
+      version:"5.0.0-alpha10",
+      source:"browser-local",
+      websocketRegistered:false,
+      jobsCount:jobs.length,
+      hasModel:!!model,
+      modelName:model?.name||"",
+      hasSlicePlan:!!state.slicePlan,
+      hasProfileBank:!!this.profileBank,
+      hasPendingModelStorage:!!window.localStorage.getItem(PCC_V5_STUDIO_PENDING_MODEL_KEY),
+      hasJobStorage:!!window.localStorage.getItem(PCC_V5_STUDIO_JOBS_KEY),
+      slicerWorker:"not_enabled",
+      directPrint:"disabled",
+      readyForAlpha10Test:true
+    };
+  }
+
+  async runStudioSelfTest(){
+    let result=null;
+    try{
+      if(this._hass&&this.ws){
+        result=await this.ws({type:"printer_control_center/studio/selftest"});
+      }
+    }catch(error){
+      result=this.localStudioSelfTest();
+      result.websocketError=String(error?.message||error);
+    }
+    if(!result)result=this.localStudioSelfTest();
+
+    const state=this.state();
+    state.studioSelfTest=result;
+    state.lastStudioNotice=`Studio-Selbsttest: ${result.readyForAlpha10Test?"bereit":"prüfen"}`;
+    this._studioState=state;
+    this.saveState();
+    this.afterStudioDomChange();
+    return result;
+  }
+
+  decorateStudioSelfTestPanel(){
+    const host=this.shadowRoot?.querySelector(".studio-right")||null;
+    if(!host||host.querySelector(".studio-selftest-panel"))return;
+    const state=this.state();
+    const result=state.studioSelfTest||this.localStudioSelfTest();
+    const ok=result.readyForAlpha10Test!==false;
+    const panel=document.createElement("div");
+    panel.className="studio-panel studio-selftest-panel";
+    panel.innerHTML=`<h4>Alpha10 Selbsttest</h4>
+      <div class="studio-quality-grid">
+        <span>Version</span><strong>${esc(result.version||VERSION)}</strong>
+        <span>Quelle</span><strong>${esc(result.source||"backend")}</strong>
+        <span>WebSocket</span><strong>${esc(result.websocketRegistered?"registriert":"lokal/fallback")}</strong>
+        <span>Jobs</span><strong>${esc(String(result.jobsCount||0))}</strong>
+        <span>Modell</span><strong>${esc(result.modelName||result.hasModel?"vorhanden":"kein Modell")}</strong>
+        <span>Slicer</span><strong>${esc(result.slicerWorker||"not_enabled")}</strong>
+        <span>Direktdruck</span><strong>${esc(result.directPrint||"disabled")}</strong>
+        <span>Testfenster</span><strong>${ok?"bereit":"prüfen"}</strong>
+      </div>
+      <div class="studio-tools" style="margin-top:8px">
+        <button data-studio-selftest-run>Selbsttest starten</button>
+        <button data-studio-selftest-refresh>Jobs neu laden</button>
+      </div>
+      <p class="studio-note">${esc(result.websocketError||result.jobsStorePath||"Alpha10 Diagnosepanel bereit.")}</p>`;
+    host.append(panel);
+
+    panel.querySelector("[data-studio-selftest-run]")?.addEventListener("click",()=>{
+      panel.remove();
+      this.runStudioSelfTest();
+    });
+
+    panel.querySelector("[data-studio-selftest-refresh]")?.addEventListener("click",()=>{
+      panel.remove();
+      this.refreshSliceJobs?.();
+    });
+  }
   decorateSliceJobPanel(){
     const host=this.shadowRoot?.querySelector(".studio-right")||null;
     if(!host||host.querySelector(".studio-job-panel"))return;
@@ -3313,7 +3392,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha9",
+      version:"5.0.0-alpha10",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),
@@ -3506,6 +3585,7 @@ class StudioCard extends BaseCard {
     window.addEventListener("printer-control-center-studio-open",this._studioOpenHandler);
     if(this.applyPendingStudioModel())this.render();
     if(this.syncSliceJobsFromBackend)this.syncSliceJobsFromBackend().then(()=>this.afterStudioDomChange()).catch(()=>{});
+    window.setTimeout(()=>this.runStudioSelfTest?.(),250);
   }
 
   disconnectedCallback(){

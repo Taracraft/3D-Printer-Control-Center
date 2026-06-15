@@ -1,5 +1,19 @@
 # Changelog
 
+## 5.0.0-alpha10 - First v5 Studio test-window diagnostics
+
+### Added
+- Added a Studio self-test WebSocket command for the first alpha10 test window.
+- Added a Studio diagnostics panel showing version, WebSocket state, job count, model state, slicer-worker state and direct-print state.
+- Added browser-local fallback diagnostics when the backend WebSocket is not yet available.
+- Added automatic startup self-test preparation without enabling real slicing.
+
+### Changed
+- Alpha10 is the first planned validation window for the v5 Studio/CAD/Slice workflow.
+
+### Notes
+- Real slicer execution and direct printing are still disabled. This build is intended to make the first HA test structured and diagnosable.
+
 ## 5.0.0-alpha9 - Backend job sync and worker-control UI
 
 ### Added

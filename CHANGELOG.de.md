@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha19 - Studio-Job-UI liest studio_plan
+
+### Hinzugefügt
+- Studio-Job-Badges aus der gemeinsamen `studio_plan`-Struktur ergänzt.
+- Studio-Plan-Detailpanel für Jobstatus, ausgewählte Profile, Slicer-Stufe und Safety-Flags ergänzt.
+- Frontend-Hilfen zum Sammeln und Normalisieren von `studio_plan`-Daten aus Jobliste, Jobpanel und Dry-Run-Ergebnissen ergänzt.
+- Automatische Aktualisierung von Plan-Badges und Details nach Studio-DOM-Updates und Dry-Run-Abschluss ergänzt.
+
+### Hinweise
+- Die Studio-UI verwendet `studio_plan` jetzt, sofern vorhanden, als primäre Planungs- und Statusquelle.
+- Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha18 - Persistente Studio-Job-Planstruktur
 
 ### Hinzugefügt

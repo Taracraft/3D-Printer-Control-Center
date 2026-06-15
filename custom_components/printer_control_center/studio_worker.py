@@ -3,6 +3,7 @@
 Alpha16 adds profile-context validation for dry-run jobs.
 Alpha17 adds dry-run result visualization support in the Studio UI.
 Alpha18 adds shared persistent Studio plan data for jobs.
+Alpha19 keeps Dry-Run plan output compatible with the job UI.
 This module still does not perform real slicing and never starts direct printing.
 """
 
@@ -14,7 +15,7 @@ from typing import Any
 
 from .studio_plan import normalize_studio_plan
 
-WORKER_VERSION = "5.0.0-alpha18"
+WORKER_VERSION = "5.0.0-alpha19"
 
 
 def _utcnow() -> str:

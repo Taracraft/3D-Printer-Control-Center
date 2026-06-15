@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha18";
+  const VERSION = "5.0.0-alpha19";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha18",
+      version:"5.0.0-alpha19",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3082,6 +3082,7 @@ class StudioCard extends BaseCard {
       if(this.decorateStudioProfileBankPanel)this.decorateStudioProfileBankPanel();
       if(this.installStudioDryRunResultWrapper)this.installStudioDryRunResultWrapper();
       if(this.decorateStudioDryRunResultPanel)this.decorateStudioDryRunResultPanel();
+      if(this.decorateStudioPlanDrivenJobUi)this.decorateStudioPlanDrivenJobUi();
     }catch(_error){}finally{
       this._studioDecorating=false;
       this.restoreStudioInteraction(snapshot);
@@ -3701,6 +3702,380 @@ class StudioCard extends BaseCard {
     };
   }
 
+  ensureStudioPlanJobUiStyles(){
+    const root=this.shadowRoot;
+    if(!root||root.querySelector("#pcc-studio-plan-job-ui-style"))return;
+
+    const style=document.createElement("style");
+    style.id="pcc-studio-plan-job-ui-style";
+    style.textContent=`
+      .studio-plan-badge{
+        display:inline-flex;
+        align-items:center;
+        gap:5px;
+        min-height:22px;
+        border-radius:999px;
+        padding:2px 8px;
+        margin:3px 4px 3px 0;
+        font-size:11px;
+        line-height:1.2;
+        border:1px solid var(--divider-color,rgba(128,128,128,.32));
+        background:var(--secondary-background-color,rgba(128,128,128,.12));
+        color:var(--primary-text-color,#111);
+        vertical-align:middle;
+      }
+      .studio-plan-badge.ok{
+        border-color:rgba(60,180,90,.55);
+      }
+      .studio-plan-badge.warn{
+        border-color:rgba(230,160,40,.65);
+      }
+      .studio-plan-badge.disabled{
+        opacity:.78;
+      }
+      .studio-plan-details-panel{
+        border:1px solid var(--divider-color,rgba(128,128,128,.28));
+        border-radius:14px;
+        padding:12px;
+        margin:10px 0;
+        background:var(--card-background-color,rgba(0,0,0,.04));
+        box-shadow:0 1px 2px rgba(0,0,0,.06);
+      }
+      .studio-plan-details-panel h3{
+        font-size:14px;
+        margin:0 0 9px 0;
+      }
+      .studio-plan-detail-grid{
+        display:grid;
+        gap:5px;
+        font-size:12px;
+      }
+      .studio-plan-detail-row{
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+        border-top:1px solid var(--divider-color,rgba(128,128,128,.18));
+        padding-top:5px;
+      }
+      .studio-plan-detail-row span:first-child{
+        opacity:.72;
+      }
+      .studio-plan-detail-note{
+        margin-top:8px;
+        font-size:11px;
+        opacity:.68;
+      }
+    `;
+    root.append(style);
+  }
+
+  extractStudioPlanObject(source){
+    if(!source||typeof source!=="object")return null;
+    if(source.studio_plan&&typeof source.studio_plan==="object")return source.studio_plan;
+    if(source.studioPlan&&typeof source.studioPlan==="object")return source.studioPlan;
+    if(source.result&&typeof source.result==="object")return this.extractStudioPlanObject(source.result);
+    if(source.patch&&typeof source.patch==="object")return this.extractStudioPlanObject(source.patch);
+    if(source.job&&typeof source.job==="object")return this.extractStudioPlanObject(source.job);
+    return null;
+  }
+
+  collectStudioPlanSources(value,seen){
+    if(value===null||value===undefined)return [];
+    if(!seen)seen=new WeakSet();
+
+    if(Array.isArray(value)){
+      return value.flatMap((entry)=>this.collectStudioPlanSources(entry,seen));
+    }
+
+    if(typeof value==="object"){
+      if(seen.has(value))return [];
+      seen.add(value);
+
+      const ownPlan=this.extractStudioPlanObject(value);
+      const direct=ownPlan?[value]:[];
+
+      const nested=Object.values(value)
+        .filter((entry)=>entry&&typeof entry==="object")
+        .flatMap((entry)=>this.collectStudioPlanSources(entry,seen));
+
+      return direct.concat(nested);
+    }
+
+    return [];
+  }
+
+  studioPlanSourcePools(){
+    return [
+      this._lastStudioDryRunResult,
+      this._lastStudioPlan?{studio_plan:this._lastStudioPlan}:null,
+      this._studioSliceJobs,
+      this._studioJobs,
+      this._studioJobList,
+      this._sliceJobs,
+      this._jobs,
+      this._studioWorkerJobs,
+      this._studioJobState
+    ].filter(Boolean);
+  }
+
+  findStudioPlanSources(){
+    const pools=this.studioPlanSourcePools?.()||[];
+    const found=pools.flatMap((pool)=>this.collectStudioPlanSources(pool));
+    const unique=[];
+    const seen=new Set();
+
+    found.forEach((entry)=>{
+      const plan=this.extractStudioPlanObject(entry);
+      const key=[
+        plan?.job?.id,
+        plan?.job?.name,
+        plan?.updated_at,
+        plan?.version
+      ].filter(Boolean).join("|")||JSON.stringify(plan||entry).slice(0,180);
+
+      if(!seen.has(key)){
+        seen.add(key);
+        unique.push(entry);
+      }
+    });
+
+    return unique;
+  }
+
+  latestStudioPlanSource(){
+    const sources=this.findStudioPlanSources?.()||[];
+    if(!sources.length)return this._lastStudioPlan?{studio_plan:this._lastStudioPlan}:null;
+
+    return sources.sort((a,b)=>{
+      const ap=this.extractStudioPlanObject(a)||{};
+      const bp=this.extractStudioPlanObject(b)||{};
+      const at=Date.parse(ap.updated_at||ap.dry_run?.updated_at||a.updated_at||0)||0;
+      const bt=Date.parse(bp.updated_at||bp.dry_run?.updated_at||b.updated_at||0)||0;
+      return bt-at;
+    })[0]||null;
+  }
+
+  normalizeStudioPlanJobUi(source){
+    const plan=this.extractStudioPlanObject(source)||{};
+    const normalized=this.normalizeStudioPlanForUi?this.normalizeStudioPlanForUi({studio_plan:plan}):{
+      version:plan.version||VERSION,
+      valid:plan.valid!==false,
+      updated_at:plan.updated_at||"",
+      job_name:plan.job?.name||"Studio job",
+      profile_context:plan.profile_context||{},
+      dry_run:plan.dry_run||{},
+      slicer:plan.slicer||{},
+      warnings:Array.isArray(plan.warnings)?plan.warnings:[]
+    };
+
+    const profileContext=normalized.profile_context||{};
+    const dryRun=normalized.dry_run||{};
+    const slicer=normalized.slicer||{};
+
+    const printer=profileContext.printer_profile||{};
+    const filament=profileContext.filament_profile||{};
+    const process=profileContext.process_profile||{};
+
+    const realSlicing=slicer.real_slicing_enabled===true||dryRun.real_slicing_enabled===true;
+    const directPrint=slicer.direct_print_enabled===true||dryRun.direct_print_enabled===true;
+    const valid=normalized.valid!==false&&profileContext.valid!==false&&dryRun.profile_context_valid!==false;
+
+    return {
+      version:normalized.version||VERSION,
+      valid,
+      status:dryRun.status||(valid?"planning_ready":"planning_incomplete"),
+      job_name:normalized.job_name||plan.job?.name||"Studio job",
+      updated_at:normalized.updated_at||plan.updated_at||"",
+      printer_name:printer.name||profileContext.selection?.printer_profile_id||"—",
+      filament_name:filament.name||profileContext.selection?.filament_profile_id||"—",
+      filament_material:filament.material||"",
+      process_name:process.name||profileContext.selection?.process_profile_id||"—",
+      stage:slicer.stage||"planning_only",
+      real_slicing_enabled:realSlicing,
+      direct_print_enabled:directPrint,
+      warnings:Array.from(new Set([
+        ...(Array.isArray(normalized.warnings)?normalized.warnings:[]),
+        ...(Array.isArray(profileContext.warnings)?profileContext.warnings:[]),
+        ...(Array.isArray(dryRun.warnings)?dryRun.warnings:[])
+      ].filter(Boolean)))
+    };
+  }
+
+  renderStudioPlanBadge(source){
+    const esc=this.pccStudioEscape?this.pccStudioEscape.bind(this):(value)=>String(value??"");
+    const plan=this.normalizeStudioPlanJobUi(source);
+    const cls=plan.valid?"ok":"warn";
+    const safety=(!plan.real_slicing_enabled&&!plan.direct_print_enabled)?"disabled":"warn";
+    const label=plan.valid?"Plan bereit":"Plan prüfen";
+
+    return `
+      <span class="studio-plan-badge ${cls}" title="${esc(plan.status)}">${esc(label)}</span>
+      <span class="studio-plan-badge ${safety}" title="Slicing/Direktdruck">${plan.real_slicing_enabled||plan.direct_print_enabled?"Aktiv":"Nur Planung"}</span>
+    `;
+  }
+
+  findMatchingStudioPlanSourceForCard(card,sources){
+    if(!card||!sources?.length)return null;
+
+    const cardId=card.getAttribute("data-studio-job-id")
+      ||card.getAttribute("data-job-id")
+      ||card.dataset?.studioJobId
+      ||card.dataset?.jobId
+      ||"";
+
+    const text=(card.textContent||"").toLowerCase();
+
+    if(cardId){
+      const byId=sources.find((source)=>{
+        const plan=this.extractStudioPlanObject(source)||{};
+        return String(plan.job?.id||source.id||source.job_id||"")===String(cardId);
+      });
+      if(byId)return byId;
+    }
+
+    const byName=sources.find((source)=>{
+      const plan=this.extractStudioPlanObject(source)||{};
+      const name=String(plan.job?.name||source.name||source.title||source.file_name||"").toLowerCase();
+      return name&&text.includes(name);
+    });
+
+    return byName||null;
+  }
+
+  decorateStudioJobPlanBadges(){
+    const root=this.shadowRoot;
+    if(!root)return;
+
+    this.ensureStudioPlanJobUiStyles?.();
+
+    const sources=this.findStudioPlanSources?.()||[];
+    if(!sources.length)return;
+
+    const cards=[...root.querySelectorAll(
+      '[data-studio-job-id],[data-job-id],[data-studio-job-card],.studio-job-card,.studio-slice-job-card,.studio-job,.slice-job'
+    )];
+
+    if(!cards.length)return;
+
+    cards.forEach((card,index)=>{
+      if(!card||card.querySelector?.("[data-studio-plan-badge-host]"))return;
+
+      const source=this.findMatchingStudioPlanSourceForCard?.(card,sources)||sources[index]||sources[0];
+      if(!source)return;
+
+      const host=document.createElement("div");
+      host.setAttribute("data-studio-plan-badge-host","1");
+      host.innerHTML=this.renderStudioPlanBadge(source);
+
+      const title=card.querySelector?.("h1,h2,h3,h4,.title,.name,[data-title],[data-studio-job-title]");
+      if(title&&title.parentElement){
+        title.insertAdjacentElement("afterend",host);
+      }else{
+        card.insertBefore(host,card.firstChild||null);
+      }
+    });
+  }
+
+  renderStudioPlanDetailsPanel(){
+    const source=this.latestStudioPlanSource?.();
+    const esc=this.pccStudioEscape?this.pccStudioEscape.bind(this):(value)=>String(value??"");
+
+    if(!source){
+      return `
+        <h3>Studio-Plan</h3>
+        <div class="studio-plan-detail-note">Noch keine Planstruktur im aktuellen Studio-Job gefunden.</div>
+      `;
+    }
+
+    const plan=this.normalizeStudioPlanJobUi(source);
+    const warningText=plan.warnings.length
+      ? plan.warnings.map((warning)=>esc(warning)).join(" · ")
+      : "Keine Planwarnungen";
+
+    return `
+      <h3>Studio-Plan</h3>
+      <div class="studio-plan-detail-grid">
+        <div class="studio-plan-detail-row">
+          <span>Job</span>
+          <strong>${esc(plan.job_name)}</strong>
+        </div>
+        <div class="studio-plan-detail-row">
+          <span>Planstatus</span>
+          <strong>${plan.valid?"gültig":"unvollständig"} · ${esc(plan.status)}</strong>
+        </div>
+        <div class="studio-plan-detail-row">
+          <span>Drucker</span>
+          <strong>${esc(plan.printer_name)}</strong>
+        </div>
+        <div class="studio-plan-detail-row">
+          <span>Filament</span>
+          <strong>${esc(plan.filament_name)} ${plan.filament_material?`(${esc(plan.filament_material)})`:""}</strong>
+        </div>
+        <div class="studio-plan-detail-row">
+          <span>Prozess</span>
+          <strong>${esc(plan.process_name)}</strong>
+        </div>
+        <div class="studio-plan-detail-row">
+          <span>Slicer-Stufe</span>
+          <strong>${esc(plan.stage)}</strong>
+        </div>
+        <div class="studio-plan-detail-row">
+          <span>Echtes Slicen</span>
+          <strong>${plan.real_slicing_enabled?"aktiv":"deaktiviert"}</strong>
+        </div>
+        <div class="studio-plan-detail-row">
+          <span>Direktdruck</span>
+          <strong>${plan.direct_print_enabled?"aktiv":"deaktiviert"}</strong>
+        </div>
+      </div>
+      <div class="studio-plan-detail-note">
+        ${plan.updated_at?`Aktualisiert: ${esc(plan.updated_at)} · `:""}${warningText}
+      </div>
+    `;
+  }
+
+  findStudioPlanDetailsHost(){
+    const root=this.shadowRoot;
+    if(!root)return null;
+
+    return root.querySelector("[data-studio-job-panel]")
+      || root.querySelector(".studio-job-panel")
+      || root.querySelector("[data-studio-dry-run-result-panel]")?.parentElement
+      || root.querySelector("[data-studio-profile-bank-panel]")?.parentElement
+      || this.findStudioProfileBankHost?.()
+      || root;
+  }
+
+  decorateStudioPlanDetailsPanel(){
+    const root=this.shadowRoot;
+    if(!root)return;
+
+    this.ensureStudioPlanJobUiStyles?.();
+
+    const host=this.findStudioPlanDetailsHost?.();
+    if(!host)return;
+
+    let panel=root.querySelector("[data-studio-plan-details-panel]");
+    if(!panel){
+      panel=document.createElement("section");
+      panel.className="studio-plan-details-panel";
+      panel.setAttribute("data-studio-plan-details-panel","1");
+
+      const dryRunPanel=root.querySelector("[data-studio-dry-run-result-panel]");
+      if(dryRunPanel&&dryRunPanel.parentElement){
+        dryRunPanel.insertAdjacentElement("afterend",panel);
+      }else{
+        host.append(panel);
+      }
+    }
+
+    panel.innerHTML=this.renderStudioPlanDetailsPanel();
+  }
+
+  decorateStudioPlanDrivenJobUi(){
+    this.decorateStudioJobPlanBadges?.();
+    this.decorateStudioPlanDetailsPanel?.();
+  }
   normalizeStudioPlanForUi(result){
     const source=result?.result||result?.patch||result?.job||result||{};
     const plan=source.studio_plan||source.studioPlan||{};
@@ -3878,6 +4253,7 @@ class StudioCard extends BaseCard {
         const result=await original(...args);
         this.captureStudioDryRunResult?.(result);
         this.decorateStudioDryRunResultPanel?.();
+        this.decorateStudioPlanDrivenJobUi?.();
         return result;
       }catch(error){
         this.captureStudioDryRunResult?.({
@@ -3898,6 +4274,7 @@ class StudioCard extends BaseCard {
           }
         });
         this.decorateStudioDryRunResultPanel?.();
+        this.decorateStudioPlanDrivenJobUi?.();
         throw error;
       }
     };
@@ -4029,7 +4406,7 @@ class StudioCard extends BaseCard {
     const model=this.currentStudioModel?.()||state.model||null;
     return {
       schema:"printer-control-center.v5.local-selftest",
-      version:"5.0.0-alpha18",
+      version:"5.0.0-alpha19",
       source:"browser-local",
       websocketRegistered:false,
       jobsCount:jobs.length,
@@ -4190,7 +4567,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha18",
+      version:"5.0.0-alpha19",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),

@@ -2809,167 +2809,191 @@
   }
   
 class StudioCard extends BaseCard {
-  static getConfigElement(){return editorFor("studio")}
   static getStubConfig(){return {...commonStub(),title:"3D-Studio / CAD-Vorschau",card_size:"xl"}}
 
-  constructor(){
-    super();
-    this._studioTransform=this.defaultStudioTransform();
-  }
-
-  defaultStudioTransform(){
+  defaults(){
     return {
-      position:{x:0,y:0,z:0},
-      rotation:{x:0,y:0,z:0},
-      scale:{x:100,y:100,z:100},
-      stretch:{x:100,y:100,z:100},
-      mirror:{x:false,y:false,z:false}
-    };
+      x:0,y:0,z:0,
+      rx:0,ry:0,rz:0,
+      sx:100,sy:100,sz:100,
+      stretchX:100,stretchY:100,stretchZ:100
+    }
   }
 
-  effectiveStudioTransform(){
-    const base=this.defaultStudioTransform();
-    const current=this._studioTransform||{};
-    return {
-      position:{...base.position,...(current.position||{})},
-      rotation:{...base.rotation,...(current.rotation||{})},
-      scale:{...base.scale,...(current.scale||{})},
-      stretch:{...base.stretch,...(current.stretch||{})},
-      mirror:{...base.mirror,...(current.mirror||{})}
-    };
+  storageKey(){
+    return "printer_control_center.v5.studio.transform.v1"
   }
 
-  combinedScale(axis){
-    const transform=this.effectiveStudioTransform();
-    const scale=Number(transform.scale?.[axis]||100);
-    const stretch=Number(transform.stretch?.[axis]||100);
-    const mirror=transform.mirror?.[axis]?-1:1;
-    return Math.round(scale*stretch*mirror)/100;
+  loadState(){
+    const base=this.defaults()
+    try{
+      const raw=window.localStorage.getItem(this.storageKey())
+      if(!raw)return base
+      const parsed=JSON.parse(raw)
+      return {...base,...parsed}
+    }catch(_error){
+      return base
+    }
   }
 
-  setStudioValue(group,axis,value){
-    const transform=this.effectiveStudioTransform();
-    const numeric=Number.parseFloat(value);
-    if(Number.isNaN(numeric))return;
-    transform[group][axis]=numeric;
-    this._studioTransform=transform;
-    this.render();
+  saveState(){
+    try{
+      window.localStorage.setItem(this.storageKey(),JSON.stringify(this.state()))
+    }catch(_error){}
   }
 
-  setMirror(axis){
-    const transform=this.effectiveStudioTransform();
-    transform.mirror[axis]=!transform.mirror[axis];
-    this._studioTransform=transform;
-    this.render();
+  state(){
+    if(!this._studioState)this._studioState=this.loadState()
+    return this._studioState
   }
 
-  resetStudioTransform(){
-    this._studioTransform=this.defaultStudioTransform();
-    this.render();
+  num(value,fallback=0){
+    const parsed=Number(value)
+    return Number.isFinite(parsed)?parsed:fallback
   }
 
-  centerStudioObject(){
-    const transform=this.effectiveStudioTransform();
-    transform.position={x:0,y:0,z:0};
-    this._studioTransform=transform;
-    this.render();
+  setConfig(config){
+    this._config={...commonStub(),...(config||{})}
+    this._studioState=this.loadState()
+    this.render()
   }
 
-  layFlatStudioObject(){
-    const transform=this.effectiveStudioTransform();
-    transform.position.z=0;
-    transform.rotation.x=0;
-    transform.rotation.y=0;
-    this._studioTransform=transform;
-    this.render();
+  set hass(hass){
+    this._hass=hass
+    this.render()
   }
 
-  bindStudio(){
-    this.shadowRoot.querySelectorAll("[data-studio-field]").forEach((input)=>{
-      input.addEventListener("change",()=>{
-        this.setStudioValue(input.dataset.group,input.dataset.axis,input.value);
-      });
-      input.addEventListener("input",()=>{
-        this.setStudioValue(input.dataset.group,input.dataset.axis,input.value);
-      });
-    });
-    this.shadowRoot.querySelectorAll("[data-studio-action]").forEach((button)=>{
-      button.addEventListener("click",()=>{
-        const action=button.dataset.studioAction;
-        if(action==="reset")this.resetStudioTransform();
-        if(action==="center")this.centerStudioObject();
-        if(action==="flat")this.layFlatStudioObject();
-        if(action==="mirror-x")this.setMirror("x");
-        if(action==="mirror-y")this.setMirror("y");
-        if(action==="mirror-z")this.setMirror("z");
-      });
-    });
+  field(key,label,unit){
+    const value=this.state()[key]
+    return `<label class="studio-field"><span>${esc(label)} <small>${esc(unit||"")}</small></span><input data-studio-input="${esc(key)}" type="number" step="1" value="${esc(String(value))}"></label>`
   }
 
-  triplet(title,group,values,unit="",step="1"){
-    const axis=(key)=>`<label>${key.toUpperCase()}${unit?` ${unit}`:""}<input data-studio-field data-group="${esc(group)}" data-axis="${esc(key)}" type="number" step="${esc(step)}" value="${esc(values[key])}"></label>`;
-    return `<div class="studio-panel-section"><h4>${esc(title)}</h4><div class="studio-triplet">${axis("x")}${axis("y")}${axis("z")}</div></div>`;
+  panel(title,html){
+    return `<section class="studio-panel"><h4>${esc(title)}</h4><div class="studio-fields">${html}</div></section>`
   }
 
   render(){
-    if(!this._config)return;
-    const transform=this.effectiveStudioTransform();
-    const style=[
-      `--studio-x:${Number(transform.position.x||0)}`,
-      `--studio-y:${Number(transform.position.y||0)}`,
-      `--studio-rx:${Number(transform.rotation.x||0)}`,
-      `--studio-ry:${Number(transform.rotation.y||0)}`,
-      `--studio-rz:${Number(transform.rotation.z||0)}`,
-      `--studio-sx:${this.combinedScale("x")}`,
-      `--studio-sy:${this.combinedScale("y")}`,
-      `--studio-sz:${this.combinedScale("z")}`
-    ].join(";");
-
+    if(!this.shadowRoot||!this._config)return
+    const s=this.state()
     this.shadowRoot.innerHTML=frame(this._config,`
+      <style>
+        .studio-v5{display:grid;grid-template-columns:minmax(280px,1fr) minmax(280px,440px);gap:14px}
+        .studio-stage{position:relative;min-height:620px;border:1px solid rgba(0,190,255,.55);border-radius:14px;overflow:hidden;background:
+          linear-gradient(rgba(0,170,220,.12) 1px,transparent 1px),
+          linear-gradient(90deg,rgba(0,170,220,.12) 1px,transparent 1px),
+          radial-gradient(circle at 50% 40%,rgba(0,180,255,.16),rgba(0,0,0,.08) 42%,rgba(0,0,0,.30));
+          background-size:32px 32px,32px 32px,100% 100%}
+        .studio-bed{position:absolute;left:3%;right:3%;top:5%;bottom:7%;border:1px dashed rgba(0,190,255,.75);border-radius:12px}
+        .studio-model{position:absolute;left:50%;top:50%;width:160px;height:110px;margin-left:-80px;margin-top:-55px;border:1px solid rgba(0,210,255,.9);border-radius:18px;background:linear-gradient(135deg,rgba(0,180,255,.75),rgba(0,120,170,.55));display:flex;align-items:center;justify-content:center;font-weight:800;box-shadow:0 0 30px rgba(0,180,255,.24);transform-origin:center center;transition:transform .12s ease,width .12s ease,height .12s ease}
+        .studio-readout{position:absolute;left:20px;bottom:18px;font-size:12px;line-height:1.7;color:rgba(230,250,255,.9)}
+        .studio-side{display:flex;flex-direction:column;gap:10px}
+        .studio-panel{border:1px solid rgba(0,190,255,.45);border-radius:12px;padding:12px;background:rgba(0,0,0,.18)}
+        .studio-panel h4{margin:0 0 10px 0}
+        .studio-fields{display:grid;grid-template-columns:repeat(3,minmax(70px,1fr));gap:8px}
+        .studio-field span{display:block;font-size:12px;color:rgba(230,250,255,.75);margin-bottom:5px}
+        .studio-field input{width:100%;box-sizing:border-box;border:1px solid rgba(0,190,255,.55);border-radius:8px;background:rgba(0,0,0,.48);color:white;padding:8px}
+        .studio-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+        .studio-tools button{border:1px solid rgba(0,190,255,.6);border-radius:8px;background:rgba(255,255,255,.08);color:white;padding:9px;cursor:pointer}
+        .studio-tools button:hover{background:rgba(0,190,255,.18)}
+        .studio-note{font-size:12px;line-height:1.45;color:rgba(230,250,255,.78)}
+        @media(max-width:900px){.studio-v5{grid-template-columns:1fr}.studio-stage{min-height:520px}}
+      </style>
       <div class="row between">
         <div>
           <h3>${esc(this._config.title||"3D-Studio / CAD-Vorschau")}</h3>
-          <p class="muted">v5-alpha1: Frontend-Vorbereitung für Verschieben, Drehen, Skalieren, Strecken und Spiegeln. Original-3MF-Dateien bleiben unverändert.</p>
+          <p class="muted">v5-alpha2-mini: Live-Transform, lokale Persistenz im Browser. Original-3MF-Dateien bleiben unverändert.</p>
         </div>
-        <span class="badge">v5-alpha1</span>
+        <span class="badge">v5-alpha2-mini</span>
       </div>
-      <div class="studio-shell">
-        <div class="studio-stage" style="${esc(style)}">
+      <div class="studio-v5">
+        <div class="studio-stage">
           <div class="studio-bed"></div>
-          <div class="studio-object"><strong>3MF</strong></div>
-          <div class="studio-axis">
-            <span>X: ${esc(transform.position.x)} mm</span>
-            <span>Y: ${esc(transform.position.y)} mm</span>
-            <span>Z: ${esc(transform.position.z)} mm</span>
-            <span>RZ: ${esc(transform.rotation.z)}°</span>
-          </div>
+          <div class="studio-model" data-studio-model>3MF</div>
+          <div class="studio-readout" data-studio-readout></div>
         </div>
-        <div class="studio-panel">
-          ${this.triplet("Position","position",transform.position,"mm","0.1")}
-          ${this.triplet("Rotation","rotation",transform.rotation,"°","1")}
-          ${this.triplet("Skalierung","scale",transform.scale,"%","1")}
-          ${this.triplet("Strecken","stretch",transform.stretch,"%","1")}
-          <div class="studio-panel-section">
+        <div class="studio-side">
+          ${this.panel("Position",this.field("x","X","mm")+this.field("y","Y","mm")+this.field("z","Z","mm"))}
+          ${this.panel("Rotation",this.field("rx","X","°")+this.field("ry","Y","°")+this.field("rz","Z","°"))}
+          ${this.panel("Skalierung",this.field("sx","X","%")+this.field("sy","Y","%")+this.field("sz","Z","%"))}
+          ${this.panel("Strecken",this.field("stretchX","X","%")+this.field("stretchY","Y","%")+this.field("stretchZ","Z","%"))}
+          <section class="studio-panel">
             <h4>Werkzeuge</h4>
             <div class="studio-tools">
-              <button data-studio-action="center">Zentrieren</button>
-              <button data-studio-action="flat">Flach legen</button>
-              <button data-studio-action="mirror-x">X spiegeln</button>
-              <button data-studio-action="mirror-y">Y spiegeln</button>
-              <button data-studio-action="mirror-z">Z spiegeln</button>
-              <button data-studio-action="reset">Reset</button>
+              <button data-studio-tool="center">Zentrieren</button>
+              <button data-studio-tool="lay-flat">Flach legen</button>
+              <button data-studio-tool="mirror-x">X spiegeln</button>
+              <button data-studio-tool="mirror-y">Y spiegeln</button>
+              <button data-studio-tool="mirror-z">Z spiegeln</button>
+              <button data-studio-tool="reset">Reset</button>
             </div>
-          </div>
-          <div class="studio-panel-section">
+          </section>
+          <section class="studio-panel">
             <h4>Nächste v5-Schritte</h4>
             <div class="studio-note">
-              In alpha1 wird die Bedienoberfläche vorbereitet. Die Persistenz der Transformationen, echte Modellgeometrie, Profilwahl, Slicer-Worker und Direktdruck folgen in den nächsten v5-Schritten.
+              Als nächstes folgt die echte Persistenz pro Modell: transform.json neben der lokalen 3MF,
+              danach Galerie → In Studio öffnen und später Slicer-/Profil-Anbindung.
             </div>
-          </div>
+          </section>
         </div>
       </div>
-    `);
-    this.bindStudio();
+    `)
+    this.bindStudio()
+    this.updatePreview()
+  }
+
+  bindStudio(){
+    this.shadowRoot.querySelectorAll("[data-studio-input]").forEach((input)=>{
+      input.addEventListener("input",()=>{
+        const key=input.getAttribute("data-studio-input")
+        this.state()[key]=this.num(input.value,this.defaults()[key]||0)
+        this.saveState()
+        this.updatePreview()
+      })
+    })
+    this.shadowRoot.querySelectorAll("[data-studio-tool]").forEach((button)=>{
+      button.addEventListener("click",()=>{
+        this.applyTool(button.getAttribute("data-studio-tool"))
+      })
+    })
+  }
+
+  applyTool(tool){
+    const s=this.state()
+    if(tool==="center"){s.x=0;s.y=0;s.z=0}
+    if(tool==="lay-flat"){s.rx=0;s.ry=0;s.rz=0}
+    if(tool==="mirror-x"){s.sx=this.num(s.sx,100)*-1}
+    if(tool==="mirror-y"){s.sy=this.num(s.sy,100)*-1}
+    if(tool==="mirror-z"){s.sz=this.num(s.sz,100)*-1}
+    if(tool==="reset"){this._studioState=this.defaults()}
+    this.saveState()
+    this.render()
+  }
+
+  updatePreview(){
+    const s=this.state()
+    const model=this.shadowRoot.querySelector("[data-studio-model]")
+    const readout=this.shadowRoot.querySelector("[data-studio-readout]")
+    if(!model||!readout)return
+
+    const scaleX=(this.num(s.sx,100)/100)*(this.num(s.stretchX,100)/100)
+    const scaleY=(this.num(s.sy,100)/100)*(this.num(s.stretchY,100)/100)
+    const translateX=this.num(s.x,0)
+    const translateY=this.num(s.y,0)*-1
+    const rotateZ=this.num(s.rz,0)
+
+    model.style.transform=`translate(${translateX}px,${translateY}px) rotate(${rotateZ}deg) scale(${scaleX},${scaleY})`
+
+    readout.innerHTML=[
+      `X: ${esc(String(this.num(s.x,0)))} mm`,
+      `Y: ${esc(String(this.num(s.y,0)))} mm`,
+      `Z: ${esc(String(this.num(s.z,0)))} mm`,
+      `RX: ${esc(String(this.num(s.rx,0)))}°`,
+      `RY: ${esc(String(this.num(s.ry,0)))}°`,
+      `RZ: ${esc(String(this.num(s.rz,0)))}°`,
+      `SX: ${esc(String(this.num(s.sx,100)))} %`,
+      `SY: ${esc(String(this.num(s.sy,100)))} %`,
+      `SZ: ${esc(String(this.num(s.sz,100)))} %`
+    ].join("<br>")
   }
 }
 class TemplatesCard extends BaseCard {

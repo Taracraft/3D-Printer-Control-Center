@@ -1,7 +1,7 @@
 """Standalone Bambu Lab foundation for 3D-Printer Control Center.
 
-No dependency on greghesp/ha-bambulab.
-That integration is used only as a public technical reference for model
+No dependency on external Bambu Home Assistant integrations.
+External integrations are used only as public technical references for model
 capabilities, MQTT field names, AMS structure, camera modes and future v5
 Studio/Slicer work.
 """

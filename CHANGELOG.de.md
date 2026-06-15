@@ -1,5 +1,18 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha8 - Studio-WebSocket-Registrierung repariert
+
+### Hinzugefügt
+- Robuste Erkennung der Setup-Funktion für die Registrierung der v5-Studio-WebSocket-Kommandos ergänzt.
+- Frontend-Grundlage zum Laden und Leeren persistenter Backend-Slice-Jobs ergänzt.
+
+### Behoben
+- Die Studio-Slice-Job-WebSocket-Backendstruktur wird jetzt im Setup-Ablauf der Integration registriert.
+- v5-Studio-Slice-Job-Schema-Markierungen auf alpha8 aktualisiert.
+
+### Hinweise
+- Dieses Alpha führt weiterhin keinen echten Slicer aus. Es bereitet den Backend-Kommandoweg für das Testfenster alpha10 vor.
+
 ## 5.0.0-alpha7 - Persistente Studio-Slice-Job-Backend-Grundlage
 
 ### Hinzugefügt

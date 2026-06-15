@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha7";
+  const VERSION = "5.0.0-alpha8";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha7",
+      version:"5.0.0-alpha8",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3083,6 +3083,32 @@ class StudioCard extends BaseCard {
     }
   }
 
+  async syncSliceJobsFromBackend(){
+    try{
+      if(!this._hass||!this.ws)return this.sliceJobs();
+      const result=await this.ws({type:"printer_control_center/studio_jobs/list"});
+      const jobs=Array.isArray(result?.jobs)?result.jobs:[];
+      this.saveSliceJobs(jobs);
+      return jobs;
+    }catch(_error){
+      return this.sliceJobs();
+    }
+  }
+
+  async clearSliceJobs(){
+    try{
+      if(this._hass&&this.ws){
+        await this.ws({type:"printer_control_center/studio_jobs/clear"});
+      }
+    }catch(_error){}
+    this.saveSliceJobs([]);
+    const state=this.state();
+    state.activeSliceJobId="";
+    state.lastStudioNotice="Slice-Jobliste geleert.";
+    this._studioState=state;
+    this.saveState();
+    this.afterStudioDomChange();
+  }
   sliceJobs(){
     return pccV5LoadSliceJobs();
   }
@@ -3124,15 +3150,7 @@ class StudioCard extends BaseCard {
     return job;
   }
 
-  clearSliceJobs(){
-    this.saveSliceJobs([]);
-    const state=this.state();
-    state.activeSliceJobId="";
-    state.lastStudioNotice="Slice-Jobliste geleert.";
-    this._studioState=state;
-    this.saveState();
-    this.afterStudioDomChange();
-  }
+
 
   decorateSliceJobPanel(){
     const host=this.shadowRoot?.querySelector(".studio-right")||null;
@@ -3198,7 +3216,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha7",
+      version:"5.0.0-alpha8",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),

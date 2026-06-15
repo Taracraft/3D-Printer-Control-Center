@@ -60,6 +60,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up one printer entry."""
+    async_register_studio_websocket(hass)
     await async_register_frontend(hass)
     current_config = {**entry.data, **entry.options}
     if current_config.get(CONF_AUTO_CREATE_DASHBOARDS, True):

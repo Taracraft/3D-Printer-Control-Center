@@ -1,5 +1,18 @@
 # Changelog
 
+## 5.0.0-alpha8 - Studio WebSocket registration repair
+
+### Added
+- Added robust setup-function detection for registering the v5 Studio WebSocket commands.
+- Added frontend synchronization groundwork for loading and clearing persistent backend slice jobs.
+
+### Fixed
+- Registered the Studio slice-job WebSocket backend in the integration setup flow.
+- Updated v5 Studio slice-job schema markers to alpha8.
+
+### Notes
+- This alpha still avoids a real slicer execution. It prepares the backend command path for the alpha10 test window.
+
 ## 5.0.0-alpha7 - Persistent Studio slice-job backend scaffold
 
 ### Added

@@ -1,4 +1,4 @@
-﻿/* 3D-Printer Control Center - HACS Release 4.0.0-rc1 */
+/* 3D-Printer Control Center - HACS Release 4.0.0-rc1 */
 (() => {
   const VERSION = "4.0.1";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
@@ -5025,5 +5025,7 @@ class TemplatesCard extends BaseCard {
   }
   window.__printerControlCenterCards={version:VERSION,registeredCards:picker.map(([type,name])=>({type,name}))};
   console.info(`3D-Printer Control Center ${VERSION}: ${picker.length} cards registered`);
+
+if (!customElements.get(CARD_TYPES.studio)) customElements.define(CARD_TYPES.studio, StudioCard);
 })();
 

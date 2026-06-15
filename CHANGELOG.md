@@ -1,5 +1,15 @@
 # Changelog
 
+## 5.0.0-alpha11 - Alpha10 test-window diagnostics fix
+
+### Fixed
+- Ensured the Studio self-test panel is actually decorated after Studio DOM updates.
+- Corrected the displayed model label in the Studio diagnostics panel.
+- Protected the Studio self-test update path with scroll and focus restoration for the mobile Home Assistant app.
+
+### Notes
+- This is a test-window fix for the alpha10 diagnostics build. Real slicer execution and direct printing remain disabled.
+
 ## 5.0.0-alpha10 - First v5 Studio test-window diagnostics
 
 ### Added

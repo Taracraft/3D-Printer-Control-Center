@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## 5.0.0-alpha11 - Alpha10-Testfenster-Diagnosefix
+
+### Behoben
+- Sichergestellt, dass das Studio-Selbsttestpanel nach Studio-DOM-Aktualisierungen wirklich nachgerüstet wird.
+- Modellanzeige im Studio-Diagnosepanel korrigiert.
+- Studio-Selbsttest-Aktualisierung mit Scroll- und Fokus-Wiederherstellung für die mobile Home-Assistant-App abgesichert.
+
+### Hinweise
+- Dies ist ein Testfenster-Fix für den alpha10-Diagnosebuild. Echter Slicer-Lauf und Direktdruck bleiben weiterhin deaktiviert.
+
 ## 5.0.0-alpha10 - Erstes v5-Studio-Testfenster mit Diagnose
 
 ### Hinzugefügt

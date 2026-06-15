@@ -1,6 +1,6 @@
 /* 3D-Printer Control Center - v5.0.0-alpha2-ui development */
 (() => {
-  const VERSION = "5.0.0-alpha10";
+  const VERSION = "5.0.0-alpha11";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -390,7 +390,7 @@
     return {
       id:`job-${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
       schema:"printer-control-center.v5.slice-job",
-      version:"5.0.0-alpha10",
+      version:"5.0.0-alpha11",
       createdAt:new Date().toISOString(),
       updatedAt:new Date().toISOString(),
       modelName,
@@ -3077,6 +3077,7 @@ class StudioCard extends BaseCard {
       if(this.decorateStudioModel)this.decorateStudioModel();
       if(this.decorateSlicePlanPanel)this.decorateSlicePlanPanel();
       if(this.decorateSliceJobPanel)this.decorateSliceJobPanel();
+      if(this.decorateStudioSelfTestPanel)this.decorateStudioSelfTestPanel();
     }catch(_error){}finally{
       this._studioDecorating=false;
       this.restoreStudioInteraction(snapshot);
@@ -3252,7 +3253,7 @@ class StudioCard extends BaseCard {
     const model=this.currentStudioModel?.()||state.model||null;
     return {
       schema:"printer-control-center.v5.local-selftest",
-      version:"5.0.0-alpha10",
+      version:"5.0.0-alpha11",
       source:"browser-local",
       websocketRegistered:false,
       jobsCount:jobs.length,
@@ -3269,6 +3270,7 @@ class StudioCard extends BaseCard {
   }
 
   async runStudioSelfTest(){
+    const snapshot=this.captureStudioInteraction?this.captureStudioInteraction():null;
     let result=null;
     try{
       if(this._hass&&this.ws){
@@ -3285,7 +3287,8 @@ class StudioCard extends BaseCard {
     state.lastStudioNotice=`Studio-Selbsttest: ${result.readyForAlpha10Test?"bereit":"prüfen"}`;
     this._studioState=state;
     this.saveState();
-    this.afterStudioDomChange();
+    this.afterStudioDomChange(snapshot);
+    if(this.restoreStudioInteraction)this.restoreStudioInteraction(snapshot);
     return result;
   }
 
@@ -3303,7 +3306,7 @@ class StudioCard extends BaseCard {
         <span>Quelle</span><strong>${esc(result.source||"backend")}</strong>
         <span>WebSocket</span><strong>${esc(result.websocketRegistered?"registriert":"lokal/fallback")}</strong>
         <span>Jobs</span><strong>${esc(String(result.jobsCount||0))}</strong>
-        <span>Modell</span><strong>${esc(result.modelName||result.hasModel?"vorhanden":"kein Modell")}</strong>
+        <span>Modell</span><strong>${esc(result.modelName || (result.hasModel ? "vorhanden" : "kein Modell"))}</strong>
         <span>Slicer</span><strong>${esc(result.slicerWorker||"not_enabled")}</strong>
         <span>Direktdruck</span><strong>${esc(result.directPrint||"disabled")}</strong>
         <span>Testfenster</span><strong>${ok?"bereit":"prüfen"}</strong>
@@ -3392,7 +3395,7 @@ class StudioCard extends BaseCard {
     const selection=this.studioSelection();
     const plan={
       schema:"printer-control-center.v5.slice-plan",
-      version:"5.0.0-alpha10",
+      version:"5.0.0-alpha11",
       createdAt:new Date().toISOString(),
       model:model||{},
       modelKey:pccV5StudioModelKey(model||{}),

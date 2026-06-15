@@ -1,4 +1,4 @@
-/* 3D-Printer Control Center - HACS Release 4.0.0-rc1 */
+﻿/* 3D-Printer Control Center - HACS Release 4.0.0-rc1 */
 (() => {
   const VERSION = "4.0.1";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
@@ -288,6 +288,7 @@
     makerworld: "printer-control-center-makerworld-card",
     media: "printer-control-center-media-card",
     queue: "printer-control-center-queue-card",
+  studio: "printer-control-center-studio-card",
   };
 
   const MODULE_LABELS = {
@@ -303,6 +304,7 @@
     makerworld: "MakerWorld Explorer",
     media: "Kamera / Modellvorschau",
     queue: "3D-Druck-Warteschlange",
+  studio: "3D-Studio / CAD-Vorschau",
   };
 
   const ACCENTS = {
@@ -1548,7 +1550,141 @@
       @media (max-width:760px) {
         .queue-list { grid-template-columns:1fr; }
       }
-      .archive-preview-toolbar {
+    
+  /* v5-alpha1 Studio / CAD preview */
+  .studio-shell {
+    display:grid;
+    grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr);
+    gap:12px;
+    align-items:stretch;
+  }
+  .studio-stage {
+    min-height:420px;
+    border:1px solid rgba(var(--tc-rgb),.28);
+    border-radius:14px;
+    background:
+      linear-gradient(90deg,rgba(var(--tc-rgb),.08) 1px,transparent 1px),
+      linear-gradient(0deg,rgba(var(--tc-rgb),.08) 1px,transparent 1px),
+      radial-gradient(circle at center,rgba(var(--tc-rgb),.16),rgba(0,0,0,.34) 54%,rgba(0,0,0,.54));
+    background-size:32px 32px,32px 32px,100% 100%;
+    overflow:hidden;
+    position:relative;
+    display:grid;
+    place-items:center;
+  }
+  .studio-bed {
+    position:absolute;
+    inset:34px;
+    border:1px dashed rgba(var(--tc-rgb),.52);
+    border-radius:12px;
+    background:rgba(0,0,0,.16);
+    box-shadow:inset 0 0 28px rgba(var(--tc-rgb),.08);
+  }
+  .studio-object {
+    width:170px;
+    height:118px;
+    border-radius:18px;
+    border:1px solid rgba(var(--tc-rgb),.82);
+    background:
+      linear-gradient(135deg,rgba(var(--tc-rgb),.42),rgba(var(--tc-rgb),.11)),
+      linear-gradient(45deg,rgba(255,255,255,.18),transparent 45%);
+    box-shadow:0 18px 42px rgba(0,0,0,.34),0 0 34px rgba(var(--tc-rgb),.20);
+    display:grid;
+    place-items:center;
+    transform:
+      translate(
+        calc(var(--studio-x,0) * 1px),
+        calc(var(--studio-y,0) * -1px)
+      )
+      rotateX(calc(var(--studio-rx,0) * 1deg))
+      rotateY(calc(var(--studio-ry,0) * 1deg))
+      rotateZ(calc(var(--studio-rz,0) * 1deg))
+      scale3d(
+        calc(var(--studio-sx,100) / 100),
+        calc(var(--studio-sy,100) / 100),
+        calc(var(--studio-sz,100) / 100)
+      );
+    transform-style:preserve-3d;
+    transition:transform .16s ease, box-shadow .16s ease;
+  }
+  .studio-object strong {
+    font-size:15px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:#eefaff;
+    text-shadow:0 1px 8px rgba(0,0,0,.55);
+  }
+  .studio-axis {
+    position:absolute;
+    left:18px;
+    bottom:16px;
+    display:grid;
+    gap:4px;
+    font-size:11px;
+    color:var(--secondary-text-color,#9fb2bc);
+  }
+  .studio-axis span { display:block; }
+  .studio-panel {
+    display:grid;
+    gap:10px;
+    align-content:start;
+  }
+  .studio-panel-section {
+    display:grid;
+    gap:7px;
+    padding:10px;
+    border:1px solid rgba(var(--tc-rgb),.18);
+    border-radius:12px;
+    background:rgba(0,0,0,.14);
+  }
+  .studio-panel-section h4 {
+    margin:0;
+    font-size:13px;
+    letter-spacing:.02em;
+  }
+  .studio-triplet {
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+  }
+  .studio-triplet label {
+    display:grid;
+    gap:4px;
+    font-size:11px;
+    color:var(--secondary-text-color,#9fb2bc);
+  }
+  .studio-triplet input {
+    width:100%;
+    min-width:0;
+    box-sizing:border-box;
+    border:1px solid rgba(var(--tc-rgb),.24);
+    border-radius:8px;
+    background:rgba(0,0,0,.20);
+    color:var(--primary-text-color,#eefaff);
+    padding:7px;
+  }
+  .studio-tools {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+  }
+  .studio-tools button {
+    min-height:34px;
+  }
+  .studio-note {
+    color:var(--secondary-text-color,#9fb2bc);
+    font-size:12px;
+    line-height:1.45;
+  }
+  @media (max-width: 860px) {
+    .studio-shell {
+      grid-template-columns:1fr;
+    }
+    .studio-stage {
+      min-height:320px;
+    }
+  }
+  .archive-preview-toolbar {
         display:grid;
         align-content:start;
         gap:6px;
@@ -2671,7 +2807,172 @@
     static getConfigElement(){return editorFor("frame")} static getStubConfig(){return {...commonStub(),title:"Glow-Rahmen"}}
     render(){if(!this._config)return;this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><p class="muted">Konfigurierbarer Glow-Rahmen</p>`)}
   }
-  class TemplatesCard extends BaseCard {
+  
+class StudioCard extends BaseCard {
+  static getConfigElement(){return editorFor("studio")}
+  static getStubConfig(){return {...commonStub(),title:"3D-Studio / CAD-Vorschau",card_size:"xl"}}
+
+  constructor(){
+    super();
+    this._studioTransform=this.defaultStudioTransform();
+  }
+
+  defaultStudioTransform(){
+    return {
+      position:{x:0,y:0,z:0},
+      rotation:{x:0,y:0,z:0},
+      scale:{x:100,y:100,z:100},
+      stretch:{x:100,y:100,z:100},
+      mirror:{x:false,y:false,z:false}
+    };
+  }
+
+  effectiveStudioTransform(){
+    const base=this.defaultStudioTransform();
+    const current=this._studioTransform||{};
+    return {
+      position:{...base.position,...(current.position||{})},
+      rotation:{...base.rotation,...(current.rotation||{})},
+      scale:{...base.scale,...(current.scale||{})},
+      stretch:{...base.stretch,...(current.stretch||{})},
+      mirror:{...base.mirror,...(current.mirror||{})}
+    };
+  }
+
+  combinedScale(axis){
+    const transform=this.effectiveStudioTransform();
+    const scale=Number(transform.scale?.[axis]||100);
+    const stretch=Number(transform.stretch?.[axis]||100);
+    const mirror=transform.mirror?.[axis]?-1:1;
+    return Math.round(scale*stretch*mirror)/100;
+  }
+
+  setStudioValue(group,axis,value){
+    const transform=this.effectiveStudioTransform();
+    const numeric=Number.parseFloat(value);
+    if(Number.isNaN(numeric))return;
+    transform[group][axis]=numeric;
+    this._studioTransform=transform;
+    this.render();
+  }
+
+  setMirror(axis){
+    const transform=this.effectiveStudioTransform();
+    transform.mirror[axis]=!transform.mirror[axis];
+    this._studioTransform=transform;
+    this.render();
+  }
+
+  resetStudioTransform(){
+    this._studioTransform=this.defaultStudioTransform();
+    this.render();
+  }
+
+  centerStudioObject(){
+    const transform=this.effectiveStudioTransform();
+    transform.position={x:0,y:0,z:0};
+    this._studioTransform=transform;
+    this.render();
+  }
+
+  layFlatStudioObject(){
+    const transform=this.effectiveStudioTransform();
+    transform.position.z=0;
+    transform.rotation.x=0;
+    transform.rotation.y=0;
+    this._studioTransform=transform;
+    this.render();
+  }
+
+  bindStudio(){
+    this.shadowRoot.querySelectorAll("[data-studio-field]").forEach((input)=>{
+      input.addEventListener("change",()=>{
+        this.setStudioValue(input.dataset.group,input.dataset.axis,input.value);
+      });
+      input.addEventListener("input",()=>{
+        this.setStudioValue(input.dataset.group,input.dataset.axis,input.value);
+      });
+    });
+    this.shadowRoot.querySelectorAll("[data-studio-action]").forEach((button)=>{
+      button.addEventListener("click",()=>{
+        const action=button.dataset.studioAction;
+        if(action==="reset")this.resetStudioTransform();
+        if(action==="center")this.centerStudioObject();
+        if(action==="flat")this.layFlatStudioObject();
+        if(action==="mirror-x")this.setMirror("x");
+        if(action==="mirror-y")this.setMirror("y");
+        if(action==="mirror-z")this.setMirror("z");
+      });
+    });
+  }
+
+  triplet(title,group,values,unit="",step="1"){
+    const axis=(key)=>`<label>${key.toUpperCase()}${unit?` ${unit}`:""}<input data-studio-field data-group="${esc(group)}" data-axis="${esc(key)}" type="number" step="${esc(step)}" value="${esc(values[key])}"></label>`;
+    return `<div class="studio-panel-section"><h4>${esc(title)}</h4><div class="studio-triplet">${axis("x")}${axis("y")}${axis("z")}</div></div>`;
+  }
+
+  render(){
+    if(!this._config)return;
+    const transform=this.effectiveStudioTransform();
+    const style=[
+      `--studio-x:${Number(transform.position.x||0)}`,
+      `--studio-y:${Number(transform.position.y||0)}`,
+      `--studio-rx:${Number(transform.rotation.x||0)}`,
+      `--studio-ry:${Number(transform.rotation.y||0)}`,
+      `--studio-rz:${Number(transform.rotation.z||0)}`,
+      `--studio-sx:${this.combinedScale("x")}`,
+      `--studio-sy:${this.combinedScale("y")}`,
+      `--studio-sz:${this.combinedScale("z")}`
+    ].join(";");
+
+    this.shadowRoot.innerHTML=frame(this._config,`
+      <div class="row between">
+        <div>
+          <h3>${esc(this._config.title||"3D-Studio / CAD-Vorschau")}</h3>
+          <p class="muted">v5-alpha1: Frontend-Vorbereitung für Verschieben, Drehen, Skalieren, Strecken und Spiegeln. Original-3MF-Dateien bleiben unverändert.</p>
+        </div>
+        <span class="badge">v5-alpha1</span>
+      </div>
+      <div class="studio-shell">
+        <div class="studio-stage" style="${esc(style)}">
+          <div class="studio-bed"></div>
+          <div class="studio-object"><strong>3MF</strong></div>
+          <div class="studio-axis">
+            <span>X: ${esc(transform.position.x)} mm</span>
+            <span>Y: ${esc(transform.position.y)} mm</span>
+            <span>Z: ${esc(transform.position.z)} mm</span>
+            <span>RZ: ${esc(transform.rotation.z)}°</span>
+          </div>
+        </div>
+        <div class="studio-panel">
+          ${this.triplet("Position","position",transform.position,"mm","0.1")}
+          ${this.triplet("Rotation","rotation",transform.rotation,"°","1")}
+          ${this.triplet("Skalierung","scale",transform.scale,"%","1")}
+          ${this.triplet("Strecken","stretch",transform.stretch,"%","1")}
+          <div class="studio-panel-section">
+            <h4>Werkzeuge</h4>
+            <div class="studio-tools">
+              <button data-studio-action="center">Zentrieren</button>
+              <button data-studio-action="flat">Flach legen</button>
+              <button data-studio-action="mirror-x">X spiegeln</button>
+              <button data-studio-action="mirror-y">Y spiegeln</button>
+              <button data-studio-action="mirror-z">Z spiegeln</button>
+              <button data-studio-action="reset">Reset</button>
+            </div>
+          </div>
+          <div class="studio-panel-section">
+            <h4>Nächste v5-Schritte</h4>
+            <div class="studio-note">
+              In alpha1 wird die Bedienoberfläche vorbereitet. Die Persistenz der Transformationen, echte Modellgeometrie, Profilwahl, Slicer-Worker und Direktdruck folgen in den nächsten v5-Schritten.
+            </div>
+          </div>
+        </div>
+      </div>
+    `);
+    this.bindStudio();
+  }
+}
+class TemplatesCard extends BaseCard {
     static getConfigElement(){return editorFor("templates")}
     static getStubConfig(){return {...commonStub(),title:"3D-Drucker-Dateimanager/Galerie",card_size:"xl"}}
 
@@ -4725,3 +5026,4 @@
   window.__printerControlCenterCards={version:VERSION,registeredCards:picker.map(([type,name])=>({type,name}))};
   console.info(`3D-Printer Control Center ${VERSION}: ${picker.length} cards registered`);
 })();
+

@@ -1,3 +1,9 @@
+## 4.0.12 - 2026-06-16
+
+- Loader der Dashboard-Livekamera-Karte korrigiert.
+- Home Assistants `loadCardHelpers()` und `createCardElement()` werden verwendet, um die native `picture-entity`-Livekamera-Karte zuverlässig zu laden.
+- Falschen Blockierzustand entfernt, bei dem die Karte dauerhaft `HA Picture-Entity-Karte ist noch nicht geladen` angezeigt hat.
+
 ## 4.0.11 - 2026-06-16
 
 - Automatisch erkennende 3D-Printer-Control-Center-Kamerakarte ergänzt.

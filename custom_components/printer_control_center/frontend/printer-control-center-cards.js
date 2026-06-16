@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 4.0.11 */
+/* 3D-Printer Control Center - HACS Release 4.0.12 */
 (() => {
-  const VERSION = "4.0.11";
+  const VERSION = "4.0.12";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4809,7 +4809,7 @@
         for (const node of nodes) sanitizeNode(node, depth + 1);
       }
     } catch (err) {
-      console.debug("PCC v4.0.11 UTF-8 sanitizer skipped node", err);
+      console.debug("PCC v4.0.12 UTF-8 sanitizer skipped node", err);
     }
   };
 
@@ -4937,12 +4937,6 @@
         return;
       }
 
-      if (!customElements.get("hui-picture-entity-card")) {
-        this._renderEmpty("HA Picture-Entity-Karte ist noch nicht geladen. Dashboard neu laden.");
-        customElements.whenDefined("hui-picture-entity-card").then(() => this._render());
-        return;
-      }
-
       if (!this._card || this._cardEntity !== entity) {
         this.shadowRoot.innerHTML = `
           <style>
@@ -4956,9 +4950,7 @@
           <div id="host"></div>
         `;
 
-        this._card = document.createElement("hui-picture-entity-card");
-        this._cardEntity = entity;
-        this._card.setConfig({
+        const config = {
           type: "picture-entity",
           entity,
           camera_image: entity,
@@ -4966,12 +4958,46 @@
           name: this._config.name || "Bambu Live-Kamera",
           show_name: this._config.show_name ?? true,
           show_state: this._config.show_state ?? true,
-        });
+        };
 
-        this.shadowRoot.getElementById("host").appendChild(this._card);
+        this._cardEntity = entity;
+        this._card = null;
+
+        const host = this.shadowRoot.getElementById("host");
+
+        const installCard = (card) => {
+          if (!card) {
+            this._renderEmpty("HA Picture-Entity-Karte konnte nicht erstellt werden.");
+            return;
+          }
+          this._card = card;
+          this._card.hass = this._hass;
+          host.innerHTML = "";
+          host.appendChild(card);
+        };
+
+        if (window.loadCardHelpers) {
+          window.loadCardHelpers()
+            .then((helpers) => helpers.createCardElement(config))
+            .then((card) => installCard(card))
+            .catch((err) => {
+              console.error("PCC camera card helper failed", err);
+              this._renderEmpty("HA Picture-Entity-Karte konnte nicht geladen werden.");
+            });
+          return;
+        }
+
+        if (customElements.get("hui-picture-entity-card")) {
+          const card = document.createElement("hui-picture-entity-card");
+          card.setConfig(config);
+          installCard(card);
+        } else {
+          this._renderEmpty("HA Kartenhelfer sind noch nicht verfügbar. Dashboard neu laden.");
+          return;
+        }
       }
 
-      this._card.hass = this._hass;
+      if (this._card) this._card.hass = this._hass;
     }
   }
 

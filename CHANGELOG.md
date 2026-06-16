@@ -1,3 +1,9 @@
+## 4.0.12 - 2026-06-16
+
+- Fix the dashboard live camera card loader.
+- Use Home Assistant `loadCardHelpers()` and `createCardElement()` to load the native `picture-entity` live camera card reliably.
+- Remove the false blocking state where the card stayed on `HA Picture-Entity-Karte ist noch nicht geladen`.
+
 ## 4.0.11 - 2026-06-16
 
 - Add an auto-detecting 3D-Printer Control Center camera dashboard card.

@@ -1,3 +1,12 @@
+## 4.0.20 - 2026-06-16
+
+- Flackernde X1/X1C-Kamera in der Haupt-Druckerkarte gestoppt.
+- Instabiler Live-Stream-Pfad in der Hauptkarte für RTSPS/TCP-322-Kameras deaktiviert.
+- A1/TCP6000-artige Kameras bleiben auf dem bisherigen Stream-Pfad.
+- Für RTSPS/TCP-322-Kameras wie X1/X1C/P1/H2/P2/X2 wird in der Haupt-Druckerkarte der stabile native Home-Assistant-Kamera-Snapshot verwendet.
+- Separate rechte Kamera-Karte bleibt aus dem verwalteten Dashboard entfernt.
+- Großansicht nutzt Snapshot-Fallback, wenn kein stabiler Stream verfügbar ist.
+
 ## 4.0.19 - 2026-06-16
 
 - Frühere Overlay- und Injection-Kamera-Workarounds entfernt.

@@ -1,3 +1,12 @@
+## 4.0.20 - 2026-06-16
+
+- Stop the flickering X1/X1C camera in the main printer card.
+- Disable the unstable main-card live stream path for RTSPS/TCP 322 cameras.
+- Keep A1/TCP6000-style cameras on the existing stream path.
+- Use the stable native Home Assistant camera snapshot for RTSPS/TCP 322 cameras such as X1/X1C/P1/H2/P2/X2 in the main printer card.
+- Keep the standalone right-side camera card out of the managed dashboard.
+- Use snapshot fallback for the large camera view when no stable stream is available.
+
 ## 4.0.19 - 2026-06-16
 
 - Remove the previous overlay and injection camera workarounds.

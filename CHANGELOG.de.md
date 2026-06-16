@@ -1,3 +1,9 @@
+## 4.0.13 - 2026-06-16
+
+- Livekamera direkt in die Haupt-Druckerkarte / Druckansicht eingebaut.
+- Die funktionierende Home-Assistant-Livekamera-Darstellung wird jetzt direkt im Kamera-Feld der Druckerkarte verwendet.
+- Umsetzung generisch gehalten durch dynamische Auflösung von `camera.*_native_live_camera`.
+
 ## 4.0.12 - 2026-06-16
 
 - Loader der Dashboard-Livekamera-Karte korrigiert.

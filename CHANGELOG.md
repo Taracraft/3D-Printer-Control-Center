@@ -1,3 +1,9 @@
+## 4.0.13 - 2026-06-16
+
+- Add the live camera directly into the main printer card / print view.
+- Reuse the working Home Assistant live camera rendering inside the printer card camera panel.
+- Keep the implementation generic by resolving `camera.*_native_live_camera` dynamically.
+
 ## 4.0.12 - 2026-06-16
 
 - Fix the dashboard live camera card loader.

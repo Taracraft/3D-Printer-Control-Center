@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta6*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta7*/
 (() => {
-  const VERSION = "5.0.0-beta6";
+  const VERSION = "5.0.0-beta7";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta6",
+        version: "5.0.0-beta7",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta6";
+  const STUDIO_VERSION = "5.0.0-beta7";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -4881,7 +4881,7 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta6 Studio Import Buildplate Showcase bereit. Import-Popup, Buildplate-Auswahl, Galerie-Preview-Handoff, stabiles Kontextmenü und persistentes Löschen sind aktiv. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+      this._status = "beta7 Morning Final Studio Polish bereit. UTF-8-Sanitizer, Import-Assistent, Druckplatten-Kacheln, stabiles Kontextmenü und persistentes Löschen sind aktiv. Echtes Slicen und Direktdruck bleiben deaktiviert.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -4944,7 +4944,7 @@
       this.ensureStudioMeshLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Beta6: Home Assistant pushes frequent hass updates.
+      // Beta7: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -6039,7 +6039,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta6: no full render on every keystroke.
+      // Beta7: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -6054,7 +6054,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta6: render is intentionally skipped while editing to avoid cursor jumps.
+      // Beta7: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -6443,7 +6443,7 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta6 Studio Import Buildplate Showcase</div>
+                  <div class="plate-label">Buildplate - beta7 Morning Final Studio Polish</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   ${this._studioModelImageUrl ? html`
@@ -8509,6 +8509,937 @@
     PCC_BETA6_STUDIO_CLASS.prototype._pccBeta6ChangeWrapped = true;
   }
 
+
+  const PCC_BETA7_BUILD_PLATES = [
+    {id:"cool_plate", name:"Cool Plate/PLA Plate", short:"Cool Plate / PLA", texture:"cool", tint:"#84d8ff"},
+    {id:"engineering_plate", name:"Engineering Plate", short:"Engineering Plate", texture:"engineering", tint:"#a8adb4"},
+    {id:"smooth_pei_high_temp", name:"Smooth PEI Plate / High Temp Plate", short:"Smooth PEI / High Temp", texture:"smooth", tint:"#f0d85f"},
+    {id:"textured_pei", name:"Textured PEI Plate", short:"Textured PEI", texture:"textured", tint:"#d2b264"},
+    {id:"bambu_cool_plate_supertack", name:"Bambu Cool Plate SuperTack", short:"Cool Plate SuperTack", texture:"supertack", tint:"#94e87a"}
+  ];
+
+  const PCC_BETA7_TEXT_FIXES = [
+    ["Ãƒ"+"Â¤","ä"],["Ãƒ"+"Â¶","ö"],["Ãƒ"+"Â¼","ü"],["Ãƒ"+"Å“","Ü"],["Ãƒ"+"â€“","Ö"],["Ãƒ"+"Â„","Ä"],["Ãƒ"+"Å¸","ß"],
+    ["Ã"+"¼","ü"],["Ã"+"¶","ö"],["Ã"+"¤","ä"],["Ã"+"œ","Ü"],["Ã"+"–","Ö"],["Ã"+"„","Ä"],["Ã"+"Ÿ","ß"],
+    ["Ã¢"+"â‚¬Å¾","„"],["Ã¢"+"â‚¬Å“","“"],["Ã¢"+"â‚¬Â","”"],["Ã¢"+"â‚¬Â¦","…"],["Ã¢"+"â‚¬â€œ","–"],["Ã¢"+"â‚¬â€�","—"],
+    ["Ã¢"+"â€”Â","●"],["Ã¢"+"â€ â€”","↗"],["Ã¢"+"â€ Â»","↻"],["Ã¢"+"â€ â€”","↗"],["Ã¢"+"â€ Â»","↻"],
+    ["ðŸ"+"—‘","🗑"],["ðŸ"+"“","📁"],["ðŸ"+"“„","📄"],["ðŸ"+"“·","📷"],["ðŸ"+"’¡","💡"],
+    ["Loe"+"schen","Löschen"],["Öffnen","Öffnen"],["öffnen","öffnen"],["Prüfen","Prüfen"],["prüfen","prüfen"],
+    ["Zurück","Zurück"],["zurück","zurück"],["ausgewählt","ausgewählt"],["gewählt","gewählt"],
+    ["hinzugefügt","hinzugefügt"],["geöffnet","geöffnet"]
+  ];
+
+  function pccBeta7FixText(value) {
+    let text = String(value ?? "");
+    for (const [bad, good] of PCC_BETA7_TEXT_FIXES) text = text.split(bad).join(good);
+
+    if (/[Ãâð�]/.test(text)) {
+      const known = [
+        "Archiv", "SD-Karte", "Hauptordner", "Neuer Ordner", "Öffnen", "Umbenennen", "Verschieben", "Löschen",
+        "Drucken", "Planen", "3MF hochladen", "Galerie-ZIP exportieren", "Galerie-ZIP importieren", "Aktualisieren",
+        "Auswahl löschen", "Sichtbare auswählen", "Großansicht", "Livebild ausblenden", "Livebild anzeigen"
+      ];
+
+      for (const label of known) {
+        if (text.includes(label)) {
+          text = text.replace(/^[^A-Za-zÄÖÜäöüß0-9]+/u, "");
+          break;
+        }
+      }
+
+      text = text
+        .replace(/Ã\S{0,5}/g, "")
+        .replace(/â\S{0,5}/g, "")
+        .replace(/ðŸ\S{0,5}/g, "")
+        .replace(/�+/g, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
+
+    return text;
+  }
+
+  function pccBeta7SanitizeRoot(root) {
+    if (!root) return;
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    for (const node of nodes) {
+      const before = String(node.nodeValue || "");
+      const after = pccBeta7FixText(before);
+      if (before !== after) node.nodeValue = after;
+    }
+
+    for (const element of [...root.querySelectorAll?.("*") || []]) {
+      for (const attr of ["title", "aria-label", "placeholder", "alt"]) {
+        if (!element.hasAttribute?.(attr)) continue;
+        const before = element.getAttribute(attr);
+        const after = pccBeta7FixText(before);
+        if (before !== after) element.setAttribute(attr, after);
+      }
+    }
+  }
+
+  function pccBeta7SanitizeAllOpenRoots(root=document) {
+    try {
+      pccBeta7SanitizeRoot(root);
+      for (const node of [...root.querySelectorAll?.("*") || []]) {
+        if (node.shadowRoot) pccBeta7SanitizeAllOpenRoots(node.shadowRoot);
+      }
+    } catch (_error) {}
+  }
+
+  function pccBeta7PatchCardClass(type) {
+    const cls = customElements.get(type);
+    const proto = cls?.prototype;
+    if (!proto || proto._pccBeta7Sanitized) return;
+
+    if (typeof proto.render === "function") {
+      const originalRender = proto.render;
+      proto.render = function renderBeta7Sanitized(...args) {
+        const result = originalRender.apply(this, args);
+        window.queueMicrotask?.(() => pccBeta7SanitizeRoot(this.shadowRoot));
+        window.setTimeout(() => pccBeta7SanitizeRoot(this.shadowRoot), 25);
+        return result;
+      };
+    }
+
+    if (typeof proto.connectedCallback === "function") {
+      const originalConnected = proto.connectedCallback;
+      proto.connectedCallback = function connectedBeta7Sanitized(...args) {
+        const result = originalConnected.apply(this, args);
+        window.setTimeout(() => {
+          pccBeta7SanitizeRoot(this.shadowRoot);
+          if (!this._pccBeta7Observer && this.shadowRoot && typeof MutationObserver !== "undefined") {
+            this._pccBeta7Observer = new MutationObserver(() => pccBeta7SanitizeRoot(this.shadowRoot));
+            this._pccBeta7Observer.observe(this.shadowRoot, {childList:true, subtree:true, characterData:true});
+          }
+        }, 25);
+        return result;
+      };
+    }
+
+    proto._pccBeta7Sanitized = true;
+  }
+
+  function pccBeta7PatchAllCards() {
+    const types = new Set((window.customCards || [])
+      .map((card) => String(card?.type || ""))
+      .filter((type) => type.includes("printer-control-center")));
+
+    [
+      "printer-control-center-card",
+      "printer-control-center-printer-card",
+      "printer-control-center-gallery-card",
+      "printer-control-center-filemanager-card",
+      "printer-control-center-file-manager-card",
+      "printer-control-center-queue-card",
+      "printer-control-center-studio-card",
+      "printer-control-center-templates-card"
+    ].forEach((type) => types.add(type));
+
+    for (const type of types) pccBeta7PatchCardClass(type);
+
+    window.setTimeout(() => pccBeta7SanitizeAllOpenRoots(), 50);
+    window.setTimeout(() => pccBeta7SanitizeAllOpenRoots(), 350);
+  }
+
+  pccBeta7PatchAllCards();
+  if (!window._pccBeta7SanitizeInterval) {
+    window._pccBeta7SanitizeInterval = window.setInterval(() => pccBeta7SanitizeAllOpenRoots(), 1600);
+  }
+
+  const PCC_BETA7_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA7_ORIGINAL_HANDLE_CLICK = PCC_BETA7_STUDIO_CLASS.prototype.handleClick;
+
+  PCC_BETA7_STUDIO_CLASS.prototype.beta7Serial = function beta7Serial() {
+    return String(this._activeJob?.serial || this._config?.serial || "");
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.beta7CurrentPlate = function beta7CurrentPlate() {
+    const id =
+      this._studioBuildPlate ||
+      this._activeJob?.profile_context?.build_plate?.id ||
+      this._activeJob?.profile_context?.build_plate_id ||
+      "smooth_pei_high_temp";
+
+    return PCC_BETA7_BUILD_PLATES.find((plate) => plate.id === id) || PCC_BETA7_BUILD_PLATES[2];
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.beta7SetPlate = function beta7SetPlate(id) {
+    const plate = PCC_BETA7_BUILD_PLATES.find((item) => item.id === id) || PCC_BETA7_BUILD_PLATES[2];
+    this._studioBuildPlate = plate.id;
+
+    if (this._activeJob) {
+      this._activeJob.profile_context = this._activeJob.profile_context || {};
+      this._activeJob.profile_context.build_plate = {id:plate.id, name:plate.name, texture:plate.texture};
+      this._activeJob.build_plate = plate.name;
+      this.scheduleActiveJobSave?.();
+    }
+
+    this._status = `Druckplatte gewechselt: ${plate.name}.`;
+    this.render();
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.jobName = function jobName(job=this._activeJob) {
+    const candidates = [
+      job?.modelName, job?.file_name, job?.filename, job?.name,
+      job?.model?.name, job?.model?.filename, job?.model?.file_name,
+      job?.path, job?.file_path
+    ];
+
+    for (const value of candidates) {
+      if (typeof value === "string" && value.trim()) return value.trim().split("/").filter(Boolean).pop() || value.trim();
+      if (value && typeof value === "object") {
+        for (const key of ["name", "filename", "file_name", "path"]) {
+          const nested = String(value?.[key] || "").trim();
+          if (nested) return nested.split("/").filter(Boolean).pop() || nested;
+        }
+      }
+    }
+    return "3MF-Modell";
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.beta7CleanTopNavigation = function beta7CleanTopNavigation() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const buttons = [...root.querySelectorAll("button")];
+    const importButton = buttons.find((button) => pccBeta7FixText(button.textContent).trim() === "Importieren");
+    const host = importButton?.parentElement || buttons.find((button) => pccBeta7FixText(button.textContent).includes("Plan prüfen"))?.parentElement;
+    if (!host) return;
+
+    const keep = new Set(["Importieren", "Plan prüfen", "Health prüfen", "Jobs neu laden", "Löschen"]);
+    for (const button of [...host.querySelectorAll("button")]) {
+      const label = pccBeta7FixText(button.textContent).trim();
+      button.textContent = label;
+      if (!keep.has(label)) button.remove();
+    }
+
+    const deleteButtons = [...host.querySelectorAll("button")].filter((button) => pccBeta7FixText(button.textContent).trim() === "Löschen");
+    deleteButtons.slice(1).forEach((button) => button.remove());
+
+    if (!deleteButtons.length) {
+      const button = document.createElement("button");
+      button.className = "action";
+      button.dataset.beta7TopDelete = "1";
+      button.textContent = "Löschen";
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.deleteActiveJob();
+      });
+      host.appendChild(button);
+    }
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.beta7InstallBuildPlateDeck = function beta7InstallBuildPlateDeck() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const panels = [...root.querySelectorAll(".panel")];
+    const leftPanel = panels[0];
+    if (!leftPanel) return;
+
+    const current = this.beta7CurrentPlate();
+    let box = leftPanel.querySelector(".beta7-buildplate-deck");
+
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "beta7-buildplate-deck";
+      leftPanel.insertBefore(box, leftPanel.children[1] || null);
+    }
+
+    const plateCards = PCC_BETA7_BUILD_PLATES.map((plate) => `
+      <button class="beta7-plate-card ${plate.id === current.id ? "active" : ""}" data-beta7-plate="${escStudio(plate.id)}">
+        <span class="beta7-plate-art beta7-plate-${escStudio(plate.texture)}">
+          <span class="beta7-plate-grid"></span>
+        </span>
+        <b>${escStudio(plate.short)}</b>
+        <small>${escStudio(plate.name)}</small>
+      </button>
+    `).join("");
+
+    box.innerHTML = `
+      <h3>Druckplatte</h3>
+      <div class="beta7-selected-plate">
+        <div class="beta7-plate-art beta7-plate-${escStudio(current.texture)}"><span class="beta7-plate-grid"></span></div>
+        <div><b>${escStudio(current.short)}</b><small>${escStudio(current.name)}</small></div>
+      </div>
+      <div class="beta7-plate-grid-list">${plateCards}</div>
+    `;
+
+    for (const button of [...box.querySelectorAll("[data-beta7-plate]")]) {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta7SetPlate(button.dataset.beta7Plate || "smooth_pei_high_temp");
+      });
+    }
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.beta7ApplyBuildPlateVisual = function beta7ApplyBuildPlateVisual() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const plate = this.beta7CurrentPlate();
+    const buildplate = root.querySelector(".buildplate");
+    if (!buildplate) return;
+
+    buildplate.classList.remove("beta7-plate-smooth", "beta7-plate-textured", "beta7-plate-cool", "beta7-plate-engineering", "beta7-plate-supertack");
+    buildplate.classList.add(`beta7-plate-${plate.texture}`);
+    buildplate.dataset.beta7Plate = plate.id;
+
+    const label = root.querySelector(".plate-label");
+    if (label) label.textContent = `Buildplate – ${plate.name}`;
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.beta7FixObjectObject = function beta7FixObjectObject() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    for (const node of nodes) {
+      const text = String(node.nodeValue || "");
+      if (text.includes("[object Object]")) node.nodeValue = text.replaceAll("[object Object]", "").trim();
+    }
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
+    this.beta7CleanTopNavigation?.();
+    this.beta7InstallBuildPlateDeck?.();
+    this.beta7ApplyBuildPlateVisual?.();
+    this.beta7FixObjectObject?.();
+    this.updateStudioModelImage?.();
+    pccBeta7SanitizeRoot(this.shadowRoot);
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.showBetaStudioContextMenu = function showBetaStudioContextMenu(point) {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".studio-context.beta7-floating-context,.studio-context.beta6-floating-context,.studio-context.beta5-floating-context,.studio-context.beta4-floating-context,.studio-context.beta3-floating-context").forEach((node) => node.remove());
+
+    const menu = document.createElement("div");
+    menu.className = "studio-context beta7-floating-context";
+    menu.style.position = "fixed";
+    menu.style.left = `${Math.max(8, Number(point?.clientX || 8))}px`;
+    menu.style.top = `${Math.max(8, Number(point?.clientY || 8))}px`;
+    menu.style.zIndex = "2147483000";
+
+    menu.innerHTML = `
+      <div class="beta7-context-shell">
+        <div class="beta7-context-left">
+          <div class="beta7-menu-title">3D-Studio</div>
+          <button class="beta7-menu-row active" data-beta7-panel="position">Position</button>
+          <button class="beta7-menu-row" data-beta7-panel="transform">Drehen / Skalieren</button>
+          <button class="beta7-menu-row" data-beta7-panel="plate">Druckplatte</button>
+          <button class="beta7-menu-row" data-beta7-panel="job">Job / Modell</button>
+          <button class="action" data-beta7-action="close-context">Schließen</button>
+        </div>
+        <div class="beta7-context-right">
+          <div class="beta7-side-panel active" data-beta7-side-panel="position">
+            <button class="action" data-beta7-action="center">Zentrieren</button>
+            <button class="action" data-beta7-action="move-left">X -10</button>
+            <button class="action" data-beta7-action="move-right">X +10</button>
+            <button class="action" data-beta7-action="move-up">Y -10</button>
+            <button class="action" data-beta7-action="move-down">Y +10</button>
+            <button class="action" data-beta7-action="lay-flat">Flach legen</button>
+            <button class="action" data-beta7-action="snap-grid">Raster anwenden</button>
+          </div>
+          <div class="beta7-side-panel" data-beta7-side-panel="transform">
+            <button class="action" data-beta7-action="rot-left">Rot -45</button>
+            <button class="action" data-beta7-action="rot-right">Rot +45</button>
+            <button class="action" data-beta7-action="scale-down">Scale -</button>
+            <button class="action" data-beta7-action="scale-up">Scale +</button>
+            <button class="action" data-beta7-action="zoom-out">Zoom -</button>
+            <button class="action" data-beta7-action="zoom-in">Zoom +</button>
+            <button class="action" data-beta7-action="mirror-x">Spiegel X</button>
+            <button class="action" data-beta7-action="mirror-y">Spiegel Y</button>
+            <button class="action" data-beta7-action="mirror-z">Spiegel Z</button>
+            <button class="action" data-beta7-action="skew-left">Zerr X -</button>
+            <button class="action" data-beta7-action="skew-right">Zerr X +</button>
+          </div>
+          <div class="beta7-side-panel" data-beta7-side-panel="plate">
+            ${PCC_BETA7_BUILD_PLATES.map((plate) => `
+              <button class="action beta7-plate-menu-action" data-beta7-action="plate:${escStudio(plate.id)}">
+                <span class="beta7-mini-plate beta7-plate-${escStudio(plate.texture)}"><span></span></span>${escStudio(plate.short)}
+              </button>
+            `).join("")}
+          </div>
+          <div class="beta7-side-panel" data-beta7-side-panel="job">
+            <button class="action" data-beta7-action="import-assistant">Import-Assistent öffnen</button>
+            <button class="action" data-beta7-action="reload-mesh">Echtes Modell neu laden</button>
+            <button class="action" data-beta7-action="duplicate">Duplizieren</button>
+            <button class="action danger" data-beta7-action="delete">Löschen</button>
+            <button class="action" data-beta7-action="reset">Reset</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const rows = [...menu.querySelectorAll("[data-beta7-panel]")];
+    const panels = [...menu.querySelectorAll("[data-beta7-side-panel]")];
+
+    const showPanel = (name) => {
+      rows.forEach((row) => row.classList.toggle("active", row.dataset.beta7Panel === name));
+      panels.forEach((panel) => panel.classList.toggle("active", panel.dataset.beta7SidePanel === name));
+    };
+
+    rows.forEach((row) => {
+      row.addEventListener("mouseenter", () => showPanel(row.dataset.beta7Panel));
+      row.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        showPanel(row.dataset.beta7Panel);
+      });
+    });
+
+    menu.addEventListener("pointerdown", (event) => event.stopPropagation());
+    menu.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+
+    menu.addEventListener("click", (event) => {
+      const button = event.target?.closest?.("button[data-beta7-action]");
+      if (!button) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const action = String(button.dataset.beta7Action || "");
+
+      if (action === "close-context") {
+        menu.remove();
+        this._studioContextMenu = null;
+        this._beta7ContextPoint = null;
+        return;
+      }
+
+      if (action.startsWith("plate:")) this.beta7SetPlate(action.split(":")[1]);
+      else if (action === "center") this.centerActiveObject();
+      else if (action === "move-left") this.adjustTransform("x", -10, {status:"X -10 per Kontextmenü.", render:true});
+      else if (action === "move-right") this.adjustTransform("x", 10, {status:"X +10 per Kontextmenü.", render:true});
+      else if (action === "move-up") this.adjustTransform("y", -10, {status:"Y -10 per Kontextmenü.", render:true});
+      else if (action === "move-down") this.adjustTransform("y", 10, {status:"Y +10 per Kontextmenü.", render:true});
+      else if (action === "lay-flat") this.layFlatActiveObject();
+      else if (action === "snap-grid") this.snapTransformToGrid();
+      else if (action === "rot-left") this.adjustTransform("rz", -45, {status:"Rotation Z -45 per Kontextmenü.", render:true});
+      else if (action === "rot-right") this.adjustTransform("rz", 45, {status:"Rotation Z +45 per Kontextmenü.", render:true});
+      else if (action === "scale-down") this.adjustTransform("scale", -10, {status:"Scale -10 per Kontextmenü.", render:true});
+      else if (action === "scale-up") this.adjustTransform("scale", 10, {status:"Scale +10 per Kontextmenü.", render:true});
+      else if (action === "zoom-out") this.setViewZoom((this._viewZoom || 1) - 0.10);
+      else if (action === "zoom-in") this.setViewZoom((this._viewZoom || 1) + 0.10);
+      else if (action === "mirror-x") this.toggleMirror("x");
+      else if (action === "mirror-y") this.toggleMirror("y");
+      else if (action === "mirror-z") this.toggleMirror("z");
+      else if (action === "skew-left") this.adjustTransform("skewX", -5, {status:"Zerr X -5 per Kontextmenü.", render:true});
+      else if (action === "skew-right") this.adjustTransform("skewX", 5, {status:"Zerr X +5 per Kontextmenü.", render:true});
+      else if (action === "import-assistant") this.openBeta7ImportAssistant();
+      else if (action === "reload-mesh") this.ensureStudioMeshLoaded(true);
+      else if (action === "duplicate") this.duplicateActiveJob();
+      else if (action === "delete") this.deleteActiveJob();
+      else if (action === "reset") this.resetTransform?.();
+    });
+
+    root.appendChild(menu);
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.bindBetaContextMenu = function bindBetaContextMenu() {
+    const root = this.shadowRoot;
+    if (!root || this._beta7ContextBound === true) return;
+
+    this._beta7ContextBound = true;
+
+    const open = (event) => {
+      const target = event.target;
+      const hit =
+        target?.closest?.(".buildplate") ||
+        target?.closest?.(".buildplate-wrap") ||
+        target?.closest?.(".studio-mesh-canvas") ||
+        target?.closest?.(".studio-model-image") ||
+        target?.closest?.(".model") ||
+        target?.closest?.(".model-label");
+
+      if (!hit) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const plate = root.querySelector(".buildplate");
+      const rect = plate?.getBoundingClientRect?.() || {left:0, top:0, width:0, height:0};
+
+      const point = {
+        x: Math.round(event.clientX - rect.left - rect.width / 2),
+        y: Math.round(event.clientY - rect.top - rect.height / 2),
+        clientX: Math.round(event.clientX),
+        clientY: Math.round(event.clientY)
+      };
+
+      this._studioKeyboardActive = true;
+      this._studioContextMenu = point;
+      this._beta7ContextPoint = point;
+      this._status = "Studio-Kontextmenü geöffnet.";
+      this.showBetaStudioContextMenu(point);
+    };
+
+    const close = (event) => {
+      if (event.button !== 0) return;
+      if (event.target?.closest?.(".studio-context")) return;
+      if (event.target?.closest?.(".beta7-import-backdrop")) return;
+
+      root.querySelectorAll(".studio-context.beta7-floating-context,.studio-context.beta6-floating-context,.studio-context.beta5-floating-context,.studio-context.beta4-floating-context,.studio-context.beta3-floating-context").forEach((node) => node.remove());
+      this._studioContextMenu = null;
+      this._beta7ContextPoint = null;
+    };
+
+    root.addEventListener("contextmenu", open, {capture:true});
+    root.addEventListener("pointerdown", (event) => {
+      if (event.button === 2) open(event);
+      else close(event);
+    }, {capture:true});
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.openBeta7ImportAssistant = function openBeta7ImportAssistant() {
+    this._beta7Import = {
+      mode:"gallery",
+      source:"archive",
+      folder:"",
+      parent:"",
+      loading:false,
+      progress:0,
+      items:[],
+      selected:null,
+      uploadFiles:[],
+      link:"",
+      error:"",
+      notice:""
+    };
+
+    this.renderBeta7ImportAssistant();
+    this.beta7LoadImportFolder(true);
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.closeBeta7ImportAssistant = function closeBeta7ImportAssistant() {
+    this.shadowRoot?.querySelector?.(".beta7-import-backdrop")?.remove?.();
+    this._beta7Import = null;
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.beta7LoadImportFolder = async function beta7LoadImportFolder(force=false) {
+    const state = this._beta7Import;
+    if (!state || state.loading) return;
+
+    state.loading = true;
+    state.progress = 10;
+    state.error = "";
+    this.renderBeta7ImportAssistant();
+
+    try {
+      const serial = this.beta7Serial();
+      const data = state.source === "sd"
+        ? await this.ws({type:"printer_control_center/sd/list", serial, folder:state.folder || "/", force:Boolean(force)})
+        : await this.ws({type:"printer_control_center/archive/list", serial, folder:state.folder || ""});
+
+      state.progress = 85;
+      state.items = (data.items || [])
+        .filter((item) => item.kind === "folder" || String(item.name || item.path || "").toLowerCase().endsWith(".3mf"));
+      state.folder = data.folder || "";
+      state.parent = data.parent || "";
+      state.selected = null;
+      state.notice = `${state.items.length} Einträge geladen.`;
+    } catch (error) {
+      state.error = `Import-Baum konnte nicht geladen werden: ${String(error?.message || error)}`;
+    } finally {
+      state.loading = false;
+      state.progress = 100;
+      this.renderBeta7ImportAssistant();
+    }
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.beta7PlanFromItem = function beta7PlanFromItem(item, source="archive") {
+    const path = String(item?.path || "");
+    const name = String(item?.name || path.split("/").filter(Boolean).pop() || "3MF-Modell");
+    const plate = this.beta7CurrentPlate();
+    const now = new Date().toISOString();
+
+    const plan = {
+      version: STUDIO_VERSION,
+      schema: "printer-control-center.v5.beta7.import",
+      source,
+      origin: source,
+      serial: this.beta7Serial(),
+      created_at: now,
+      updated_at: now,
+      modelName: name,
+      file_name: name,
+      filename: name,
+      file_path: path,
+      path,
+      modelKey: `${source}:${path}`,
+      model: {name, path, source, size:Number(item?.size || 0), modified:item?.modified || null},
+      build_plate: plate.name,
+      transform: defaultTransform(),
+      profile_context: {
+        ...(this.buildProfileContext?.() || this.defaultProfileContext?.() || {}),
+        build_plate: {id:plate.id, name:plate.name, texture:plate.texture}
+      },
+      real_slicing_enabled: false,
+      direct_print_enabled: false,
+      status: "prepared",
+      stage: "waiting",
+      message: "Aus dem Studio-Import-Assistenten übernommen. Echter Slicer-Lauf ist deaktiviert."
+    };
+
+    const preview = item?.preview_data_url || item?.preview_url || item?.thumbnail || item?.image || item?.preview?.data_url || item?.preview?.url || "";
+    if (preview) {
+      plan.preview_data_url = preview;
+      plan.preview_url = preview;
+      plan.thumbnail = preview;
+      plan.image = preview;
+      plan.preview = {data_url:preview, url:preview};
+      plan.model.preview_data_url = preview;
+      plan.model.preview_url = preview;
+      plan.model.thumbnail = preview;
+      plan.model.image = preview;
+    }
+
+    return plan;
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.beta7ImportPlan = async function beta7ImportPlan(plan) {
+    const response = await this.ws({
+      type:"printer_control_center/studio_jobs/create",
+      serial:this.beta7Serial(),
+      plan
+    });
+
+    const job = response?.job || response || plan;
+    this._jobs = [...(Array.isArray(this._jobs) ? this._jobs : []), job].filter(Boolean);
+    this._jobsLoaded = true;
+    this.applyActiveJob?.(job, {status:false, render:false});
+    this._activeJob = job;
+    this._activeJobId = job.id || this._activeJobId || "";
+    this._studioModelImageUrl = job.preview_data_url || job.preview_url || job.thumbnail || job.image || job.model?.preview_data_url || "";
+    this._studioMesh = null;
+    this._studioMeshJobId = "";
+    this._studioMeshUrl = "";
+    this._status = `3MF ins Studio importiert: ${this.jobName(job)}.`;
+    this.closeBeta7ImportAssistant();
+    this.render();
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.beta7ImportSelected = async function beta7ImportSelected() {
+    const state = this._beta7Import;
+    if (!state) return;
+
+    state.error = "";
+    state.progress = 15;
+    state.loading = true;
+    this.renderBeta7ImportAssistant();
+
+    try {
+      if (state.mode === "gallery") {
+        if (!state.selected) throw new Error("Kein 3MF-Modell ausgewählt.");
+        const plan = this.beta7PlanFromItem(state.selected, state.source);
+        state.progress = 70;
+        this.renderBeta7ImportAssistant();
+        await this.beta7ImportPlan(plan);
+      } else if (state.mode === "upload") {
+        const file = state.uploadFiles?.[0];
+        if (!file) throw new Error("Keine 3MF-Datei ausgewählt.");
+
+        const preview = "";
+        const plan = this.beta7PlanFromItem({
+          name:file.name,
+          path:`upload/${file.name}`,
+          size:file.size,
+          modified:new Date(file.lastModified || Date.now()).toISOString(),
+          preview_data_url:preview
+        }, "upload");
+
+        plan.local_upload_pending = true;
+        plan.message = "Lokaler Upload wurde als Studio-Job vorbereitet. Archiv-Upload wird über den Galerie-Dateimanager fortgeführt.";
+        state.progress = 70;
+        this.renderBeta7ImportAssistant();
+        await this.beta7ImportPlan(plan);
+      } else if (state.mode === "link") {
+        const link = String(state.link || "").trim();
+        if (!link) throw new Error("Kein Link angegeben.");
+
+        const name = link.split("/").filter(Boolean).pop() || "verknuepftes-modell.3mf";
+        const plan = this.beta7PlanFromItem({name, path:link, preview_data_url:""}, "link");
+        plan.external_link = link;
+        plan.message = "Externer Modell-Link wurde im Studio verknüpft. Download/Import wird später serverseitig erweitert.";
+        await this.beta7ImportPlan(plan);
+      }
+    } catch (error) {
+      state.error = `Import fehlgeschlagen: ${String(error?.message || error)}`;
+      state.progress = 0;
+      state.loading = false;
+      this.renderBeta7ImportAssistant();
+    }
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.renderBeta7ImportAssistant = function renderBeta7ImportAssistant() {
+    const root = this.shadowRoot;
+    const state = this._beta7Import;
+    if (!root || !state) return;
+
+    let overlay = root.querySelector(".beta7-import-backdrop");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "beta7-import-backdrop";
+      root.appendChild(overlay);
+    }
+
+    const itemHtml = (state.items || []).map((item) => {
+      const folder = item.kind === "folder";
+      const selected = state.selected && String(state.selected.path || "") === String(item.path || "");
+      const preview = item.preview_data_url || item.preview_url || item.thumbnail || item.image || item.preview?.data_url || "";
+
+      return `
+        <article class="beta7-import-item ${selected ? "selected" : ""}" data-beta7-path="${escStudio(item.path || "")}">
+          <div class="beta7-import-preview">${preview ? `<img src="${preview}" alt="">` : `<b>${folder ? "📁" : "3MF"}</b>`}</div>
+          <div class="beta7-import-meta">
+            <strong>${escStudio(item.name || item.path || "3MF-Modell")}</strong>
+            <small>${escStudio(item.path || "")}</small>
+            <span>${folder ? "Ordner" : "3MF-Projekt"}${item.size ? ` · ${Math.round(Number(item.size)/1024)} KB` : ""}</span>
+          </div>
+          <button class="action" data-beta7-import-action="${folder ? "open-folder" : "select"}">${folder ? "Öffnen" : "Auswählen"}</button>
+        </article>
+      `;
+    }).join("");
+
+    overlay.innerHTML = `
+      <div class="beta7-import-dialog">
+        <header>
+          <div>
+            <h2>Studio-Import-Assistent</h2>
+            <p>Galerie/Archiv auswählen, Datei vorbereiten oder Modell-Link verknüpfen.</p>
+          </div>
+          <button class="action" data-beta7-import-action="close">Schließen</button>
+        </header>
+
+        <nav class="beta7-import-tabs">
+          <button class="${state.mode === "gallery" ? "active" : ""}" data-beta7-mode="gallery">Galerie / Archiv</button>
+          <button class="${state.mode === "upload" ? "active" : ""}" data-beta7-mode="upload">3MF hochladen</button>
+          <button class="${state.mode === "link" ? "active" : ""}" data-beta7-mode="link">Verknüpfen</button>
+        </nav>
+
+        <div class="beta7-progress"><div style="width:${Math.max(0, Math.min(100, Number(state.progress || 0)))}%"></div></div>
+
+        ${state.error ? `<div class="beta7-import-error">${escStudio(state.error)}</div>` : ""}
+        ${state.notice ? `<div class="beta7-import-notice">${escStudio(state.notice)}</div>` : ""}
+
+        <section class="beta7-import-body">
+          ${state.mode === "gallery" ? `
+            <aside class="beta7-import-tree">
+              <button class="${state.source === "archive" ? "active" : ""}" data-beta7-source="archive">📁 Archiv</button>
+              <button class="${state.source === "sd" ? "active" : ""}" data-beta7-source="sd">💾 SD-Karte</button>
+              <button data-beta7-import-action="up" ${state.parent ? "" : "disabled"}>Eine Ebene hoch</button>
+              <button data-beta7-import-action="refresh">Aktualisieren</button>
+              <small>Pfad: ${escStudio(state.folder || "Hauptordner")}</small>
+            </aside>
+            <div class="beta7-import-grid">
+              ${state.loading ? `<div class="beta7-import-loading">Lade Galerie …</div>` : itemHtml || `<div class="beta7-import-loading">Keine 3MF-Dateien gefunden.</div>`}
+            </div>
+          ` : ""}
+
+          ${state.mode === "upload" ? `
+            <div class="beta7-upload-pane">
+              <h3>3MF-Datei hochladen / vorbereiten</h3>
+              <p>Wähle eine lokale 3MF-Datei. Sie wird als Studio-Job vorbereitet; die Archivablage bleibt über den Galerie-Dateimanager möglich.</p>
+              <input type="file" accept=".3mf" data-beta7-upload-file>
+              <div>${state.uploadFiles?.length ? escStudio(state.uploadFiles.map((file) => file.name).join(", ")) : "Noch keine Datei ausgewählt."}</div>
+            </div>
+          ` : ""}
+
+          ${state.mode === "link" ? `
+            <div class="beta7-link-pane">
+              <h3>Modell-Link verknüpfen</h3>
+              <p>MakerWorld-, HTTP- oder interne Modell-URL eintragen.</p>
+              <input type="text" value="${escStudio(state.link || "")}" placeholder="https://…" data-beta7-link-input>
+            </div>
+          ` : ""}
+        </section>
+
+        <footer>
+          <button class="action primary" data-beta7-import-action="import">${state.mode === "gallery" ? "Auswahl ins Studio übernehmen" : state.mode === "upload" ? "Datei als Studio-Job vorbereiten" : "Link verknüpfen"}</button>
+        </footer>
+      </div>
+    `;
+
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) this.closeBeta7ImportAssistant();
+    }, {once:true});
+
+    for (const tab of [...overlay.querySelectorAll("[data-beta7-mode]")]) {
+      tab.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        state.mode = tab.dataset.beta7Mode || "gallery";
+        state.error = "";
+        state.notice = "";
+        this.renderBeta7ImportAssistant();
+        if (state.mode === "gallery" && !state.items.length) this.beta7LoadImportFolder(true);
+      });
+    }
+
+    for (const source of [...overlay.querySelectorAll("[data-beta7-source]")]) {
+      source.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        state.source = source.dataset.beta7Source || "archive";
+        state.folder = state.source === "sd" ? "/" : "";
+        state.parent = "";
+        state.selected = null;
+        state.items = [];
+        this.beta7LoadImportFolder(true);
+      });
+    }
+
+    overlay.querySelector("[data-beta7-upload-file]")?.addEventListener("change", (event) => {
+      state.uploadFiles = [...(event.target?.files || [])].filter((file) => String(file.name || "").toLowerCase().endsWith(".3mf"));
+      state.notice = state.uploadFiles.length ? `${state.uploadFiles.length} 3MF-Datei(en) ausgewählt.` : "Nur .3mf-Dateien sind erlaubt.";
+      this.renderBeta7ImportAssistant();
+    });
+
+    overlay.querySelector("[data-beta7-link-input]")?.addEventListener("input", (event) => {
+      state.link = event.target?.value || "";
+    });
+
+    for (const button of [...overlay.querySelectorAll("[data-beta7-import-action]")]) {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const action = String(button.dataset.beta7ImportAction || "");
+        const card = button.closest(".beta7-import-item");
+        const path = card?.dataset?.beta7Path || "";
+        const item = (state.items || []).find((candidate) => String(candidate.path || "") === path) || null;
+
+        if (action === "close") this.closeBeta7ImportAssistant();
+        else if (action === "refresh") this.beta7LoadImportFolder(true);
+        else if (action === "up") {
+          state.folder = state.parent || "";
+          state.selected = null;
+          this.beta7LoadImportFolder(false);
+        } else if (action === "open-folder" && item) {
+          state.folder = item.path || "";
+          state.selected = null;
+          this.beta7LoadImportFolder(false);
+        } else if (action === "select" && item) {
+          state.selected = item;
+          state.notice = `Ausgewählt: ${item.name || item.path}`;
+          this.renderBeta7ImportAssistant();
+        } else if (action === "import") {
+          this.beta7ImportSelected();
+        }
+      });
+    }
+
+    for (const card of [...overlay.querySelectorAll(".beta7-import-item")]) {
+      card.addEventListener("dblclick", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const path = card.dataset.beta7Path || "";
+        const item = (state.items || []).find((candidate) => String(candidate.path || "") === path) || null;
+        if (!item) return;
+        if (item.kind === "folder") {
+          state.folder = item.path || "";
+          state.selected = null;
+          this.beta7LoadImportFolder(false);
+        } else {
+          state.selected = item;
+          this.beta7ImportSelected();
+        }
+      });
+    }
+
+    pccBeta7SanitizeRoot(overlay);
+  };
+
+  PCC_BETA7_STUDIO_CLASS.prototype.deleteActiveJob = async function deleteActiveJob() {
+    const active = this._activeJob || {};
+    const activeId = String(this._activeJobId || active.id || "");
+    const activePath = String(active.file_path || active.path || active.model?.path || "").trim();
+
+    if (!activeId && !activePath) {
+      this._status = "Kein aktiver Studio-Job zum Entfernen ausgewählt.";
+      this.render();
+      return;
+    }
+
+    const oldJobs = Array.isArray(this._jobs) ? this._jobs : [];
+    const remaining = oldJobs.filter((job) => {
+      const id = String(job?.id || "");
+      const path = String(job?.file_path || job?.path || job?.model?.path || "").trim();
+      if (activeId && id === activeId) return false;
+      if (activePath && path === activePath) return false;
+      return true;
+    });
+
+    try {
+      await this.ws({type:"printer_control_center/studio_jobs/clear"});
+
+      const recreated = [];
+      for (const job of remaining) {
+        const clone = JSON.parse(JSON.stringify(job || {}));
+        delete clone.id;
+        const response = await this.ws({
+          type:"printer_control_center/studio_jobs/create",
+          serial:clone.serial || this.beta7Serial(),
+          plan:clone
+        });
+        const created = response?.job || response || null;
+        if (created?.id) recreated.push(created);
+      }
+
+      this._jobs = recreated;
+      this._jobsLoaded = true;
+      this._activeJob = recreated[0] || null;
+      this._activeJobId = this._activeJob?.id || "";
+      this._studioMesh = null;
+      this._studioMeshJobId = "";
+      this._studioMeshUrl = "";
+      this._studioModelImageUrl = "";
+      this._lastDryRun = null;
+      this._lastStudioPlan = null;
+
+      if (this._activeJob) this.applyActiveJob?.(this._activeJob, {status:false, render:false});
+      else {
+        this._transform = defaultTransform();
+        this._studioMeshStatus = "Kein Studio-Job aktiv. Öffne den Import-Assistenten.";
+      }
+
+      this._status = "Studio-Job dauerhaft entfernt.";
+    } catch (error) {
+      this._status = `Studio-Job konnte nicht dauerhaft entfernt werden: ${String(error?.message || error)}`;
+    }
+
+    this.render();
+  };
+
+  if (!PCC_BETA7_STUDIO_CLASS.prototype._pccBeta7ClickWrapped) {
+    PCC_BETA7_STUDIO_CLASS.prototype.handleClick = function handleClickBeta7(event) {
+      const action = event.target?.closest?.("[data-action]")?.dataset?.action || "";
+      if (action === "import") {
+        event.preventDefault();
+        event.stopPropagation();
+        this.openBeta7ImportAssistant();
+        return;
+      }
+      return PCC_BETA7_ORIGINAL_HANDLE_CLICK.call(this, event);
+    };
+    PCC_BETA7_STUDIO_CLASS.prototype._pccBeta7ClickWrapped = true;
+  }
+
   if (!customElements.get("printer-control-center-studio-card")) {
     customElements.define("printer-control-center-studio-card", PrinterControlCenterStudioCard);
   }
@@ -8518,7 +9449,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta6 Studio Import Buildplate Showcase with gallery import popup, buildplate switcher, real preview handoff, stable context menu and persistent delete."
+      description: "v5 beta7 Morning Final Studio Polish with global UTF-8 sanitizer, Studio import assistant, build plate cards, stable two-column context menu and persistent delete."
     });
   }
 })();

@@ -1,3 +1,28 @@
+## 5.0.0-beta7 - Morning Final Studio Polish
+
+### English
+- Added a global visible-text UTF-8/mojibake sanitizer for Printer Control Center cards and open Shadow DOM roots.
+- Reworked the Studio context menu into a stable two-column menu that closes on left-click outside and keeps a persistent right-side action panel.
+- Added Bambu Studio inspired build plate cards in the left Studio panel with visible plate previews.
+- Build plate selection now visibly changes the Studio buildplate styling.
+- Added a Studio import assistant with Gallery/Archive, 3MF upload preparation and model-link association tabs.
+- The import assistant uses the existing Archive/SD listing endpoints, supports folder navigation, selection, progress indication and Studio-job creation.
+- Kept top Studio navigation limited to workflow actions and a single Delete action.
+- Hardened stale text cleanup such as `[object Object]` and broken icon/label prefixes.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Globalen sichtbaren UTF-8-/Mojibake-Sanitizer für Printer-Control-Center-Karten und offene Shadow-DOM-Wurzeln ergänzt.
+- Studio-Kontextmenü zu einem stabilen zweispaltigen Menü überarbeitet; Linksklick außerhalb schließt es, rechts bleibt ein dauerhaftes Aktionspanel.
+- Bambu-Studio-ähnliche Druckplatten-Kacheln links im Studio ergänzt, inklusive sichtbarer Vorschau.
+- Druckplattenauswahl ändert nun sichtbar die CAD-Buildplate-Darstellung.
+- Studio-Import-Assistent mit Tabs für Galerie/Archiv, 3MF-Upload-Vorbereitung und Modell-Link-Verknüpfung ergänzt.
+- Import-Assistent nutzt die vorhandenen Archiv-/SD-Listing-Endpunkte, unterstützt Ordnernavigation, Auswahl, Fortschritt und Studio-Job-Erzeugung.
+- Obere Studio-Navigation bleibt auf Workflow-Aktionen und eine einzelne Löschen-Aktion reduziert.
+- Sichtbare Alttexte wie `[object Object]` und kaputte Icon-/Label-Präfixe werden bereinigt.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta6 - Studio Import Buildplate Showcase
 
 ### English

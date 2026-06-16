@@ -16,7 +16,7 @@ from homeassistant.helpers.storage import Store
 STORAGE_VERSION = 1
 STORAGE_KEY = "printer_control_center.studio_profiles"
 
-BANK_VERSION = "5.0.0-alpha25"
+BANK_VERSION = "5.0.0-beta1"
 
 
 DEFAULT_PROFILE_BANK: dict[str, Any] = {

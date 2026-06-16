@@ -1,3 +1,26 @@
+## 5.0.0-beta1 - Studio Stabilization
+
+### English
+- Promoted the v5 Studio branch to beta after the alpha25 interactive control baseline.
+- Stabilized the Studio surface by keeping editing controls in the right inspector and removing duplicate buildplate/top edit action groups at render time.
+- Made the Studio right-click context menu mandatory and visible with a fixed viewport-positioned context menu.
+- Fixed Studio mesh loading to request existing model-STL export sources (`archive_model_stl` / `sd_model_stl`) instead of relying only on generic project/link mode flags.
+- Kept the Studio model as real STL/geometry canvas rendering; preview images are not used as the Studio model.
+- Added duplicate-file filtering for upload/import file selections.
+- Cleaned common frontend UTF-8/mojibake artifacts and restored German umlauts.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- V5-Studio-Zweig nach der alpha25-Interaktionsbasis auf Beta gehoben.
+- Studio-Oberfläche stabilisiert: Bearbeitung bleibt in der rechten Inspector-Spalte; doppelte Buildplate-/Top-Bearbeitungsleisten werden beim Rendern entfernt.
+- Rechtsklick-Kontextmenü im Studio verbindlich und sichtbar gemacht, mit fixer Viewport-Position.
+- Studio-Mesh-Laden korrigiert: Es werden die vorhandenen Modell-STL-Exportquellen (`archive_model_stl` / `sd_model_stl`) verwendet statt nur generischer project/link-Modi.
+- Studio-Modell bleibt echte STL-/Geometrieanzeige im Canvas; Vorschaubilder werden nicht als Studio-Modell verwendet.
+- Datei-Import/Upload dedupliziert gleiche ausgewählte Dateien.
+- Häufige UTF-8-/Mojibake-Artefakte im Frontend bereinigt und deutsche Umlaute wiederhergestellt.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-alpha25 - Interactive Control Fix + Mesh Viewer
 
 ### English

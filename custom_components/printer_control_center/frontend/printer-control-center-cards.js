@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-alpha25*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta1*/
 (() => {
-  const VERSION = "5.0.0-alpha25";
+  const VERSION = "5.0.0-beta1";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -22,7 +22,7 @@
     ["Komplettkarte", "complete card"],
     ["Responsive Gesamtansicht mit Kamera, Steuerung und AMS", "Responsive overview with camera, controls and AMS"],
     ["Live-Kamera mit automatischem Vorschau- und Offline-Fallback", "Live camera with automatic preview and offline fallback"],
-    ["Licht, Kamera und zustandsabhÃ¤ngige Drucksteuerung", "Light, camera and state-aware print controls"],
+    ["Licht, Kamera und zustandsabhängige Drucksteuerung", "Light, camera and state-aware print controls"],
     ["Geladene Materialien und Farben", "Loaded materials and colors"],
     ["Fortschritt, Layer und Restzeit", "Progress, layers and remaining time"],
     ["Temperaturen und Netzwerk", "Temperatures and network"],
@@ -31,20 +31,20 @@
     ["Kompakter Druckerstatus", "Compact printer status"],
     ["Branding-Modul", "Branding module"],
     ["HA-only Vollbreiten-Dateimanager mit Body-Overlay, direktem Bambu-Studio-Import und SD-Karten-Verwaltung", "HA-only full-width file manager with body overlay, direct Bambu Studio handoff and SD-card management"],
-    ["Persistente Druckplanung mit Galerie-Popup, Mehrfachauswahl, StÃ¼ckzahl und Bambu-Studio-DruckÃ¼bergabe", "Persistent print planning with gallery popup, multi-selection, quantity and Bambu Studio handoff"],
+    ["Persistente Druckplanung mit Galerie-Popup, Mehrfachauswahl, Stückzahl und Bambu-Studio-Druckübergabe", "Persistent print planning with gallery popup, multi-selection, quantity and Bambu Studio handoff"],
     ["MakerWorld-Websuche", "MakerWorld web search"],
     ["Separater Glow-Rahmen", "Separate glow frame"],
     ["Kein Drucker gefunden.", "No printer found."],
     ["Kein aktiver Druckauftrag", "No active print job"],
     ["Schicht", "Layer"],
-    ["DÃ¼se", "Nozzle"],
+    ["Düse", "Nozzle"],
     ["Bett", "Bed"],
     ["Tempo", "Speed"],
     ["Licht", "Light"],
     ["Livebild ausblenden", "Hide live view"],
     ["Livebild anzeigen", "Show live view"],
     ["Livebild", "Live view"],
-    ["GroÃŸansicht", "Large view"],
+    ["Großansicht", "Large view"],
     ["Aktualisieren", "Refresh"],
     ["Pause", "Pause"],
     ["Pausiert", "Paused"],
@@ -63,19 +63,19 @@
     ["Kamera-Port", "Camera port"],
     ["Aktiv", "Active"],
     ["leer", "empty"],
-    ["Kamera in GroÃŸansicht Ã¶ffnen", "Open camera in large view"],
+    ["Kamera in Großansicht öffnen", "Open camera in large view"],
     ["Andere MJPEG-URL optional", "Optional alternative MJPEG URL"],
-    ["Nur fÃ¼r bewusste Ãœberschreibung der nativen Kamera", "Only to intentionally override the native camera"],
+    ["Nur für bewusste Überschreibung der nativen Kamera", "Only to intentionally override the native camera"],
     ["Externe Spule anzeigen", "Show external spool"],
     ["Diagnose anzeigen", "Show diagnostics"],
-    ["S bis XL kann zusÃ¤tzlich direkt innerhalb der Karte umgeschaltet werden.", "S to XL can also be changed directly inside the card."],
+    ["S bis XL kann zusätzlich direkt innerhalb der Karte umgeschaltet werden.", "S to XL can also be changed directly inside the card."],
     ["Dateien und Ordner durchsuchen â€¦", "Search files and folders â€¦"],
-    ["Suche zurÃ¼cksetzen", "Reset search"],
-    ["Sichtbare auswÃ¤hlen", "Select visible"],
+    ["Suche zurücksetzen", "Reset search"],
+    ["Sichtbare auswählen", "Select visible"],
     ["Auswahl verschieben", "Move selection"],
-    ["Auswahl lÃ¶schen", "Delete selection"],
+    ["Auswahl löschen", "Delete selection"],
     ["Mehrfachauswahl", "Multi-selection"],
-    ["EintrÃ¤ge ausgewÃ¤hlt", "items selected"],
+    ["Einträge ausgewählt", "items selected"],
     ["Dateien", "files"],
     ["Ordner", "folders"],
     ["belegt", "used"],
@@ -85,105 +85,105 @@
     ["Neuer Ordner", "New folder"],
     ["Name Aâ€“Z", "Name Aâ€“Z"],
     ["Neueste zuerst", "Newest first"],
-    ["GrÃ¶ÃŸte zuerst", "Largest first"],
+    ["Größte zuerst", "Largest first"],
     ["3MF hochladen", "Upload 3MF"],
     ["Galerie-ZIP exportieren", "Export gallery ZIP"],
     ["Galerie-ZIP importieren", "Import gallery ZIP"],
     ["3D-Drucker-Dateimanager/Galerie", "3D printer file manager/gallery"],
     ["Hintergrund-Upload", "Background upload"],
-    ["Upload lÃ¤uft im Hintergrund weiter", "Upload continues in the background"],
-    ["Entpacken und gegenprÃ¼fen", "Extracting and verifying"],
-    ["GegenprÃ¼fung erfolgreich", "Verification successful"],
+    ["Upload läuft im Hintergrund weiter", "Upload continues in the background"],
+    ["Entpacken und gegenprüfen", "Extracting and verifying"],
+    ["Gegenprüfung erfolgreich", "Verification successful"],
     ["Vorbereiten", "Preparing"],
     ["Hochladen", "Uploading"],
     ["Abgebrochen", "Cancelled"],
     ["Phase", "Phase"],
     ["Geschwindigkeit", "Speed"],
-    ["Ãœbertragen", "Transferred"],
+    ["Übertragen", "Transferred"],
     ["Upload fortsetzen", "Resume upload"],
     ["Upload abbrechen", "Cancel upload"],
     ["Details anzeigen", "Show details"],
     ["Details ausblenden", "Hide details"],
     ["ZIP-Import erfolgreich", "ZIP import successful"],
-    ["Vorhandene Galerie-Dateien Ã¼berschreiben?", "Overwrite existing gallery files?"],
-    ["Dateien auswÃ¤hlen", "Select files"],
-    ["AusgewÃ¤hlte 3MF hochladen", "Upload selected 3MF"],
+    ["Vorhandene Galerie-Dateien überschreiben?", "Overwrite existing gallery files?"],
+    ["Dateien auswählen", "Select files"],
+    ["Ausgewählte 3MF hochladen", "Upload selected 3MF"],
     ["Keine passenden Dateien oder Ordner vorhanden.", "No matching files or folders."],
     ["Keine Zielordner vorhanden.", "No target folders available."],
-    ["Ordnerbaum konnte nicht vollstÃ¤ndig geladen werden", "Folder tree could not be loaded completely"],
+    ["Ordnerbaum konnte nicht vollständig geladen werden", "Folder tree could not be loaded completely"],
     ["Neuen Ordner erstellen", "Create new folder"],
     ["Ordnername", "Folder name"],
-    ["Der Ordner wird im aktuell geÃ¶ffneten Archivpfad angelegt.", "The folder is created in the currently open archive path."],
+    ["Der Ordner wird im aktuell geöffneten Archivpfad angelegt.", "The folder is created in the currently open archive path."],
     ["Eintrag umbenennen", "Rename item"],
     ["Neuer Name", "New name"],
-    ["Eintrag lÃ¶schen", "Delete item"],
-    ["Soll dieser Eintrag wirklich gelÃ¶scht werden?", "Do you really want to delete this item?"],
+    ["Eintrag löschen", "Delete item"],
+    ["Soll dieser Eintrag wirklich gelöscht werden?", "Do you really want to delete this item?"],
     ["Bei Ordnern werden auch die enthaltenen Dateien entfernt.", "For folders, contained files are removed as well."],
-    ["Mehrere EintrÃ¤ge lÃ¶schen", "Delete multiple items"],
-    ["Sollen diese ausgewÃ¤hlten EintrÃ¤ge wirklich gelÃ¶scht werden?", "Do you really want to delete the selected items?"],
-    ["AusgewÃ¤hlte Ordner werden einschlieÃŸlich ihrer enthaltenen Dateien entfernt.", "Selected folders are removed including their files."],
+    ["Mehrere Einträge löschen", "Delete multiple items"],
+    ["Sollen diese ausgewählten Einträge wirklich gelöscht werden?", "Do you really want to delete the selected items?"],
+    ["Ausgewählte Ordner werden einschließlich ihrer enthaltenen Dateien entfernt.", "Selected folders are removed including their files."],
     ["Eintrag verschieben", "Move item"],
-    ["Mehrere EintrÃ¤ge verschieben", "Move multiple items"],
-    ["WÃ¤hle den Zielordner fÃ¼r:", "Choose the target folder for:"],
-    ["Eintrag Ã¼berschreiben?", "Overwrite item?"],
-    ["Vorhandene EintrÃ¤ge Ã¼berschreiben?", "Overwrite existing items?"],
-    ["Im Zielordner existieren bereits gleichnamige EintrÃ¤ge.", "Items with the same name already exist in the target folder."],
+    ["Mehrere Einträge verschieben", "Move multiple items"],
+    ["Wähle den Zielordner für:", "Choose the target folder for:"],
+    ["Eintrag überschreiben?", "Overwrite item?"],
+    ["Vorhandene Einträge überschreiben?", "Overwrite existing items?"],
+    ["Im Zielordner existieren bereits gleichnamige Einträge.", "Items with the same name already exist in the target folder."],
     ["Konflikt(e)", "conflict(s)"],
-    ["Mit â€žÃœberschreibenâ€œ werden die vorhandenen Zieldateien oder Zielordner ersetzt.", "Choosing â€œOverwriteâ€ replaces existing target files or folders."],
-    ["Ãœberschreiben", "Overwrite"],
-    ["Ãœbernehmen", "Apply"],
-    ["Ã–ffnen", "Open"],
-    ["Ordner Ã¶ffnen", "Open folder"],
+    ["Mit â€žÜberschreibenâ€œ werden die vorhandenen Zieldateien oder Zielordner ersetzt.", "Choosing â€œOverwriteâ€ replaces existing target files or folders."],
+    ["Überschreiben", "Overwrite"],
+    ["Übernehmen", "Apply"],
+    ["Öffnen", "Open"],
+    ["Ordner öffnen", "Open folder"],
     ["Umbenennen", "Rename"],
     ["Verschieben", "Move"],
-    ["LÃ¶schen", "Delete"],
+    ["Löschen", "Delete"],
     ["Drucken â€¦", "Print â€¦"],
     ["Planen â€¦", "Schedule â€¦"],
-    ["In Bambu Studio Ã¶ffnen (Original-3MF)", "Open in Bambu Studio (original 3MF)"],
+    ["In Bambu Studio öffnen (Original-3MF)", "Open in Bambu Studio (original 3MF)"],
     ["Modell-3MF herunterladen", "Download model 3MF"],
     ["Modell-STL herunterladen", "Download model STL"],
     ["3D-Vorschau", "3D preview"],
-    ["3D-Vorschau Ã¶ffnen", "Open 3D preview"],
+    ["3D-Vorschau öffnen", "Open 3D preview"],
     ["Druckauftrag vorbereiten", "Prepare print job"],
     ["Druckauftrag planen", "Schedule print job"],
-    ["StÃ¼ckzahl", "Quantity"],
+    ["Stückzahl", "Quantity"],
     ["Geplanter Zeitpunkt optional", "Optional scheduled time"],
-    ["Zur Warteschlange hinzufÃ¼gen", "Add to queue"],
-    ["Der bestehende MenÃ¼punkt Planen legt das Modell in der persistenten 3D-Druck-Warteschlange ab.", "The existing Schedule action adds the model to the persistent 3D print queue."],
-    ["Die unverÃ¤nderte Original-3MF-Datei wird in Bambu Studio geÃ¶ffnet. Dort kannst du den Druck kontrolliert starten.", "The unchanged original 3MF file is opened in Bambu Studio. You can start the print there after review."],
-    ["In Bambu Studio Ã¶ffnen", "Open in Bambu Studio"],
-    ["Modell wurde zur 3D-Druck-Warteschlange hinzugefÃ¼gt.", "Model was added to the 3D print queue."],
+    ["Zur Warteschlange hinzufügen", "Add to queue"],
+    ["Der bestehende Menüpunkt Planen legt das Modell in der persistenten 3D-Druck-Warteschlange ab.", "The existing Schedule action adds the model to the persistent 3D print queue."],
+    ["Die unveränderte Original-3MF-Datei wird in Bambu Studio geöffnet. Dort kannst du den Druck kontrolliert starten.", "The unchanged original 3MF file is opened in Bambu Studio. You can start the print there after review."],
+    ["In Bambu Studio öffnen", "Open in Bambu Studio"],
+    ["Modell wurde zur 3D-Druck-Warteschlange hinzugefügt.", "Model was added to the 3D print queue."],
     ["Warteschlange wird geladen â€¦", "Loading queue â€¦"],
-    ["Noch keine geplanten Modelle. Ã–ffne die Galerie oder nutze im Dateimanager den vorhandenen MenÃ¼punkt â€žPlanen â€¦â€œ.", "No planned models yet. Open the gallery or use the existing â€œSchedule â€¦â€ item in the file manager."],
-    ["Galerie Ã¶ffnen", "Open gallery"],
-    ["Persistente Planung fÃ¼r", "Persistent planning for"],
-    ["EintrÃ¤ge", "items"],
-    ["DruckdurchlÃ¤ufe", "print runs"],
-    ["Auswahl Ã¼bernehmen", "Apply selection"],
+    ["Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen â€¦â€œ.", "No planned models yet. Open the gallery or use the existing â€œSchedule â€¦â€ item in the file manager."],
+    ["Galerie öffnen", "Open gallery"],
+    ["Persistente Planung für", "Persistent planning for"],
+    ["Einträge", "items"],
+    ["Druckdurchläufe", "print runs"],
+    ["Auswahl übernehmen", "Apply selection"],
     ["Gespeichert", "Saved"],
     ["Nach oben", "Move up"],
     ["Nach unten", "Move down"],
     ["1 erledigt", "Complete 1"],
     ["Entfernen", "Remove"],
     ["Eintrag wirklich entfernen?", "Really remove this item?"],
-    ["Eine Ebene hÃ¶her", "One level up"],
+    ["Eine Ebene höher", "One level up"],
     ["Modell(e) markiert", "model(s) selected"],
-    ["StÃ¼ckzahl je Modell", "Quantity per model"],
+    ["Stückzahl je Modell", "Quantity per model"],
     ["Zeitpunkt optional", "Optional time"],
-    ["Markierte Modelle hinzufÃ¼gen", "Add selected models"],
+    ["Markierte Modelle hinzufügen", "Add selected models"],
     ["Galerie wird geladen â€¦", "Loading gallery â€¦"],
     ["Keine 3MF-Modelle in diesem Ordner gefunden.", "No 3MF models found in this folder."],
-    ["Bambu Studio wird mit der unverÃ¤nderten Original-3MF-Datei geÃ¶ffnet.", "Bambu Studio opens the unchanged original 3MF file."],
-    ["MakerWorld-Modell suchen oder einen Modell-Link Ã¶ffnen. Die 3MF-Datei kann anschlieÃŸend direkt in die Archivkarte hochgeladen werden.", "Search for a MakerWorld model or open a model link. The 3MF file can then be uploaded directly to the local archive card."],
+    ["Bambu Studio wird mit der unveränderten Original-3MF-Datei geöffnet.", "Bambu Studio opens the unchanged original 3MF file."],
+    ["MakerWorld-Modell suchen oder einen Modell-Link öffnen. Die 3MF-Datei kann anschließend direkt in die Archivkarte hochgeladen werden.", "Search for a MakerWorld model or open a model link. The 3MF file can then be uploaded directly to the local archive card."],
     ["Suchbegriff oder MakerWorld-Link", "Search term or MakerWorld link"],
-    ["MakerWorld Ã¶ffnen", "Open MakerWorld"],
-    ["Kein verdeckter Direktimport Ã¼ber undokumentierte Community-Endpunkte. Der Workflow bleibt nachvollziehbar und verÃ¶ffentlichbar.", "No hidden direct import through undocumented community endpoints. The workflow remains transparent and publishable."],
+    ["MakerWorld öffnen", "Open MakerWorld"],
+    ["Kein verdeckter Direktimport über undokumentierte Community-Endpunkte. Der Workflow bleibt nachvollziehbar und veröffentlichbar.", "No hidden direct import through undocumented community endpoints. The workflow remains transparent and publishable."],
     ["Datei konnte nicht gelesen werden", "File could not be read"],
     ["Fehler", "Error"],
     ["Aktion fehlgeschlagen", "Action failed"],
-    ["Download-Link wurde fÃ¼r fÃ¼nf Minuten in die Zwischenablage kopiert.", "Download link was copied to the clipboard for five minutes."],
+    ["Download-Link wurde für fünf Minuten in die Zwischenablage kopiert.", "Download link was copied to the clipboard for five minutes."],
     ["Diese Funktion ist als sichere Erweiterungsstufe vorbereitet, aber noch nicht freigeschaltet.", "This function is prepared as a safe extension but is not enabled yet."],
-    ["Kein Zusatzhelfer erforderlich. Bambu Studio prÃ¼ft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.", "No additional helper is required. Bambu Studio intentionally checks self-hosted URLs with an origin dialog."],
+    ["Kein Zusatzhelfer erforderlich. Bambu Studio prüft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.", "No additional helper is required. Bambu Studio intentionally checks self-hosted URLs with an origin dialog."],
     ["HA-only - Original-3MF an Bambu Studio", "HA-only - Original 3MF to Bambu Studio"],
     ["geladen", "loaded"],
     ["Drucker offline", "Printer offline"],
@@ -195,38 +195,38 @@
     ["Das 3D-Printer Control Center verbindet Home Assistant direkt mit TCP 6000. Keine externen Dienste erforderlich.", "3D-Printer Control Center connects Home Assistant directly to TCP 6000. No external services are required."],
     ["3D-Printer Control Center Live-Kamera", "3D-Printer Control Center live camera"],
     ["3D-Printer Control Center Kamera-Stream", "3D-Printer Control Center camera stream"],
-    ["Die Druckerkamera wird modellabhÃ¤ngig bereitgestellt: A1/P1/A2 Ã¼ber Chamber Image TCP 6000, X1/H2/P2/X2 Ã¼ber RTSPS TCP 322. Die folgenden Felder sind nur optionale Ãœberschreibungen.", "The printer camera is selected by model: A1/P1/A2 use Chamber Image TCP 6000, X1/H2/P2/X2 use RTSPS TCP 322. The following fields are optional overrides only."],
+    ["Die Druckerkamera wird modellabhängig bereitgestellt: A1/P1/A2 über Chamber Image TCP 6000, X1/H2/P2/X2 über RTSPS TCP 322. Die folgenden Felder sind nur optionale Überschreibungen.", "The printer camera is selected by model: A1/P1/A2 use Chamber Image TCP 6000, X1/H2/P2/X2 use RTSPS TCP 322. The following fields are optional overrides only."],
     ["Andere Kamera-Entity optional", "Optional alternative camera entity"],
     ["Modellvorschau-Entity optional", "Optional model-preview entity"],
-    ["FÃ¼r Mehrfachaktion auswÃ¤hlen", "Select for bulk action"],
-    ["Noch keine Dateien fÃ¼r eine Vorschau vorhanden.", "No files available for preview yet."],
+    ["Für Mehrfachaktion auswählen", "Select for bulk action"],
+    ["Noch keine Dateien für eine Vorschau vorhanden.", "No files available for preview yet."],
     ["Keine eingebettete Vorschau", "No embedded preview"],
-    ["Vorschau schlieÃŸen", "Close preview"],
+    ["Vorschau schließen", "Close preview"],
     ["Alle aktuell sichtbaren Dateien und Ordner markieren", "Select all currently visible files and folders"],
     ["Auswahl aufheben", "Clear selection"],
-    ["Datei(en) fÃ¼r den Upload ausgewÃ¤hlt", "file(s) selected for upload"],
+    ["Datei(en) für den Upload ausgewählt", "file(s) selected for upload"],
     ["Upload-Ziel", "Upload target"],
     ["SD-Karte des Druckers", "Printer SD card"],
     ["Lokales Archiv", "local archive"],
     ["Upload wird vorbereitet â€¦", "Preparing upload â€¦"],
     ["Dateien hochladen", "Upload files"],
-    ["Diese Karte benÃ¶tigt fÃ¼r die Ã¼bersichtliche Dateimanager-Ansicht einen eigenen Abschnitt Ã¼ber die volle Dashboard-Breite.", "For a clear file-manager view, this card needs its own full-width dashboard section."],
+    ["Diese Karte benötigt für die übersichtliche Dateimanager-Ansicht einen eigenen Abschnitt über die volle Dashboard-Breite.", "For a clear file-manager view, this card needs its own full-width dashboard section."],
     ["Warteschlange konnte nicht geladen werden", "Queue could not be loaded"],
     ["Galerie konnte nicht geladen werden", "Gallery could not be loaded"],
-    ["Modell(e) wurden zur Warteschlange hinzugefÃ¼gt.", "model(s) were added to the queue."],
-    ["Modelle konnten nicht hinzugefÃ¼gt werden", "Models could not be added"],
+    ["Modell(e) wurden zur Warteschlange hinzugefügt.", "model(s) were added to the queue."],
+    ["Modelle konnten nicht hinzugefügt werden", "Models could not be added"],
     ["Warteschlangen-Eintrag konnte nicht aktualisiert werden", "Queue item could not be updated"],
     ["Warteschlangen-Eintrag konnte nicht entfernt werden", "Queue item could not be removed"],
-    ["Reihenfolge konnte nicht geÃ¤ndert werden", "Order could not be changed"],
-    ["Bambu Studio konnte nicht geÃ¶ffnet werden", "Bambu Studio could not be opened"],
-    ["Mehrere Modelle markieren und gemeinsam Ã¼bernehmen.", "Select multiple models and add them together."],
-    ["Galerie - Modelle zur Warteschlange hinzufÃ¼gen", "Gallery - Add models to queue"],
-    ["Diese Karte benÃ¶tigt", "This card requires"],
+    ["Reihenfolge konnte nicht geändert werden", "Order could not be changed"],
+    ["Bambu Studio konnte nicht geöffnet werden", "Bambu Studio could not be opened"],
+    ["Mehrere Modelle markieren und gemeinsam übernehmen.", "Select multiple models and add them together."],
+    ["Galerie - Modelle zur Warteschlange hinzufügen", "Gallery - Add models to queue"],
+    ["Diese Karte benötigt", "This card requires"],
     ["Restzeit", "Remaining time"],
     ["Aufnahme", "Recording"],
     ["Zeitraffer", "Timelapse"],
     ["Hoch", "Up"],
-    ["Nur .3mf-Dateien sind zulÃ¤ssig. Nicht verwendbar:", "Only .3mf files are allowed. Not usable:"],
+    ["Nur .3mf-Dateien sind zulässig. Nicht verwendbar:", "Only .3mf files are allowed. Not usable:"],
     ["wird vorbereitet â€¦", "is being prepared â€¦"],
     ["wird auf die Drucker-SD-Karte geschrieben â€¦", "is being written to the printer SD card â€¦"],
     ["wird im lokalen Archiv gespeichert â€¦", "is being saved to the local archive â€¦"],
@@ -235,17 +235,17 @@
     ["fehlgeschlagen", "failed"],
     ["erfolgreich hochgeladen", "uploaded successfully"],
     ["Upload-Fehler", "Upload error"],
-    ["Bambu Studio wird Ã¼ber den registrierten bambustudio://-Handler geÃ¶ffnet.", "Bambu Studio is opened through the registered bambustudio:// handler."],
-    ["Bei einer selbst gehosteten Home-Assistant-Adresse zeigt Bambu Studio absichtlich eine HerkunftsprÃ¼fung an.", "For a self-hosted Home Assistant address, Bambu Studio intentionally shows an origin verification dialog."],
-    ["BestÃ¤tige diese mit Ja.", "Confirm it with Yes."],
-    ["Die direkte Ãœbergabe nutzt die unverÃ¤nderte Original-3MF-Datei nach dem Bambuddy-Prinzip; Modell-3MF und STL bleiben als manuelle Fallbacks verfÃ¼gbar.", "The direct handoff uses the unchanged original 3MF file following the Bambuddy approach; model 3MF and STL remain available as manual fallbacks."],
+    ["Bambu Studio wird über den registrierten bambustudio://-Handler geöffnet.", "Bambu Studio is opened through the registered bambustudio:// handler."],
+    ["Bei einer selbst gehosteten Home-Assistant-Adresse zeigt Bambu Studio absichtlich eine Herkunftsprüfung an.", "For a self-hosted Home Assistant address, Bambu Studio intentionally shows an origin verification dialog."],
+    ["Bestätige diese mit Ja.", "Confirm it with Yes."],
+    ["Die direkte Übergabe nutzt die unveränderte Original-3MF-Datei nach dem Bambuddy-Prinzip; Modell-3MF und STL bleiben als manuelle Fallbacks verfügbar.", "The direct handoff uses the unchanged original 3MF file following the Bambuddy approach; model 3MF and STL remain available as manual fallbacks."],
     ["Modell-STL wurde autark in Home Assistant erzeugt und heruntergeladen.", "Model STL was generated autonomously in Home Assistant and downloaded."],
     ["Geometrie-only Modell-3MF wurde autark in Home Assistant erzeugt und heruntergeladen.", "Geometry-only model 3MF was generated autonomously in Home Assistant and downloaded."],
-    ["ModellÃ¼bergabe fehlgeschlagen", "Model handoff failed"],
+    ["Modellübergabe fehlgeschlagen", "Model handoff failed"],
     ["Ordner konnten nicht geladen werden", "Folders could not be loaded"],
-    ["Mehrfach-Verschieben unvollstÃ¤ndig", "Multi-move incomplete"],
+    ["Mehrfach-Verschieben unvollständig", "Multi-move incomplete"],
     ["Fotos ansehen", "View photos"],
-    ["Zu Projekt hinzufÃ¼gen", "Add to project"],
+    ["Zu Projekt hinzufügen", "Add to project"],
     ["Druckprotokoll", "Print log"],
     ["Originaldatei wurde aus Home Assistant heruntergeladen.", "Original file was downloaded from Home Assistant."],
     ["Geplant", "Scheduled"],
@@ -476,7 +476,7 @@
     speedLabel(task=this.task){return task?.speed?`${bytesLabel(task.speed)}/s`:"â€”"}
     phaseLabel(task=this.task){
       const phase=task?.phase||"";
-      return tr(({preparing:"Vorbereiten",uploading:"Hochladen",resuming:"Upload fortsetzen",processing:"Entpacken und gegenprÃ¼fen",verified:"GegenprÃ¼fung erfolgreich",failed:"Fehler",cancelled:"Abgebrochen"})[phase]||phase);
+      return tr(({preparing:"Vorbereiten",uploading:"Hochladen",resuming:"Upload fortsetzen",processing:"Entpacken und gegenprüfen",verified:"Gegenprüfung erfolgreich",failed:"Fehler",cancelled:"Abgebrochen"})[phase]||phase);
     }
     taskDetailsHtml(){
       const task=this.task;if(!task)return"";
@@ -484,7 +484,7 @@
       if(task.uploadId)lines.unshift(`Session: ${task.uploadId}`);
       lines.unshift(`${tr("Phase")}: ${this.phaseLabel(task)}`);
       lines.unshift(`${tr("Geschwindigkeit")}: ${this.speedLabel(task)}`);
-      lines.unshift(`${tr("Ãœbertragen")}: ${bytesLabel(task.offset||0)} ${tr("von")} ${bytesLabel(task.size||0)}`);
+      lines.unshift(`${tr("Übertragen")}: ${bytesLabel(task.offset||0)} ${tr("von")} ${bytesLabel(task.size||0)}`);
       return lines.map((line)=>`<div>${esc(line)}</div>`).join("");
     }
     ensureOverlay(){
@@ -521,7 +521,7 @@
       const task=this.task;if(!task)return;
       task.cancelRequested=true;
       if(task.uploadId&&this.hass?.callWS){try{await this.hass.callWS({type:"printer_control_center/upload/abort",upload_id:task.uploadId})}catch(_error){}}
-      task.phase="cancelled";task.details=[...(task.details||[]),"Upload abgebrochen; temporÃ¤re Fragmente wurden entfernt."];this.emit(true);
+      task.phase="cancelled";task.details=[...(task.details||[]),"Upload abgebrochen; temporäre Fragmente wurden entfernt."];this.emit(true);
     }
     async findResumableSession({serial,source,file,folder=""}){
       if(!this.hass?.callWS)return null;
@@ -565,7 +565,7 @@
           current=Number(result.received||current+slice.size);retries=0;
         }catch(error){
           retries+=1;if(retries>6)throw error;
-          task.phase="resuming";task.details=[...(task.details||[]),`Verbindung unterbrochen; Fortsetzung ${retries}/6 wird geprÃ¼ft.`];this.emit(true);
+          task.phase="resuming";task.details=[...(task.details||[]),`Verbindung unterbrochen; Fortsetzung ${retries}/6 wird geprüft.`];this.emit(true);
           await new Promise((resolve)=>setTimeout(resolve,Math.min(5000,700*retries)));
           const status=await this.hass.callWS({type:"printer_control_center/upload/status",upload_id:task.uploadId});
           current=Number(status.received||0);task.phase="uploading";
@@ -577,20 +577,20 @@
         this.emit();
       }
       if(source==="archive_zip"){
-        task.phase="processing";task.progress=97;task.details=[...(task.details||[]),"Upload vollstÃ¤ndig empfangen.","ZIP wird entpackt und gegen das Archiv geprÃ¼ft â€¦"];this.emit(true);
+        task.phase="processing";task.progress=97;task.details=[...(task.details||[]),"Upload vollständig empfangen.","ZIP wird entpackt und gegen das Archiv geprüft â€¦"];this.emit(true);
       }
       return await this.hass.callWS({type:"printer_control_center/upload/finish",upload_id:task.uploadId});
     }
     async startGalleryZip({hass,serial,file,overwrite=false}){
       this.setHass(hass);
-      if(this.task&&!['verified','failed','cancelled'].includes(this.task.phase))throw new Error("Es lÃ¤uft bereits ein Hintergrund-Upload.");
+      if(this.task&&!['verified','failed','cancelled'].includes(this.task.phase))throw new Error("Es läuft bereits ein Hintergrund-Upload.");
       const started=performance.now();
-      const task=this.task={filename:file.name,size:file.size,offset:0,progress:0,speed:0,phase:"preparing",details:["Upload lÃ¤uft im Hintergrund weiter, auch wenn du das Dashboard wechselst.","Nach einem Browser-Neuladen dieselbe Datei erneut auswÃ¤hlen, um eine vorhandene Session fortzusetzen."],cancelRequested:false,uploadId:""};
+      const task=this.task={filename:file.name,size:file.size,offset:0,progress:0,speed:0,phase:"preparing",details:["Upload läuft im Hintergrund weiter, auch wenn du das Dashboard wechselst.","Nach einem Browser-Neuladen dieselbe Datei erneut auswählen, um eine vorhandene Session fortzusetzen."],cancelRequested:false,uploadId:""};
       this.emit(true);
       try{
         const result=await this.sendFile({serial,source:"archive_zip",file,folder:"",overwrite,baseOffset:0,totalSize:file.size,started});
         task.progress=100;task.phase="verified";
-        task.details=[...(task.details||[]),`Entpacken: OK - ${Number(result.imported||0)} Modelle`, `Ordner: ${Number(result.folders||0)} - Ãœberschrieben: ${Number(result.overwritten||0)}`, `GegenprÃ¼fung: ${result.verification==="ok"?"OK":"unbekannt"} - ${Number(result.verified_files||0)} Modelle - ${bytesLabel(result.verified_bytes||0)}`];
+        task.details=[...(task.details||[]),`Entpacken: OK - ${Number(result.imported||0)} Modelle`, `Ordner: ${Number(result.folders||0)} - Überschrieben: ${Number(result.overwritten||0)}`, `Gegenprüfung: ${result.verification==="ok"?"OK":"unbekannt"} - ${Number(result.verified_files||0)} Modelle - ${bytesLabel(result.verified_bytes||0)}`];
         this.emit(true);return result;
       }catch(error){
         if(task.uploadId&&task.phase!=="cancelled"){try{await this.hass.callWS({type:"printer_control_center/upload/abort",upload_id:task.uploadId})}catch(_error){}}
@@ -600,12 +600,12 @@
     }
     async startFiles({hass,serial,files,source,folder=""}){
       this.setHass(hass);
-      if(this.task&&!['verified','failed','cancelled'].includes(this.task.phase))throw new Error("Es lÃ¤uft bereits ein Hintergrund-Upload.");
+      if(this.task&&!['verified','failed','cancelled'].includes(this.task.phase))throw new Error("Es läuft bereits ein Hintergrund-Upload.");
       const queue=[...(files||[])];
       if(!queue.length)return {uploaded:0,errors:[]};
       const totalSize=queue.reduce((sum,file)=>sum+Number(file.size||0),0);
       const started=performance.now();
-      const task=this.task={filename:queue[0].name,size:totalSize,offset:0,progress:0,speed:0,phase:"preparing",details:[`${queue.length} Datei(en) werden im Hintergrund hochgeladen.`,"Beim Dashboard-Wechsel lÃ¤uft der Upload weiter."],cancelRequested:false,uploadId:""};
+      const task=this.task={filename:queue[0].name,size:totalSize,offset:0,progress:0,speed:0,phase:"preparing",details:[`${queue.length} Datei(en) werden im Hintergrund hochgeladen.`,"Beim Dashboard-Wechsel läuft der Upload weiter."],cancelRequested:false,uploadId:""};
       this.emit(true);
       let completed=0;
       const errors=[];
@@ -2269,7 +2269,7 @@
         <img src="${esc(source.src)}" alt="${esc(source.label)}">
         <span class="media-label">${esc(source.label)}</span>
         ${source.mode === "preview" ? `<span class="media-task">${esc(task)}</span>` : ""}
-        ${native.stream ? `<button class="media-popout" data-action="camera-popout" title="Kamera in GroÃŸansicht Ã¶ffnen">â†—</button>` : ""}
+        ${native.stream ? `<button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">â†—</button>` : ""}
       </div>
     `;
   }
@@ -2308,7 +2308,7 @@
   <div class="right">
     <button id="snapshot">Schnappschuss</button>
     <button id="fullscreen">Vollbild</button>
-    <button onclick="window.close()">SchlieÃŸen</button>
+    <button onclick="window.close()">Schließen</button>
   </div>
 </header>
 <main><img id="stream" alt="3D-Printer Control Center Kamera-Stream" src="${streamHtml}"></main>
@@ -2394,19 +2394,19 @@
           <div class="grid">
             <label>Glow<select id="glow">${["dynamic","subtle","off"].map((v) => `<option ${v === (this._config?.glow || "dynamic") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
             <label>Akzentfarbe<select id="accent">${Object.keys(ACCENTS).map((v) => `<option ${v === (this._config?.accent || "cyan") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
-            <label>Glow-IntensitÃ¤t<select id="intensity">${["low","medium","high"].map((v) => `<option ${v === (this._config?.intensity || "medium") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
-            <label>KartengrÃ¶ÃŸe<select id="card_size">${["s","m","l","xl"].map((v) => `<option value="${v}" ${v === (this._config?.card_size || "m") ? "selected" : ""}>${v.toUpperCase()}</option>`).join("")}</select></label>
+            <label>Glow-Intensität<select id="intensity">${["low","medium","high"].map((v) => `<option ${v === (this._config?.intensity || "medium") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+            <label>Kartengröße<select id="card_size">${["s","m","l","xl"].map((v) => `<option value="${v}" ${v === (this._config?.card_size || "m") ? "selected" : ""}>${v.toUpperCase()}</option>`).join("")}</select></label>
             <label>Eckenradius<input id="radius" type="number" min="0" max="36" value="${esc(this._config?.radius ?? 16)}"></label>
           </div>
           ${showMedia ? `
-            <small>Die Druckerkamera wird modellabhÃ¤ngig bereitgestellt: A1/P1/A2 Ã¼ber Chamber Image TCP 6000, X1/H2/P2/X2 Ã¼ber RTSPS TCP 322. Die folgenden Felder sind nur optionale Ãœberschreibungen.</small>
+            <small>Die Druckerkamera wird modellabhängig bereitgestellt: A1/P1/A2 über Chamber Image TCP 6000, X1/H2/P2/X2 über RTSPS TCP 322. Die folgenden Felder sind nur optionale Überschreibungen.</small>
             <label>Andere Kamera-Entity optional<input id="camera_entity" placeholder="camera.mein_drucker" value="${esc(this._config?.camera_entity || "")}"></label>
             <label>Modellvorschau-Entity optional<input id="preview_entity" placeholder="image.mein_drucker_cover_image" value="${esc(this._config?.preview_entity || "")}"></label>
-            <label>Andere MJPEG-URL optional<input id="camera_url" placeholder="Nur fÃ¼r bewusste Ãœberschreibung der nativen Kamera" value="${esc(this._config?.camera_url || "")}"></label>
+            <label>Andere MJPEG-URL optional<input id="camera_url" placeholder="Nur für bewusste Überschreibung der nativen Kamera" value="${esc(this._config?.camera_url || "")}"></label>
           ` : ""}
           <label class="check"><input id="show_external_spool" type="checkbox" ${this._config?.show_external_spool !== false ? "checked" : ""}> Externe Spule anzeigen</label>
           <label class="check"><input id="show_diagnostics" type="checkbox" ${this._config?.show_diagnostics !== false ? "checked" : ""}> Diagnose anzeigen</label>
-          <small>S bis XL kann zusÃ¤tzlich direkt innerhalb der Karte umgeschaltet werden.</small>
+          <small>S bis XL kann zusätzlich direkt innerhalb der Karte umgeschaltet werden.</small>
         </div>
       `);
       this.querySelectorAll("input,select").forEach((element) => {
@@ -2522,7 +2522,7 @@
         <div class="toolbar">
           <button data-action="light">ðŸ’¡ Licht</button>
           <button data-action="toggle-camera">ðŸ“· Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button>
-          <button data-action="camera-popout">â†— GroÃŸansicht</button>
+          <button data-action="camera-popout">â†— Großansicht</button>
           ${printControlButtons(status)}
           <button data-action="refresh">â†» Aktualisieren</button>
         </div>`;
@@ -2549,7 +2549,7 @@
         this.shadowRoot.innerHTML=frame(this._config,`
           ${header}
           <div class="metrics">
-            ${metric("DÃ¼se",formatTemp(stateValue(this._hass,map.nozzle)))}
+            ${metric("Düse",formatTemp(stateValue(this._hass,map.nozzle)))}
             ${metric("Bett",formatTemp(stateValue(this._hass,map.bed)))}
           </div>
           ${basicButtons}
@@ -2566,7 +2566,7 @@
               ${mediaHtml(this._hass,map,this._config,this.cameraVisible(),online,status)}
             </div>
             <div class="metrics">
-              ${metric("DÃ¼se",formatTemp(stateValue(this._hass,map.nozzle)))}
+              ${metric("Düse",formatTemp(stateValue(this._hass,map.nozzle)))}
               ${metric("Bett",formatTemp(stateValue(this._hass,map.bed)))}
               ${metric("Tempo",displaySpeed(this._hass,map))}
               ${metric("Transport",stateValue(this._hass,map.activeMode))}
@@ -2588,7 +2588,7 @@
               </div>
               <div class="stack">
                 <div class="metrics">
-              ${metric("DÃ¼se",formatTemp(stateValue(this._hass,map.nozzle)))}
+              ${metric("Düse",formatTemp(stateValue(this._hass,map.nozzle)))}
               ${metric("Bett",formatTemp(stateValue(this._hass,map.bed)))}
               ${metric("Firmware",stateValue(this._hass,map.firmware))}
               ${metric("IP",stateValue(this._hass,map.activeHost))}
@@ -2641,11 +2641,11 @@
   }
   class TelemetryCard extends BaseCard {
     static getConfigElement(){return editorFor("telemetry")} static getStubConfig(){return {...commonStub(),title:"Telemetrie"}}
-    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><div class="metrics">${metric("DÃ¼se",formatTemp(stateValue(this._hass,m.nozzle)))}${metric("Bett",formatTemp(stateValue(this._hass,m.bed)))}${metric("Tempo",displaySpeed(this._hass,m))}${metric("WLAN",stateValue(this._hass,m.wifi))}${metric("Firmware",stateValue(this._hass,m.firmware))}${metric("Transport",stateValue(this._hass,m.activeMode))}${metric("IP",stateValue(this._hass,m.activeHost))}</div>`)}
+    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><div class="metrics">${metric("Düse",formatTemp(stateValue(this._hass,m.nozzle)))}${metric("Bett",formatTemp(stateValue(this._hass,m.bed)))}${metric("Tempo",displaySpeed(this._hass,m))}${metric("WLAN",stateValue(this._hass,m.wifi))}${metric("Firmware",stateValue(this._hass,m.firmware))}${metric("Transport",stateValue(this._hass,m.activeMode))}${metric("IP",stateValue(this._hass,m.activeHost))}</div>`)}
   }
   class ControlsCard extends BaseCard {
     static getConfigElement(){return editorFor("controls")} static getStubConfig(){return {...commonStub(),title:"Steuerung"}}
-    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const status=stateValue(this._hass,m.printStatus,"idle");this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="light">ðŸ’¡ Licht</button><button data-action="toggle-camera">ðŸ“· Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— GroÃŸansicht</button>${printControlButtons(status)}<button data-action="refresh">â†» Aktualisieren</button></div>`);this.bind(m)}
+    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const status=stateValue(this._hass,m.printStatus,"idle");this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="light">ðŸ’¡ Licht</button><button data-action="toggle-camera">ðŸ“· Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— Großansicht</button>${printControlButtons(status)}<button data-action="refresh">â†» Aktualisieren</button></div>`);this.bind(m)}
   }
   class AmsCard extends BaseCard {
     static getConfigElement(){return editorFor("ams")} static getStubConfig(){return {...commonStub(),title:"AMS"}}
@@ -2661,7 +2661,7 @@
   }
   class MediaCard extends BaseCard {
     static getConfigElement(){return editorFor("media")} static getStubConfig(){return {...commonStub(),title:"Kamera / Modellvorschau",card_size:"l"}}
-    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const o=isPrinterOnline(this._hass,m),s=stateValue(this._hass,m.printStatus);this.shadowRoot.innerHTML=frame(this._config,`<div class="row between"><h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="toggle-camera">ðŸ“· Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— GroÃŸansicht</button></div></div>${mediaHtml(this._hass,m,this._config,this.cameraVisible(),o,s)}`)}
+    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const o=isPrinterOnline(this._hass,m),s=stateValue(this._hass,m.printStatus);this.shadowRoot.innerHTML=frame(this._config,`<div class="row between"><h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="toggle-camera">ðŸ“· Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— Großansicht</button></div></div>${mediaHtml(this._hass,m,this._config,this.cameraVisible(),o,s)}`)}
   }
   class BrandCard extends BaseCard {
     static getConfigElement(){return editorFor("brand")} static getStubConfig(){return commonStub()}
@@ -2769,7 +2769,7 @@
       }catch(error){
         this._treeFolders=[{path:this._source==="sd"?"/":"",name:this._source==="sd"?"SD-Karte":"Hauptordner"}];
         this._treeSource=this._source;
-        this._notice=`Ordnerbaum konnte nicht vollstÃ¤ndig geladen werden: ${String(error?.message||error)}`;
+        this._notice=`Ordnerbaum konnte nicht vollständig geladen werden: ${String(error?.message||error)}`;
       }
     }
 
@@ -2901,7 +2901,7 @@
       if(!files.length)return;
       const invalid=files.filter((file)=>!String(file.name||"").toLowerCase().endsWith(".3mf"));
       if(invalid.length){
-        this._error=`Nur .3mf-Dateien sind zulÃ¤ssig. Nicht verwendbar: ${invalid.map((file)=>file.name).join(", ")}`;
+        this._error=`Nur .3mf-Dateien sind zulässig. Nicht verwendbar: ${invalid.map((file)=>file.name).join(", ")}`;
         this.render();return;
       }
       this._error="";
@@ -2941,10 +2941,10 @@
     async importGalleryZip(map,file){
       if(!file)return;
       if(this._source!=="archive"){
-        this._error="Galerie-ZIP-Import ist nur im lokalen Archiv verfÃ¼gbar.";this.render();return;
+        this._error="Galerie-ZIP-Import ist nur im lokalen Archiv verfügbar.";this.render();return;
       }
       if(!String(file.name||"").toLowerCase().endsWith(".zip")){
-        this._error="Bitte eine ZIP-Datei auswÃ¤hlen.";this.render();return;
+        this._error="Bitte eine ZIP-Datei auswählen.";this.render();return;
       }
       try{
         let result;
@@ -2952,10 +2952,10 @@
           result=await PCC_UPLOADS.startGalleryZip({hass:this._hass,serial:this.serial(map),file,overwrite:false});
         }catch(error){
           const message=String(error?.message||error);
-          if(!/existing files|overwrite/i.test(message)||!window.confirm(tr("Vorhandene Galerie-Dateien Ã¼berschreiben?")))throw error;
+          if(!/existing files|overwrite/i.test(message)||!window.confirm(tr("Vorhandene Galerie-Dateien überschreiben?")))throw error;
           result=await PCC_UPLOADS.startGalleryZip({hass:this._hass,serial:this.serial(map),file,overwrite:true});
         }
-        this._notice=`ZIP-Import erfolgreich: ${Number(result.imported||0)} Modelle - ${Number(result.folders||0)} Ordner - ${Number(result.overwritten||0)} Ã¼berschrieben - GegenprÃ¼fung ${result.verification==="ok"?"OK":"unbekannt"}`;
+        this._notice=`ZIP-Import erfolgreich: ${Number(result.imported||0)} Modelle - ${Number(result.folders||0)} Ordner - ${Number(result.overwritten||0)} überschrieben - Gegenprüfung ${result.verification==="ok"?"OK":"unbekannt"}`;
         await this.load(map,true);
       }catch(error){this._error=`Galerie-ZIP konnte nicht importiert werden: ${String(error?.message||error)}`;this.render()}
     }
@@ -2982,7 +2982,7 @@
     openBambuStudio(downloadUrl){
       const absolute=new URL(downloadUrl,window.location.origin).href;
       const protocol=`bambustudio://open?file=${encodeURIComponent(absolute)}`;
-      this._notice="Bambu Studio wird Ã¼ber den registrierten bambustudio://-Handler geÃ¶ffnet. Bei einer selbst gehosteten Home-Assistant-Adresse zeigt Bambu Studio absichtlich eine HerkunftsprÃ¼fung an. BestÃ¤tige diese mit Ja. Die direkte Ãœbergabe nutzt die unverÃ¤nderte Original-3MF-Datei nach dem Bambuddy-Prinzip; Modell-3MF und STL bleiben als manuelle Fallbacks verfÃ¼gbar.";
+      this._notice="Bambu Studio wird über den registrierten bambustudio://-Handler geöffnet. Bei einer selbst gehosteten Home-Assistant-Adresse zeigt Bambu Studio absichtlich eine Herkunftsprüfung an. Bestätige diese mit Ja. Die direkte Übergabe nutzt die unveränderte Original-3MF-Datei nach dem Bambuddy-Prinzip; Modell-3MF und STL bleiben als manuelle Fallbacks verfügbar.";
       this.render();
       window.setTimeout(()=>{window.location.href=protocol;},0);
     }
@@ -3011,7 +3011,7 @@
           : "Geometrie-only Modell-3MF wurde autark in Home Assistant erzeugt und heruntergeladen.";
         this.render();
       }catch(error){
-        this._error=`ModellÃ¼bergabe fehlgeschlagen: ${String(error?.message||error)}`;
+        this._error=`Modellübergabe fehlgeschlagen: ${String(error?.message||error)}`;
         this.render();
       }
     }
@@ -3171,7 +3171,7 @@
             }
           }
           if(failures.length){
-            throw new Error(`Mehrfach-Verschieben unvollstÃ¤ndig: ${failures.join(" | ")}`);
+            throw new Error(`Mehrfach-Verschieben unvollständig: ${failures.join(" | ")}`);
           }
           this._selectedPaths.clear();
         }
@@ -3199,7 +3199,7 @@
             scheduled_for:String(dialog.scheduled_for||""),
             preview_data_url:String(dialog.item.preview_data_url||""),
           });
-          this._notice="Modell wurde zur 3D-Druck-Warteschlange hinzugefÃ¼gt.";
+          this._notice="Modell wurde zur 3D-Druck-Warteschlange hinzugefügt.";
         }
 
         this.closeDialog();
@@ -3221,7 +3221,7 @@
       if(!items?.length)return"";
       return`
         <div class="bulk-dialog-summary">
-          <strong>${esc(items.length)} EintrÃ¤ge ausgewÃ¤hlt</strong>
+          <strong>${esc(items.length)} Einträge ausgewählt</strong>
           <div class="bulk-dialog-list">
             ${items.map((item)=>`<small>â€¢ ${esc(item.path||item.name||"")}</small>`).join("")}
           </div>
@@ -3303,25 +3303,25 @@
         <div class="archive-context-backdrop" data-context-close></div>
         <div class="archive-context-menu" style="left:${Number(menu.left||8)}px;top:${Number(menu.top||8)}px">
           ${folder
-            ? action("open-folder","Ã–ffnen","ðŸ“")
+            ? action("open-folder","Öffnen","ðŸ“")
             : `
               ${action("print","Drucken â€¦","ðŸ–¨",!project)}
               ${action("plan","Planen â€¦","ðŸ—“",!project)}
-              ${action("model-open","In Bambu Studio Ã¶ffnen (Original-3MF)","â†—",!project)}
-              ${action("studio-open","In 3D-Studio oeffnen","[S]",!project)}
+              ${action("model-open","In Bambu Studio öffnen (Original-3MF)","â†—",!project)}
+              ${action("studio-open","In 3D-Studio öffnen","[S]",!project)}
               ${action("model-download","Modell-3MF herunterladen","â¬‡",!project)}
               ${action("stl-download","Modell-STL herunterladen","â¬‡",!project)}
               ${action("preview","3D-Vorschau","â—ˆ")}
               <div class="archive-context-separator"></div>
               ${action("photos","Fotos ansehen","â–£",true)}
-              ${action("add-project","Zu Projekt hinzufÃ¼gen","ï¼‹",true)}
+              ${action("add-project","Zu Projekt hinzufügen","ï¼‹",true)}
               ${action("print-log","Druckprotokoll","â˜·",true)}
             `
           }
           <div class="archive-context-separator"></div>
           ${action("rename","Umbenennen","âœŽ")}
           ${action("move","Verschieben","â‡¢")}
-          ${action("delete","LÃ¶schen","ðŸ—‘")}
+          ${action("delete","Löschen","ðŸ—‘")}
         </div>
       `;
     }
@@ -3339,7 +3339,7 @@
 
         if(mode==="copy"){
           await navigator.clipboard.writeText(absolute);
-          this._notice="Download-Link wurde fÃ¼r fÃ¼nf Minuten in die Zwischenablage kopiert.";
+          this._notice="Download-Link wurde für fünf Minuten in die Zwischenablage kopiert.";
           this.render();
           return;
         }
@@ -3545,11 +3545,11 @@
         create:"Neuen Ordner erstellen",
         rename:"Eintrag umbenennen",
         move:"Eintrag verschieben",
-        "overwrite-move":"Eintrag Ã¼berschreiben?",
-        delete:"Eintrag lÃ¶schen",
-        "bulk-move":"Mehrere EintrÃ¤ge verschieben",
-        "overwrite-bulk-move":"Vorhandene EintrÃ¤ge Ã¼berschreiben?",
-        "bulk-delete":"Mehrere EintrÃ¤ge lÃ¶schen",
+        "overwrite-move":"Eintrag überschreiben?",
+        delete:"Eintrag löschen",
+        "bulk-move":"Mehrere Einträge verschieben",
+        "overwrite-bulk-move":"Vorhandene Einträge überschreiben?",
+        "bulk-delete":"Mehrere Einträge löschen",
         print:"Druckauftrag vorbereiten",
         plan:"Druckauftrag planen",
       }[dialog.type]||"3D-Drucker-Dateimanager/Galerie";
@@ -3559,7 +3559,7 @@
       if(dialog.type==="create"){
         body=`
           <label>Ordnername<input id="tc-dialog-value" value="${esc(dialog.value||"")}"></label>
-          <p class="muted">Der Ordner wird im aktuell geÃ¶ffneten Archivpfad angelegt.</p>
+          <p class="muted">Der Ordner wird im aktuell geöffneten Archivpfad angelegt.</p>
         `;
       }
 
@@ -3572,7 +3572,7 @@
 
       if(dialog.type==="delete"){
         body=`
-          <p>Soll dieser Eintrag wirklich gelÃ¶scht werden?</p>
+          <p>Soll dieser Eintrag wirklich gelöscht werden?</p>
           <p><strong>${esc(dialog.item?.path||"")}</strong></p>
           <p class="muted">Bei Ordnern werden auch die enthaltenen Dateien entfernt.</p>
         `;
@@ -3580,15 +3580,15 @@
 
       if(dialog.type==="bulk-delete"){
         body=`
-          <p>Sollen diese ausgewÃ¤hlten EintrÃ¤ge wirklich gelÃ¶scht werden?</p>
+          <p>Sollen diese ausgewählten Einträge wirklich gelöscht werden?</p>
           ${this.dialogItemsHtml(dialog.items||[])}
-          <p class="muted">AusgewÃ¤hlte Ordner werden einschlieÃŸlich ihrer enthaltenen Dateien entfernt.</p>
+          <p class="muted">Ausgewählte Ordner werden einschließlich ihrer enthaltenen Dateien entfernt.</p>
         `;
       }
 
       if(dialog.type==="move"||dialog.type==="bulk-move"){
         body=`
-          <p>WÃ¤hle den Zielordner fÃ¼r:</p>
+          <p>Wähle den Zielordner für:</p>
           ${dialog.type==="bulk-move"
             ? this.dialogItemsHtml(dialog.items||[])
             : `<p><strong>${esc(dialog.item?.path||"")}</strong></p>`
@@ -3602,31 +3602,31 @@
       if(dialog.type==="overwrite-move"||dialog.type==="overwrite-bulk-move"){
         const conflicts=dialog.conflicts||[];
         body=`
-          <p>Im Zielordner existieren bereits gleichnamige EintrÃ¤ge.</p>
+          <p>Im Zielordner existieren bereits gleichnamige Einträge.</p>
           <div class="bulk-dialog-summary">
             <strong>${esc(conflicts.length)} Konflikt(e)</strong>
             <div class="bulk-dialog-list">
               ${conflicts.map((item)=>`<small>â€¢ ${esc(item.path||item.name||"")}</small>`).join("")}
             </div>
           </div>
-          <p class="muted">Mit â€žÃœberschreibenâ€œ werden die vorhandenen Zieldateien oder Zielordner ersetzt.</p>
+          <p class="muted">Mit â€žÜberschreibenâ€œ werden die vorhandenen Zieldateien oder Zielordner ersetzt.</p>
         `;
       }
 
       if(dialog.type==="print"){
         body=`
           <p><strong>${esc(dialog.item?.name||"")}</strong></p>
-          <p class="muted">Die unverÃ¤nderte Original-3MF-Datei wird in Bambu Studio geÃ¶ffnet. Dort kannst du den Druck kontrolliert starten.</p>
-          <button class="primary" data-dialog-project-open>â†— In Bambu Studio Ã¶ffnen</button>
+          <p class="muted">Die unveränderte Original-3MF-Datei wird in Bambu Studio geöffnet. Dort kannst du den Druck kontrolliert starten.</p>
+          <button class="primary" data-dialog-project-open>â†— In Bambu Studio öffnen</button>
         `;
       }
 
       if(dialog.type==="plan"){
         body=`
           <p><strong>${esc(dialog.item?.name||"")}</strong></p>
-          <label>StÃ¼ckzahl<select id="tc-dialog-quantity">${this.quantityOptions(dialog.quantity||1)}</select></label>
+          <label>Stückzahl<select id="tc-dialog-quantity">${this.quantityOptions(dialog.quantity||1)}</select></label>
           <label>Geplanter Zeitpunkt optional<input id="tc-dialog-scheduled" type="datetime-local" value="${esc(dialog.scheduled_for||"")}"></label>
-          <p class="muted">Der bestehende MenÃ¼punkt Planen legt das Modell in der persistenten 3D-Druck-Warteschlange ab.</p>
+          <p class="muted">Der bestehende Menüpunkt Planen legt das Modell in der persistenten 3D-Druck-Warteschlange ab.</p>
         `;
       }
 
@@ -3646,7 +3646,7 @@
               ${prepared
                 ? ""
                 : `<button class="${destructive?"danger":"primary"}" data-dialog-confirm>
-                    ${destructive?"LÃ¶schen":(dialog.type==="overwrite-move"||dialog.type==="overwrite-bulk-move")?"Ãœberschreiben":dialog.type==="plan"?"Zur Warteschlange hinzufÃ¼gen":"Ãœbernehmen"}
+                    ${destructive?"Löschen":(dialog.type==="overwrite-move"||dialog.type==="overwrite-bulk-move")?"Überschreiben":dialog.type==="plan"?"Zur Warteschlange hinzufügen":"Übernehmen"}
                   </button>`
               }
             </div>
@@ -3666,14 +3666,14 @@
       return`
         <article class="file-row-with-preview ${selected?"is-selected":""}"
           data-context-path="${esc(item.path)}">
-          <label class="select-check" title="FÃ¼r Mehrfachaktion auswÃ¤hlen">
+          <label class="select-check" title="Für Mehrfachaktion auswählen">
             <input type="checkbox" data-select-path="${esc(item.path)}" ${selected?"checked":""}>
           </label>
           <button class="archive-tile-menu" data-context-button="${esc(item.path)}" title="Aktionen">â‹®</button>
 
           ${folder
-            ? `<button class="file-preview-button folder-preview" data-open-folder="${esc(item.path)}" title="Ordner Ã¶ffnen">ðŸ“</button>`
-            : `<button class="file-preview-button" data-preview-path="${esc(item.path)}" title="3D-Vorschau Ã¶ffnen">
+            ? `<button class="file-preview-button folder-preview" data-open-folder="${esc(item.path)}" title="Ordner öffnen">ðŸ“</button>`
+            : `<button class="file-preview-button" data-preview-path="${esc(item.path)}" title="3D-Vorschau öffnen">
                 ${preview?`<img src="${esc(preview)}" alt="${esc(item.name)}">`:"ðŸ“„"}
               </button>`
           }
@@ -3690,7 +3690,7 @@
 
           <div class="file-actions">
             ${folder
-              ? `<button class="primary" data-open-folder="${esc(item.path)}">ðŸ“ Ã–ffnen</button>
+              ? `<button class="primary" data-open-folder="${esc(item.path)}">ðŸ“ Öffnen</button>
                  <button data-dialog-type="rename" data-dialog-path="${esc(item.path)}">âœŽ Umbenennen</button>
                  <button data-context-button="${esc(item.path)}">â‹®</button>`
               : `
@@ -3710,7 +3710,7 @@
         .slice(0,3);
 
       if(!previews.length){
-        return`<div class="muted">Noch keine Dateien fÃ¼r eine Vorschau vorhanden.</div>`;
+        return`<div class="muted">Noch keine Dateien für eine Vorschau vorhanden.</div>`;
       }
 
       return`
@@ -3789,8 +3789,8 @@
               ${project?`
                 <button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">ðŸ–¨ Drucken â€¦</button>
                 <button data-context-direct="plan" data-context-path="${esc(item.path)}">ðŸ—“ Planen â€¦</button>
-                <button class="primary" data-context-direct="model-open" data-context-path="${esc(item.path)}">â†— In Bambu Studio Ã¶ffnen (Original-3MF)</button>
-                <button data-context-direct="studio-open" data-context-path="${esc(item.path)}">[S] In 3D-Studio oeffnen</button>
+                <button class="primary" data-context-direct="model-open" data-context-path="${esc(item.path)}">â†— In Bambu Studio öffnen (Original-3MF)</button>
+                <button data-context-direct="studio-open" data-context-path="${esc(item.path)}">[S] In 3D-Studio öffnen</button>
                 <button data-context-direct="model-download" data-context-path="${esc(item.path)}">â¬‡ Modell-3MF herunterladen</button>
                 <button data-context-direct="stl-download" data-context-path="${esc(item.path)}">â¬‡ Modell-STL herunterladen</button>
               `:""}
@@ -3798,8 +3798,8 @@
               ${project?"":`<button data-context-direct="download" data-context-path="${esc(item.path)}">â¬‡ Download</button>`}
               <button data-dialog-type="rename" data-dialog-path="${esc(item.path)}">âœŽ Umbenennen</button>
               <button data-dialog-type="move" data-dialog-path="${esc(item.path)}">â‡¢ Verschieben</button>
-              <button class="danger" data-dialog-type="delete" data-dialog-path="${esc(item.path)}">ðŸ—‘ LÃ¶schen</button>
-              <button data-preview-close>âœ• Vorschau schlieÃŸen</button>
+              <button class="danger" data-dialog-type="delete" data-dialog-path="${esc(item.path)}">ðŸ—‘ Löschen</button>
+              <button data-preview-close>âœ• Vorschau schließen</button>
             </aside>
           </div>
         </div>
@@ -4025,8 +4025,8 @@
               </div>
 
               <div class="archive-library-header-actions">
-                <button data-bulk-action="select-all" ${visibleSelectableCount?"":"disabled"}>â˜‘ Sichtbare auswÃ¤hlen</button>
-                <span class="badge" title="Kein Zusatzhelfer erforderlich. Bambu Studio prÃ¼ft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.">HA-only - Original-3MF an Bambu Studio</span>
+                <button data-bulk-action="select-all" ${visibleSelectableCount?"":"disabled"}>â˜‘ Sichtbare auswählen</button>
+                <span class="badge" title="Kein Zusatzhelfer erforderlich. Bambu Studio prüft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.">HA-only - Original-3MF an Bambu Studio</span>
                 <button class="primary" data-action="choose-upload">â¬† 3MF hochladen</button>
                 ${this._source==="archive"?`<button data-action="gallery-export">â‡© Galerie-ZIP exportieren</button><button data-action="choose-zip-import">â‡§ Galerie-ZIP importieren</button>`:""}
                 <button data-action="template-refresh" title="3D-Drucker-Dateimanager/Galerie aktualisieren">â†» Aktualisieren</button>
@@ -4045,13 +4045,13 @@
 
                 <div class="archive-search-wrap">
                   <input class="archive-search" data-archive-filter placeholder="Dateien und Ordner durchsuchen â€¦" value="${esc(this._filter)}">
-                  <button class="archive-search-reset" data-action="search-reset" title="Suche zurÃ¼cksetzen" ${this._filter?"":"disabled"}>âœ•</button>
+                  <button class="archive-search-reset" data-action="search-reset" title="Suche zurücksetzen" ${this._filter?"":"disabled"}>âœ•</button>
                 </div>
 
                 <select data-sort-mode title="Sortierung">
                   <option value="name" ${this._sortMode==="name"?"selected":""}>Name Aâ€“Z</option>
                   <option value="newest" ${this._sortMode==="newest"?"selected":""}>Neueste zuerst</option>
-                  <option value="size" ${this._sortMode==="size"?"selected":""}>GrÃ¶ÃŸte zuerst</option>
+                  <option value="size" ${this._sortMode==="size"?"selected":""}>Größte zuerst</option>
                 </select>
               </div>
 
@@ -4063,7 +4063,7 @@
                 </label>
                 <button data-bulk-action="clear" ${selectedCount?"":"disabled"}>Auswahl aufheben</button>
                 <button data-bulk-action="move" ${selectedCount?"":"disabled"}>Auswahl verschieben</button>
-                <button class="danger" data-bulk-action="delete" ${selectedCount?"":"disabled"}>Auswahl lÃ¶schen</button>
+                <button class="danger" data-bulk-action="delete" ${selectedCount?"":"disabled"}>Auswahl löschen</button>
               </div>
             </div>
 
@@ -4083,7 +4083,7 @@
               <div class="archive-upload ${selectedCountForUpload?"has-selection":"is-idle"}">
                 <div class="archive-upload-file">
                   <strong>${selectedCountForUpload
-                    ? `${selectedCountForUpload} Datei(en) fÃ¼r den Upload ausgewÃ¤hlt`
+                    ? `${selectedCountForUpload} Datei(en) für den Upload ausgewählt`
                     : `Upload-Ziel: ${this._source==="sd"?"SD-Karte des Druckers":"Lokales Archiv"}`
                   }</strong>
                   <small>${selectedCountForUpload
@@ -4092,7 +4092,7 @@
                   }</small>
                 </div>
                 <button class="primary" data-action="upload-selected" ${selectedCountForUpload&&!this._uploadActive?"":"disabled"}>
-                  â¬† ${selectedCountForUpload>1?`${selectedCountForUpload} Dateien hochladen`:"AusgewÃ¤hlte 3MF hochladen"}
+                  â¬† ${selectedCountForUpload>1?`${selectedCountForUpload} Dateien hochladen`:"Ausgewählte 3MF hochladen"}
                 </button>
               </div>
             `:""}
@@ -4113,7 +4113,7 @@
             }
 
             <div class="archive-width-warning">
-              Diese Karte benÃ¶tigt fÃ¼r die Ã¼bersichtliche Dateimanager-Ansicht einen eigenen Abschnitt Ã¼ber die volle Dashboard-Breite.
+              Diese Karte benötigt für die übersichtliche Dateimanager-Ansicht einen eigenen Abschnitt über die volle Dashboard-Breite.
             </div>
 
             <div class="archive-library-body">
@@ -4227,7 +4227,7 @@
       const chooser=this.shadowRoot.querySelector("#tc-upload");
       this.shadowRoot.querySelectorAll("[data-action='choose-upload']").forEach((button)=>button.addEventListener("click",()=>chooser?.click()));
       chooser?.addEventListener("change",()=>{
-        this._selectedFiles=[...(chooser.files||[])];
+        this._selectedFiles=pccUniqueFiles(chooser.files||[]);
         this.render();
       });
       this.shadowRoot.querySelector("[data-action='upload-selected']")?.addEventListener("click",()=>this.upload(map));
@@ -4430,12 +4430,12 @@
             preview_data_url:String(item.preview_data_url||""),
           });
         }
-        this._queueNotice=`${models.length} Modell(e) wurden zur Warteschlange hinzugefÃ¼gt.`;
+        this._queueNotice=`${models.length} Modell(e) wurden zur Warteschlange hinzugefügt.`;
         this._pickerOpen=false;
         this._pickerSelected.clear();
         await this.loadQueue(map);
       }catch(error){
-        this._queueError=`Modelle konnten nicht hinzugefÃ¼gt werden: ${String(error?.message||error)}`;
+        this._queueError=`Modelle konnten nicht hinzugefügt werden: ${String(error?.message||error)}`;
         this.render();
       }
     }
@@ -4466,7 +4466,7 @@
         await this.ws({type:"printer_control_center/queue/move",serial:this.serial(map),queue_id:item.id,direction});
         await this.loadQueue(map);
       }catch(error){
-        this._queueError=`Reihenfolge konnte nicht geÃ¤ndert werden: ${String(error?.message||error)}`;
+        this._queueError=`Reihenfolge konnte nicht geändert werden: ${String(error?.message||error)}`;
         this.render();
       }
     }
@@ -4486,11 +4486,11 @@
           path:item.path,
         });
         const absolute=new URL(data.download_url,window.location.origin).href;
-        this._queueNotice="Bambu Studio wird mit der unverÃ¤nderten Original-3MF-Datei geÃ¶ffnet. Nach einem erfolgreich gestarteten Druck kannst du einen Durchlauf mit â€š1 erledigtâ€˜ abhaken.";
+        this._queueNotice="Bambu Studio wird mit der unveränderten Original-3MF-Datei geöffnet. Nach einem erfolgreich gestarteten Druck kannst du einen Durchlauf mit â€š1 erledigtâ€˜ abhaken.";
         this.render();
         window.setTimeout(()=>{window.location.href=`bambustudio://open?file=${encodeURIComponent(absolute)}`;},0);
       }catch(error){
-        this._queueError=`Bambu Studio konnte nicht geÃ¶ffnet werden: ${String(error?.message||error)}`;
+        this._queueError=`Bambu Studio konnte nicht geöffnet werden: ${String(error?.message||error)}`;
         this.render();
       }
     }
@@ -4522,7 +4522,7 @@
         </button>
         <strong class="queue-name" title="${esc(item.name)}">${esc(item.name)}</strong>
         <small>${folder?"Ordner":`${esc(bytesLabel(item.size||0))} - ${esc(this._pickerSource==="sd"?"SD-Karte":"Archiv")}`}</small>
-        ${folder?`<button data-queue-picker-folder="${esc(item.path)}">ðŸ“ Ã–ffnen</button>`:""}
+        ${folder?`<button data-queue-picker-folder="${esc(item.path)}">ðŸ“ Öffnen</button>`:""}
       </article>`;
     }
 
@@ -4532,13 +4532,13 @@
       return `<div class="tc-overlay" data-queue-picker-backdrop>
         <section class="queue-picker-dialog">
           <div class="row between">
-            <div><h2>Galerie - Modelle zur Warteschlange hinzufÃ¼gen</h2><small>Mehrere Modelle markieren und gemeinsam Ã¼bernehmen.</small></div>
+            <div><h2>Galerie - Modelle zur Warteschlange hinzufügen</h2><small>Mehrere Modelle markieren und gemeinsam übernehmen.</small></div>
             <button data-queue-picker-close>âœ•</button>
           </div>
           <div class="toolbar">
             <button class="${this._pickerSource==="archive"?"primary":""}" data-queue-picker-source="archive">Lokales Archiv</button>
             <button class="${this._pickerSource==="sd"?"primary":""}" data-queue-picker-source="sd">SD-Karte</button>
-            <button data-queue-picker-up ${canGoUp?"":"disabled"}>â†‘ Eine Ebene hÃ¶her</button>
+            <button data-queue-picker-up ${canGoUp?"":"disabled"}>â†‘ Eine Ebene höher</button>
             <button data-queue-picker-refresh>â†» Aktualisieren</button>
             <span class="badge">${esc(this._pickerFolder||(this._pickerSource==="sd"?"/":"Hauptordner"))}</span>
           </div>
@@ -4548,9 +4548,9 @@
           </div>
           <div class="queue-picker-footer">
             <strong>${selected} Modell(e) markiert</strong>
-            <label>StÃ¼ckzahl je Modell <select data-queue-picker-quantity>${this.quantityOptions(this._pickerQuantity||1)}</select></label>
+            <label>Stückzahl je Modell <select data-queue-picker-quantity>${this.quantityOptions(this._pickerQuantity||1)}</select></label>
             <label>Zeitpunkt optional <input data-queue-picker-scheduled type="datetime-local" value="${esc(this._pickerScheduled||"")}"></label>
-            <button class="primary" data-queue-picker-add ${selected?"":"disabled"}>ï¼‹ Markierte Modelle hinzufÃ¼gen</button>
+            <button class="primary" data-queue-picker-add ${selected?"":"disabled"}>ï¼‹ Markierte Modelle hinzufügen</button>
             <button data-queue-picker-close>Abbrechen</button>
           </div>
         </section>
@@ -4654,8 +4654,8 @@
           ${schedule?`<span class="badge">Geplant: ${esc(schedule.replace("T"," "))}</span>`:""}
         </div>
         <div class="queue-actions">
-          <label>StÃ¼ckzahl <select data-queue-quantity="${esc(item.id)}">${this.quantityOptions(shownQuantity)}</select></label>
-          <button class="queue-apply" data-queue-apply="${esc(item.id)}">âœ“ Auswahl Ã¼bernehmen</button>
+          <label>Stückzahl <select data-queue-quantity="${esc(item.id)}">${this.quantityOptions(shownQuantity)}</select></label>
+          <button class="queue-apply" data-queue-apply="${esc(item.id)}">âœ“ Auswahl übernehmen</button>
           <button data-queue-move="up" data-queue-id="${esc(item.id)}" title="Nach oben">â†‘ Nach oben</button>
           <button data-queue-move="down" data-queue-id="${esc(item.id)}" title="Nach unten">â†“ Nach unten</button>
           <button class="primary queue-print" data-queue-studio="${esc(item.id)}">ðŸ–¨ Drucken â€¦</button>
@@ -4674,15 +4674,15 @@
       const total=this._queue.reduce((sum,item)=>sum+Math.max(1,Number(item.quantity||1)),0);
       this.shadowRoot.innerHTML=frame(this._config,`
         <div class="row between">
-          <div><h2>${esc(this._config.title||"3D-Druck-Warteschlange")}</h2><small>Persistente Planung fÃ¼r ${esc(this.serial(map))}</small></div>
-          <div class="toolbar"><button class="primary" data-queue-open-gallery>ï¼‹ Galerie Ã¶ffnen</button><button data-queue-refresh>â†» Aktualisieren</button></div>
+          <div><h2>${esc(this._config.title||"3D-Druck-Warteschlange")}</h2><small>Persistente Planung für ${esc(this.serial(map))}</small></div>
+          <div class="toolbar"><button class="primary" data-queue-open-gallery>ï¼‹ Galerie öffnen</button><button data-queue-refresh>â†» Aktualisieren</button></div>
         </div>
-        <div class="row"><span class="badge">${this._queue.length} EintrÃ¤ge</span><span class="badge">${total} DruckdurchlÃ¤ufe</span></div>
+        <div class="row"><span class="badge">${this._queue.length} Einträge</span><span class="badge">${total} Druckdurchläufe</span></div>
         ${this._queueError?`<p class="notice">${esc(this._queueError)}</p>`:""}
         ${this._queueNotice?`<p class="notice">${esc(this._queueNotice)}</p>`:""}
         ${this._queueLoading?`<p class="muted">Warteschlange wird geladen â€¦</p>`:""}
         ${this._queueToast?`<div class="queue-mini-toast" style="left:${Number(this._queueToastPosition?.left||18)}px;top:${Number(this._queueToastPosition?.top||92)}px">${esc(this._queueToast)}</div>`:""}
-        <div class="queue-list">${this._queue.map((item,index)=>this.rowHtml(item,index)).join("")||`<p class="muted">Noch keine geplanten Modelle. Ã–ffne die Galerie oder nutze im Dateimanager den vorhandenen MenÃ¼punkt â€žPlanen â€¦â€œ.</p>`}</div>
+        <div class="queue-list">${this._queue.map((item,index)=>this.rowHtml(item,index)).join("")||`<p class="muted">Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen â€¦â€œ.</p>`}</div>
       `,"archive-library-card");
       this.shadowRoot.querySelector("[data-queue-open-gallery]")?.addEventListener("click",()=>this.openPicker(map));
       this.shadowRoot.querySelector("[data-queue-refresh]")?.addEventListener("click",()=>this.loadQueue(map));
@@ -4721,9 +4721,9 @@
       if(!this._config)return;
       this.shadowRoot.innerHTML=frame(this._config,`
         <h3>${esc(this._config.title)}</h3>
-        <p class="muted">MakerWorld-Modell suchen oder einen Modell-Link Ã¶ffnen. Die 3MF-Datei kann anschlieÃŸend direkt in die Archivkarte hochgeladen werden.</p>
-        <div class="toolbar"><input id="mw" placeholder="Suchbegriff oder MakerWorld-Link"><button id="mwgo">âŒ• MakerWorld Ã¶ffnen</button></div>
-        <p class="notice">Kein verdeckter Direktimport Ã¼ber undokumentierte Community-Endpunkte. Der Workflow bleibt nachvollziehbar und verÃ¶ffentlichbar.</p>
+        <p class="muted">MakerWorld-Modell suchen oder einen Modell-Link öffnen. Die 3MF-Datei kann anschließend direkt in die Archivkarte hochgeladen werden.</p>
+        <div class="toolbar"><input id="mw" placeholder="Suchbegriff oder MakerWorld-Link"><button id="mwgo">âŒ• MakerWorld öffnen</button></div>
+        <p class="notice">Kein verdeckter Direktimport über undokumentierte Community-Endpunkte. Der Workflow bleibt nachvollziehbar und veröffentlichbar.</p>
       `);
       this.shadowRoot.querySelector("#mwgo")?.addEventListener("click",()=>{
         const value=String(this.shadowRoot.querySelector("#mw")?.value||"").trim();
@@ -4779,7 +4779,7 @@
   const picker = [
     [TYPES.complete,"3D-Printer Control Center - Komplettkarte","Responsive Gesamtansicht mit Kamera, Steuerung und AMS"],
     [TYPES.media,"3D-Printer Control Center - Kamera / Modellvorschau","Live-Kamera mit automatischem Vorschau- und Offline-Fallback"],
-    [TYPES.controls,"3D-Printer Control Center - Steuerung","Licht, Kamera und zustandsabhÃ¤ngige Drucksteuerung"],
+    [TYPES.controls,"3D-Printer Control Center - Steuerung","Licht, Kamera und zustandsabhängige Drucksteuerung"],
     [TYPES.ams,"3D-Printer Control Center - AMS","Geladene Materialien und Farben"],
     [TYPES.progress,"3D-Printer Control Center - Druckfortschritt","Fortschritt, Layer und Restzeit"],
     [TYPES.telemetry,"3D-Printer Control Center - Telemetrie","Temperaturen und Netzwerk"],
@@ -4788,7 +4788,7 @@
     [TYPES.header,"3D-Printer Control Center - Header und Status","Kompakter Druckerstatus"],
     [TYPES.brand,"3D-Printer Control Center - Logo und Branding","Branding-Modul"],
     [TYPES.templates,"3D-Printer Control Center - 3D-Drucker-Dateimanager/Galerie","HA-only Vollbreiten-Dateimanager mit Body-Overlay, direktem Bambu-Studio-Import und SD-Karten-Verwaltung"],
-    [TYPES.queue,"3D-Printer Control Center - 3D-Druck-Warteschlange","Persistente Druckplanung mit Galerie-Popup, Mehrfachauswahl, StÃ¼ckzahl und Bambu-Studio-DruckÃ¼bergabe"],
+    [TYPES.queue,"3D-Printer Control Center - 3D-Druck-Warteschlange","Persistente Druckplanung mit Galerie-Popup, Mehrfachauswahl, Stückzahl und Bambu-Studio-Druckübergabe"],
     [TYPES.makerworld,"3D-Printer Control Center - MakerWorld Explorer","MakerWorld-Websuche"],
     [TYPES.frame,"3D-Printer Control Center - Glow-Rahmen","Separater Glow-Rahmen"],
   ];
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-alpha25",
+        version: "5.0.0-beta1",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,8 +4835,20 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-alpha25";
+  const STUDIO_VERSION = "5.0.0-beta1";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
+
+  function pccUniqueFiles(files) {
+    const seen = new Set();
+    const result = [];
+    for (const file of [...(files || [])]) {
+      const key = `${file.name || ""}|${file.size || 0}|${file.lastModified || 0}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      result.push(file);
+    }
+    return result;
+  }
 
   const escStudio = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -4869,7 +4881,7 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "alpha25 Interactive Control Fix + Mesh Viewer bereit. Echte STL-/Geometrieanzeige, Drag, Tastatur, Kontextmenü, Raster und Modell-Reload sind aktiv. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+      this._status = "beta1 Studio Stabilization bereit. Rechte Transform-Spalte, Rechtsklickmenü, echte STL-Geometrie, deduplizierter Import und stabile Tastatursteuerung sind aktiv. Echtes Slicen und Direktdruck bleiben deaktiviert.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -4932,7 +4944,7 @@
       this.ensureStudioMeshLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Alpha25: Home Assistant pushes frequent hass updates.
+      // Beta1: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -5185,6 +5197,8 @@
       const originalRender = this.render.bind(this);
       this.render = (...args) => {
         const result = originalRender(...args);
+        this.cleanupBetaStudioUi();
+        this.bindBetaContextMenu();
         this.queueMeshRender();
         return result;
       };
@@ -5204,7 +5218,9 @@
         x: Math.round(event.clientX - rect.left - rect.width / 2),
         y: Math.round(event.clientY - rect.top - rect.height / 2),
         screenX: Math.round(event.clientX - rect.left),
-        screenY: Math.round(event.clientY - rect.top)
+        screenY: Math.round(event.clientY - rect.top),
+        clientX: Math.round(event.clientX),
+        clientY: Math.round(event.clientY)
       };
     }
 
@@ -5515,7 +5531,7 @@
 
       this._studioMeshLoading = true;
       this._studioMeshError = "";
-      this._studioMeshStatus = "Echtes Modell wird geladen ...";
+      this._studioMeshStatus = "Echtes Modell wird geladen …..";
 
       try {
         const url = await this.requestStudioMeshUrl();
@@ -5541,13 +5557,22 @@
       const job = this._activeJob || this.buildDryRunJob();
       const path = this.activeJobPath();
       const serial = job?.serial || this._config?.serial || "";
-      const source = job?.source || job?.origin || "archive";
+      const source = String(job?.source || job?.origin || "archive").toLowerCase();
       const filename = job?.filename || job?.file_name || path.split("/").pop() || "";
 
+      const modelStlSource = source === "sd" || source === "sdcard" || source === "printer_sd"
+        ? "sd_model_stl"
+        : "archive_model_stl";
+
+      const model3mfSource = source === "sd" || source === "sdcard" || source === "printer_sd"
+        ? "sd_model_3mf"
+        : "archive_model_3mf";
+
       const requests = [
-        {type:"printer_control_center/project/link", serial, source, path, file_path:path, filename, mode:"stl", kind:"stl", target:"stl"},
+        {type:"printer_control_center/project/link", serial, source:modelStlSource, path, file_path:path, filename},
+        {type:"printer_control_center/project/link", serial, source:modelStlSource, path, file_path:path, filename, format:"stl"},
+        {type:"printer_control_center/project/link", serial, source:model3mfSource, path, file_path:path, filename, format:"stl"},
         {type:"printer_control_center/project/link", serial, source, path, file_path:path, filename, mode:"model_stl", kind:"model_stl", target:"stl"},
-        {type:"printer_control_center/project/link", serial, source, path, file_path:path, filename, format:"stl"},
       ];
 
       for (const request of requests) {
@@ -6014,7 +6039,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Alpha25: no full render on every keystroke.
+      // Beta1: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -6029,7 +6054,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Alpha25: render is intentionally skipped while editing to avoid cursor jumps.
+      // Beta1: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -6232,7 +6257,7 @@
     renderJobsList() {
       const jobs = Array.isArray(this._jobs) ? this._jobs.slice(0, 8) : [];
       if (!jobs.length) {
-        return `<div class="health-note">Noch kein persistenter Studio-Job. Oeffne ein 3MF-Modell in der Galerie ueber "In 3D-Studio oeffnen".</div>`;
+        return `<div class="health-note">Noch kein persistenter Studio-Job. Oeffne ein 3MF-Modell in der Galerie ueber "In 3D-Studio öffnen".</div>`;
       }
 
       return jobs.map((job) => {
@@ -6415,14 +6440,14 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - alpha25 Interactive Control Fix + Mesh Viewer</div>
+                  <div class="plate-label">Buildplate - beta1 Studio Stabilization</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   <div class="mesh-status">${escStudio(this._studioMeshStatus || "Echtes Modell noch nicht geladen.")}</div>
                   <div class="model" title="Modell ziehen"></div>
                   <div class="model-label">${escStudio(activeName)}</div>
                   ${this._studioContextMenu ? html`
-                    <div class="studio-context" style="left:${Math.max(8, this._studioContextMenu.screenX || 8)}px;top:${Math.max(8, this._studioContextMenu.screenY || 8)}px;">
+                    <div class="studio-context" style="left:${Math.max(8, this._studioContextMenu.clientX || this._studioContextMenu.screenX || 8)}px;top:${Math.max(8, this._studioContextMenu.clientY || this._studioContextMenu.screenY || 8)}px;">
                       <button class="action" data-action="center">Zentrieren</button>
                       <button class="action" data-action="snap-grid">Raster anwenden</button>
                       <button class="action" data-action="reload-mesh">Echtes Modell neu laden</button>
@@ -6504,7 +6529,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 alpha25 Interactive Control Fix + Mesh Viewer with real STL geometry display, drag, keyboard shortcuts, context menu and profile-bank backed Dry-Run planning."
+      description: "v5 beta1 Studio Stabilization with real STL geometry display, right-click context menu, cleaned duplicate controls and profile-bank backed Dry-Run planning."
     });
   }
 })();

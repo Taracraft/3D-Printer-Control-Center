@@ -1,3 +1,24 @@
+## 5.0.0-beta3 - Studio UI Cleanup
+
+### English
+- Cleaned the Studio top navigation by removing edit actions that already exist in the right Transform inspector.
+- Kept Studio editing controls in the right inspector as the single editing location.
+- Added a native floating Studio right-click context menu that is created directly in the Shadow DOM and no longer depends on the buildplate render block alone.
+- Added persistent Studio job delete by clearing and recreating the remaining persistent Studio jobs through the existing WebSocket commands.
+- Expanded Studio STL mesh-link fallbacks to prefer the same source/path/format approach used by the gallery STL download flow before model-STL source variants.
+- Real STL/geometry canvas rendering remains the Studio model path; preview images are not used as the Studio model.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Obere Studio-Navigation bereinigt: Bearbeitungsaktionen, die rechts im Transform-Inspector vorhanden sind, werden oben entfernt.
+- Bearbeitung bleibt rechts im Transform-Inspector als einziger Bearbeitungsbereich.
+- Natives schwebendes Rechtsklick-Kontextmenü für das Studio ergänzt, direkt im Shadow DOM erzeugt und nicht mehr nur vom Buildplate-Renderblock abhängig.
+- Persistentes Löschen von Studio-Jobs ergänzt: verbleibende Studio-Jobs werden über die vorhandenen WebSocket-Befehle nach Clear neu aufgebaut.
+- STL-Mesh-Link-Fallbacks erweitert: zuerst wird der gleiche source/path/format-Ansatz wie beim Galerie-STL-Download versucht, danach die Modell-STL-Quellen.
+- Echtes STL-/Geometrie-Canvas bleibt der Studio-Modellpfad; Vorschaubilder werden nicht als Studio-Modell verwendet.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta2 - Studio Prototype Hotfix
 
 ### English

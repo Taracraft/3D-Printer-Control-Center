@@ -1,3 +1,8 @@
+## 4.0.9 - 2026-06-16
+
+- Fix remaining gallery button mojibake for the `Neuer Ordner` folder action.
+- Extend the frontend runtime sanitizer for the remaining folder-icon corruption observed after v4.0.8.
+
 ## 4.0.8 - 2026-06-16
 
 - Fix UTF-8/mojibake handling in backend entities and frontend cards, including temperature units.

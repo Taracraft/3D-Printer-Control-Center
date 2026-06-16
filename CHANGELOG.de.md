@@ -1,3 +1,8 @@
+## 4.0.9 - 2026-06-16
+
+- Verbleibenden Mojibake-Fehler am Galerie-Button `Neuer Ordner` korrigiert.
+- Frontend-Runtime-Sanitizer um die nach v4.0.8 beobachtete Ordner-Icon-Verstümmelung erweitert.
+
 ## 4.0.8 - 2026-06-16
 
 - UTF-8-/Mojibake-Behandlung in Backend-Entitaeten und Frontend-Karten korrigiert, inklusive Temperatureinheiten.

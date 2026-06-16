@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 4.0.8 */
+/* 3D-Printer Control Center - HACS Release 4.0.9 */
 (() => {
-  const VERSION = "4.0.8";
+  const VERSION = "4.0.9";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4732,6 +4732,13 @@
   window.__pccV408MojibakeSanitizer = true;
 
   const replacements = [
+    ["1¼ Neuer Ordner", "📁 Neuer Ordner"],
+    ["1/4 Neuer Ordner", "📁 Neuer Ordner"],
+    ["¼ Neuer Ordner", "📁 Neuer Ordner"],
+    ["ðŸ“ Neuer Ordner", "📁 Neuer Ordner"],
+    ["1¼ Öffnen", "📁 Öffnen"],
+    ["1/4 Öffnen", "📁 Öffnen"],
+    ["¼ Öffnen", "📁 Öffnen"],
     ["\u00c2\u00b0C", "\u00b0C"],
     ["\u00c2\u00b0", "\u00b0"],
     ["\u00c3\u0084", "\u00c4"],
@@ -4802,7 +4809,7 @@
         for (const node of nodes) sanitizeNode(node, depth + 1);
       }
     } catch (err) {
-      console.debug("PCC v4.0.8 UTF-8 sanitizer skipped node", err);
+      console.debug("PCC v4.0.9 UTF-8 sanitizer skipped node", err);
     }
   };
 

@@ -1,3 +1,10 @@
+## 4.0.11 - 2026-06-16
+
+- Add an auto-detecting 3D-Printer Control Center camera dashboard card.
+- The managed 3D print dashboard now includes a real Home Assistant live camera card for `camera.*_native_live_camera`.
+- The new camera card uses Home Assistant's `picture-entity` live camera rendering instead of the older internal still/proxy preview path.
+- This makes the X1/X1C RTSPS live view visible directly on the 3D print dashboard after the v4.0.10 camera stream fix.
+
 ## 4.0.10 - 2026-06-16
 
 - Align the native RTSPS camera entity with the working BambuLab Home Assistant integration behavior.

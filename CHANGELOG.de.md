@@ -1,3 +1,10 @@
+## 4.0.11 - 2026-06-16
+
+- Automatisch erkennende 3D-Printer-Control-Center-Kamerakarte ergänzt.
+- Das verwaltete 3D-Druck-Dashboard enthält jetzt eine echte Home-Assistant-Livekamera-Karte für `camera.*_native_live_camera`.
+- Die neue Kamerakarte nutzt Home Assistants `picture-entity`-Livekamera-Darstellung statt des älteren internen Standbild-/Proxy-Pfads.
+- Damit wird das X1/X1C-RTSPS-Livebild nach dem v4.0.10-Kamera-Stream-Fix direkt im 3D-Druck-Dashboard sichtbar.
+
 ## 4.0.10 - 2026-06-16
 
 - Native RTSPS-Kamera an das Verhalten der funktionierenden BambuLab-Home-Assistant-Integration angepasst.

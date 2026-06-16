@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 4.0.10 */
+/* 3D-Printer Control Center - HACS Release 4.0.11 */
 (() => {
-  const VERSION = "4.0.10";
+  const VERSION = "4.0.11";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4809,7 +4809,7 @@
         for (const node of nodes) sanitizeNode(node, depth + 1);
       }
     } catch (err) {
-      console.debug("PCC v4.0.10 UTF-8 sanitizer skipped node", err);
+      console.debug("PCC v4.0.11 UTF-8 sanitizer skipped node", err);
     }
   };
 
@@ -4831,5 +4831,158 @@
 
   if (document.body) {
     observer.observe(document.body, { childList: true, subtree: true });
+  }
+})();
+
+
+;(() => {
+  const CARD_TYPE = "printer-control-center-camera-card";
+  if (customElements.get(CARD_TYPE)) return;
+
+  const CAMERA_SUFFIXES = [
+    "_native_live_camera",
+    "_live_camera",
+    "_camera",
+  ];
+
+  class PrinterControlCenterCameraCard extends HTMLElement {
+    constructor() {
+      super();
+      this._config = {};
+      this._hass = null;
+      this._card = null;
+      this._cardEntity = null;
+      this.attachShadow({ mode: "open" });
+    }
+
+    setConfig(config) {
+      this._config = config || {};
+      this._render();
+    }
+
+    set hass(hass) {
+      this._hass = hass;
+      this._render();
+    }
+
+    getCardSize() {
+      return 4;
+    }
+
+    _resolveCameraEntity() {
+      const hass = this._hass;
+      if (!hass || !hass.states) return null;
+
+      const configured = String(this._config.entity || "").trim();
+      if (configured && hass.states[configured]) return configured;
+
+      const explicit = Object.keys(hass.states).find((entityId) =>
+        entityId.startsWith("camera.") && entityId.endsWith("_native_live_camera")
+      );
+      if (explicit) return explicit;
+
+      const bySuffix = Object.keys(hass.states).find((entityId) =>
+        entityId.startsWith("camera.") && CAMERA_SUFFIXES.some((suffix) => entityId.endsWith(suffix))
+      );
+      if (bySuffix) return bySuffix;
+
+      return Object.keys(hass.states).find((entityId) => {
+        if (!entityId.startsWith("camera.")) return false;
+        const state = hass.states[entityId];
+        const attrs = state.attributes || {};
+        const brand = String(attrs.brand || "").toLowerCase();
+        const name = String(attrs.friendly_name || "").toLowerCase();
+        return brand.includes("3d-printer control center")
+          || name.includes("bambu")
+          || name.includes("live camera")
+          || name.includes("live kamera");
+      }) || null;
+    }
+
+    _renderEmpty(message) {
+      if (!this.shadowRoot) return;
+      this.shadowRoot.innerHTML = `
+        <style>
+          .card {
+            background: var(--ha-card-background, var(--card-background-color, #111));
+            border: 1px solid rgba(0,188,255,.45);
+            border-radius: 16px;
+            padding: 16px;
+            color: var(--primary-text-color);
+            font-family: var(--ha-font-family-body, inherit);
+            box-shadow: 0 0 18px rgba(0,188,255,.18);
+          }
+          .title { font-weight: 700; margin-bottom: 6px; }
+          .hint { opacity: .75; font-size: 13px; line-height: 1.45; }
+        </style>
+        <ha-card class="card">
+          <div class="title">Bambu Live-Kamera</div>
+          <div class="hint">${message}</div>
+        </ha-card>
+      `;
+    }
+
+    _render() {
+      if (!this.shadowRoot || !this._hass) return;
+
+      const entity = this._resolveCameraEntity();
+      if (!entity) {
+        this._renderEmpty("Keine Kamera-Entity gefunden. Erwartet wird camera.*_native_live_camera.");
+        return;
+      }
+
+      const state = this._hass.states[entity];
+      if (!state) {
+        this._renderEmpty(`Kamera-Entity nicht verfügbar: ${entity}`);
+        return;
+      }
+
+      if (!customElements.get("hui-picture-entity-card")) {
+        this._renderEmpty("HA Picture-Entity-Karte ist noch nicht geladen. Dashboard neu laden.");
+        customElements.whenDefined("hui-picture-entity-card").then(() => this._render());
+        return;
+      }
+
+      if (!this._card || this._cardEntity !== entity) {
+        this.shadowRoot.innerHTML = `
+          <style>
+            ha-card {
+              overflow: hidden;
+              border-radius: 16px;
+              border: 1px solid rgba(0,188,255,.45);
+              box-shadow: 0 0 18px rgba(0,188,255,.18);
+            }
+          </style>
+          <div id="host"></div>
+        `;
+
+        this._card = document.createElement("hui-picture-entity-card");
+        this._cardEntity = entity;
+        this._card.setConfig({
+          type: "picture-entity",
+          entity,
+          camera_image: entity,
+          camera_view: "live",
+          name: this._config.name || "Bambu Live-Kamera",
+          show_name: this._config.show_name ?? true,
+          show_state: this._config.show_state ?? true,
+        });
+
+        this.shadowRoot.getElementById("host").appendChild(this._card);
+      }
+
+      this._card.hass = this._hass;
+    }
+  }
+
+  customElements.define(CARD_TYPE, PrinterControlCenterCameraCard);
+
+  window.customCards = window.customCards || [];
+  if (!window.customCards.some((card) => card.type === CARD_TYPE)) {
+    window.customCards.push({
+      type: CARD_TYPE,
+      name: "3D-Printer Control Center Camera",
+      description: "Auto-detecting live camera card for 3D-Printer Control Center.",
+    });
   }
 })();

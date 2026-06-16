@@ -1,3 +1,10 @@
+## 4.0.14 - 2026-06-16
+
+- Remove the extra standalone live camera card from the managed 3D print dashboard.
+- Force the working Home Assistant live camera directly into the left printer-card camera panel.
+- Hide legacy standalone `printer-control-center-camera-card` elements in the dashboard UI.
+- Keep the inline camera entity generic by resolving `camera.*_native_live_camera` dynamically.
+
 ## 4.0.13 - 2026-06-16
 
 - Add the live camera directly into the main printer card / print view.

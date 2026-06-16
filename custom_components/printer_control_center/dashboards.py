@@ -53,11 +53,7 @@ _DEFAULT_DASHBOARDS: tuple[dict[str, Any], ...] = (
                         {
                             "type": "grid",
                             "cards": [
-
-                                {
-                                    "type": "custom:printer-control-center-camera-card",
-                                },
-                                {
+{
                                     "type": "custom:printer-control-center-queue-card",
                                     "card_size": "xl",
                                     "grid_options": {"columns": 8},

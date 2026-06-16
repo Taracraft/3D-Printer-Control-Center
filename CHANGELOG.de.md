@@ -1,3 +1,10 @@
+## 4.0.14 - 2026-06-16
+
+- Zusätzliche separate Livekamera-Karte aus dem verwalteten 3D-Druck-Dashboard entfernt.
+- Funktionierende Home-Assistant-Livekamera direkt in das linke Kamera-Feld der Druckerkarte gezwungen.
+- Alte separate `printer-control-center-camera-card`-Elemente im Dashboard werden ausgeblendet.
+- Inline-Kamera bleibt generisch durch dynamische Auflösung von `camera.*_native_live_camera`.
+
 ## 4.0.13 - 2026-06-16
 
 - Livekamera direkt in die Haupt-Druckerkarte / Druckansicht eingebaut.

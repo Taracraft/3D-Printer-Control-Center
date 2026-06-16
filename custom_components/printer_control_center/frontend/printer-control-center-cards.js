@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 4.0.13 */
+/* 3D-Printer Control Center - HACS Release 4.0.14 */
 (() => {
-  const VERSION = "4.0.13";
+  const VERSION = "4.0.14";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4809,7 +4809,7 @@
         for (const node of nodes) sanitizeNode(node, depth + 1);
       }
     } catch (err) {
-      console.debug("PCC v4.0.13 UTF-8 sanitizer skipped node", err);
+      console.debug("PCC v4.0.14 UTF-8 sanitizer skipped node", err);
     }
   };
 
@@ -5184,6 +5184,239 @@
     for (const el of all) {
       if (el && el.shadowRoot) {
         patchPrinterCard(el).catch((err) => console.error("PCC printer card patch scan error", err));
+      }
+    }
+  }
+
+  const observer = new MutationObserver(() => {
+    scanAndPatch();
+  });
+
+  const start = () => {
+    scanAndPatch();
+    observer.observe(document.body, { childList: true, subtree: true });
+    setInterval(scanAndPatch, 2500);
+  };
+
+  if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", start, { once: true });
+  } else {
+    start();
+  }
+})();
+
+
+;(() => {
+  if (window.__pccV414LeftInlineCameraPatch) return;
+  window.__pccV414LeftInlineCameraPatch = true;
+
+  const CAMERA_SUFFIXES = [
+    "_native_live_camera",
+    "_live_camera",
+    "_camera",
+  ];
+
+  function resolveCameraEntity(hass) {
+    if (!hass || !hass.states) return null;
+
+    const preferred = Object.keys(hass.states).find((entityId) =>
+      entityId.startsWith("camera.") && entityId.endsWith("_native_live_camera")
+    );
+    if (preferred) return preferred;
+
+    const suffixMatch = Object.keys(hass.states).find((entityId) =>
+      entityId.startsWith("camera.") && CAMERA_SUFFIXES.some((suffix) => entityId.endsWith(suffix))
+    );
+    if (suffixMatch) return suffixMatch;
+
+    return Object.keys(hass.states).find((entityId) => {
+      if (!entityId.startsWith("camera.")) return false;
+      const attrs = (hass.states[entityId] && hass.states[entityId].attributes) || {};
+      const brand = String(attrs.brand || "").toLowerCase();
+      const name = String(attrs.friendly_name || "").toLowerCase();
+      return brand.includes("3d-printer control center")
+        || name.includes("bambu")
+        || name.includes("live camera")
+        || name.includes("live-kamera");
+    }) || null;
+  }
+
+  function hideStandaloneCameraCards() {
+    document.querySelectorAll("printer-control-center-camera-card").forEach((el) => {
+      el.style.display = "none";
+      el.hidden = true;
+      if (el.parentElement) {
+        el.parentElement.style.display = "none";
+      }
+    });
+  }
+
+  function isPrinterCardElement(el) {
+    if (!el || !el.shadowRoot) return false;
+    const text = String(el.shadowRoot.textContent || "");
+    return text.includes("3D-Printer Control Center")
+      && (
+        text.includes("Kein aktiver Druckauftrag")
+        || text.includes("No active print job")
+      );
+  }
+
+  function findTextElements(root, candidates) {
+    const matches = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      const txt = String(node.textContent || "").trim();
+      if (!txt) continue;
+      if (candidates.some((candidate) => txt.includes(candidate))) {
+        matches.push(node);
+      }
+    }
+    return matches;
+  }
+
+  function scoreRect(rect) {
+    if (!rect) return -1;
+    if (rect.width < 180 || rect.height < 160) return -1;
+    if (rect.width > 420 || rect.height > 520) return -1;
+    const area = rect.width * rect.height;
+    return area;
+  }
+
+  function findCameraPanel(root) {
+    const labels = findTextElements(root, [
+      "Native Live-Kamera",
+      "Native Live Camera",
+      "Live camera",
+      "Live-Kamera",
+    ]);
+
+    for (const label of labels) {
+      let current = label;
+      while (current && current !== root) {
+        if (current.previousElementSibling) {
+          const prev = current.previousElementSibling;
+          const rect = prev.getBoundingClientRect ? prev.getBoundingClientRect() : null;
+          if (scoreRect(rect) > 0) {
+            return prev;
+          }
+        }
+        current = current.parentElement;
+      }
+    }
+
+    let best = null;
+    let bestScore = -1;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+    while (walker.nextNode()) {
+      const el = walker.currentNode;
+      if (!(el instanceof HTMLElement)) continue;
+      const rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+      const score = scoreRect(rect);
+      if (score > bestScore) {
+        const txt = String(el.textContent || "");
+        if (!txt.includes("Düse") && !txt.includes("Bett") && !txt.includes("Firmware") && !txt.includes("WLAN")) {
+          best = el;
+          bestScore = score;
+        }
+      }
+    }
+    return best;
+  }
+
+  async function createPictureEntityCard(hass, entity) {
+    const config = {
+      type: "picture-entity",
+      entity,
+      camera_image: entity,
+      camera_view: "live",
+      show_name: false,
+      show_state: false,
+    };
+
+    if (window.loadCardHelpers) {
+      const helpers = await window.loadCardHelpers();
+      return helpers.createCardElement(config);
+    }
+
+    if (customElements.get("hui-picture-entity-card")) {
+      const card = document.createElement("hui-picture-entity-card");
+      card.setConfig(config);
+      return card;
+    }
+
+    throw new Error("HA picture-entity helper not available");
+  }
+
+  async function patchPrinterCard(el) {
+    if (!isPrinterCardElement(el)) return;
+    const root = el.shadowRoot;
+    const hass = el.hass || el._hass || null;
+    if (!root || !hass) return;
+
+    const entity = resolveCameraEntity(hass);
+    if (!entity) return;
+
+    const panel = findCameraPanel(root);
+    if (!panel) return;
+
+    if (panel.dataset.pccInlineCameraEntity === entity && panel.querySelector("[data-pcc-inline-camera-host]")) {
+      const existingCard = panel.querySelector("[data-pcc-inline-camera-host] > *");
+      if (existingCard) existingCard.hass = hass;
+      return;
+    }
+
+    panel.dataset.pccInlineCameraEntity = entity;
+    panel.style.position = "relative";
+    panel.style.overflow = "hidden";
+    panel.style.minHeight = "260px";
+
+    const host = document.createElement("div");
+    host.setAttribute("data-pcc-inline-camera-host", "1");
+    host.style.width = "100%";
+    host.style.height = "100%";
+    host.style.minHeight = "260px";
+    host.style.display = "flex";
+    host.style.alignItems = "stretch";
+    host.style.justifyContent = "stretch";
+    host.style.background = "transparent";
+
+    panel.innerHTML = "";
+    panel.appendChild(host);
+
+    try {
+      const card = await createPictureEntityCard(hass, entity);
+      card.hass = hass;
+      card.style.width = "100%";
+      card.style.height = "100%";
+      host.appendChild(card);
+    } catch (err) {
+      console.error("PCC left inline camera patch failed", err);
+      host.innerHTML = `
+        <div style="
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          width:100%;
+          min-height:260px;
+          color:var(--primary-text-color);
+          opacity:.75;
+          text-align:center;
+          padding:16px;
+          box-sizing:border-box;
+        ">
+          Livekamera konnte links in der Druckansicht nicht geladen werden.
+        </div>
+      `;
+    }
+  }
+
+  function scanAndPatch() {
+    hideStandaloneCameraCards();
+    const all = Array.from(document.querySelectorAll("*"));
+    for (const el of all) {
+      if (el && el.shadowRoot) {
+        patchPrinterCard(el).catch((err) => console.error("PCC left inline camera scan error", err));
       }
     }
   }

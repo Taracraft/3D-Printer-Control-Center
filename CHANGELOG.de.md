@@ -1,3 +1,24 @@
+## 5.0.0-alpha25 - Interactive Control Fix + Mesh Viewer
+
+### English
+- Fixed the alpha24 interactive controls by adding actual method implementations instead of only event-listener call markers.
+- Added document-level Studio keyboard handling for Q/E, arrows, plus/minus and G while avoiding text fields.
+- Stabilized buildplate drag, double-click placement, right-click context menu, snap-to-grid, duplicate and delete actions.
+- Added compact action buttons and a toggleable keyboard-shortcut help panel.
+- Added a real Studio mesh viewer that requests an STL/geometry link for the active Studio job and renders STL triangles on a canvas; preview images are not used for the Studio model.
+- Added a manual real-model reload action.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Alpha24-Interaktionen repariert, indem echte Methodenimplementierungen ergänzt wurden und nicht nur Event-Listener-Aufrufe vorhanden sind.
+- Dokumentweite Studio-Tastatursteuerung für Q/E, Pfeile, Plus/Minus und G ergänzt, ohne Eingabefelder zu stören.
+- Drag auf der Buildplate, Doppelklick-Positionierung, Rechtsklick-Kontextmenü, Raster, Duplizieren und Löschen stabilisiert.
+- Kompaktere Aktionsbuttons und rechts einblendbare Tastaturhilfe ergänzt.
+- Echter Studio-Mesh-Viewer ergänzt: Das aktive Studio-Modell fordert einen STL-/Geometrie-Link an und rendert STL-Dreiecke im Canvas; Vorschaubilder werden für das Studio-Modell nicht verwendet.
+- Manuelle Aktion zum Neuladen des echten Modells ergänzt.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-alpha24 - Interactive Studio Control
 
 ### English

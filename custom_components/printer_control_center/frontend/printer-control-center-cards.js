@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-alpha24*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-alpha25*/
 (() => {
-  const VERSION = "5.0.0-alpha24";
+  const VERSION = "5.0.0-alpha25";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -3420,7 +3420,7 @@
         window.PCC_STUDIO_HANDOFF?.broadcast?.(job);
         this._contextMenu=null;
         this._previewItem=null;
-        this._notice=`3D-Studio-Job erstellt: ${item.name}. Oeffne die Studio-Seite und nutze "Plan pruefen".`;
+        this._notice=`3D-Studio-Job erstellt: ${item.name}. Oeffne die Studio-Seite und nutze "Plan prüfen".`;
         this.render();
       }catch(error){
         this._error=`3D-Studio-Handoff fehlgeschlagen: ${String(error?.message||error)}`;
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-alpha24",
+        version: "5.0.0-alpha25",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-alpha24";
+  const STUDIO_VERSION = "5.0.0-alpha25";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   const escStudio = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -4869,11 +4869,21 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "alpha24 Interactive Studio Control bereit. Zoom, Rotation, Spiegeln, Strecken/Zerren und persistente Live-Transforms sind aktiv. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+      this._status = "alpha25 Interactive Control Fix + Mesh Viewer bereit. Echte STL-/Geometrieanzeige, Drag, Tastatur, Kontextmenü, Raster und Modell-Reload sind aktiv. Echtes Slicen und Direktdruck bleiben deaktiviert.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
       this._keyboardStep = 5;
+      this._studioKeyboardActive = false;
+      this._showShortcutHelp = false;
+      this._studioContextMenu = null;
+      this._studioMesh = null;
+      this._studioMeshJobId = "";
+      this._studioMeshUrl = "";
+      this._studioMeshLoading = false;
+      this._studioMeshError = "";
+      this._studioMeshStatus = "Echtes Modell noch nicht geladen.";
+      this._studioDocumentKeyHandler = (event) => this.handleDocumentKeyDown(event);
       this._saveTimer = null;
 
       this._handoffHandler = (event) => this.consumeStudioHandoff(event?.detail || null);
@@ -4891,17 +4901,21 @@
       this.shadowRoot.addEventListener("wheel", (event) => this.handleWheel(event), {passive:false});
       this.shadowRoot.addEventListener("dblclick", (event) => this.handleDoubleClick(event));
       this.shadowRoot.addEventListener("keydown", (event) => this.handleKeyDown(event));
+      this.shadowRoot.addEventListener("contextmenu", (event) => this.handleContextMenu(event));
+      this.wrapStudioRender();
     }
 
     connectedCallback() {
       window.addEventListener("printer-control-center-studio-handoff", this._handoffHandler);
       window.addEventListener("storage", this._storageHandler);
+      window.addEventListener("keydown", this._studioDocumentKeyHandler, true);
       this.consumeStudioHandoff(null);
     }
 
     disconnectedCallback() {
       window.removeEventListener("printer-control-center-studio-handoff", this._handoffHandler);
       window.removeEventListener("storage", this._storageHandler);
+      window.removeEventListener("keydown", this._studioDocumentKeyHandler, true);
       if (this._saveTimer) window.clearTimeout(this._saveTimer);
     }
 
@@ -4915,9 +4929,10 @@
       this._hass = hass;
       this.ensureStudioProfileBankLoaded();
       this.ensureStudioJobsLoaded(false);
+      this.ensureStudioMeshLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Alpha24: Home Assistant pushes frequent hass updates.
+      // Alpha25: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -5163,6 +5178,537 @@
       } catch (error) {
         this._status = `Studio-Job konnte nicht gespeichert werden: ${String(error?.message || error)}`;
       }
+    }
+
+    wrapStudioRender() {
+      if (this._studioRenderWrapped) return;
+      const originalRender = this.render.bind(this);
+      this.render = (...args) => {
+        const result = originalRender(...args);
+        this.queueMeshRender();
+        return result;
+      };
+      this._studioRenderWrapped = true;
+    }
+
+    queueMeshRender() {
+      if (this._meshRenderTimer) window.clearTimeout(this._meshRenderTimer);
+      this._meshRenderTimer = window.setTimeout(() => this.renderMeshCanvas(), 0);
+    }
+
+    buildplateRelativePoint(event) {
+      const plate = this.shadowRoot?.querySelector(".buildplate");
+      if (!plate) return {x:0, y:0, screenX:0, screenY:0};
+      const rect = plate.getBoundingClientRect();
+      return {
+        x: Math.round(event.clientX - rect.left - rect.width / 2),
+        y: Math.round(event.clientY - rect.top - rect.height / 2),
+        screenX: Math.round(event.clientX - rect.left),
+        screenY: Math.round(event.clientY - rect.top)
+      };
+    }
+
+    handleDocumentKeyDown(event) {
+      const active = this.shadowRoot?.activeElement;
+      if (active?.dataset?.field) return;
+      if (event.ctrlKey || event.metaKey) return;
+
+      const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+      const insideThisCard = path.includes(this);
+      const studioRoute = String(window.location?.pathname || "").includes("3d-printer-control-center-studio");
+
+      if (!insideThisCard && !this._studioKeyboardActive && !studioRoute) return;
+      this.handleKeyDown(event);
+    }
+
+    handlePointerDown(event) {
+      const plate = event.target?.closest?.(".buildplate");
+      const onModel = event.target?.closest?.(".model") || event.target?.closest?.(".model-label") || event.target?.closest?.(".studio-mesh-canvas");
+
+      if (!plate) return;
+
+      this._studioKeyboardActive = true;
+      this.focusStudioShell();
+
+      if (!onModel || event.button !== 0) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const t = this.clampTransform();
+      this._dragState = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: t.x,
+        originY: t.y
+      };
+
+      const model = this.shadowRoot?.querySelector(".model");
+      model?.classList?.add("dragging");
+      try { model?.setPointerCapture?.(event.pointerId); } catch (_error) {}
+      this._mode = "move";
+      this._status = "Modell wird verschoben.";
+    }
+
+    handlePointerMove(event) {
+      const drag = this._dragState;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      this._transform.x = Math.round(drag.originX + (event.clientX - drag.startX));
+      this._transform.y = Math.round(drag.originY + (event.clientY - drag.startY));
+      this.clampTransform();
+
+      if (this._activeJob) this._activeJob.transform = {...this._transform};
+      this.updateModelPreview();
+      this.renderMeshCanvas();
+      this.scheduleActiveJobSave();
+    }
+
+    handlePointerUp(event) {
+      const drag = this._dragState;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      this._dragState = null;
+      const model = this.shadowRoot?.querySelector(".model");
+      model?.classList?.remove("dragging");
+      try { model?.releasePointerCapture?.(event.pointerId); } catch (_error) {}
+
+      this._status = `Position gesetzt: X ${this._transform.x}px, Y ${this._transform.y}px.`;
+      this.render();
+    }
+
+    handleWheel(event) {
+      const plate = event.target?.closest?.(".buildplate");
+      if (!plate) return;
+
+      this._studioKeyboardActive = true;
+
+      if (!event.ctrlKey && !event.altKey) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const delta = event.deltaY < 0 ? 0.10 : -0.10;
+      this.setViewZoom((this._viewZoom || 1) + delta);
+    }
+
+    handleDoubleClick(event) {
+      const plate = event.target?.closest?.(".buildplate");
+      const model = event.target?.closest?.(".model");
+      if (!plate || model) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      this._studioKeyboardActive = true;
+      this.focusStudioShell();
+
+      const point = this.buildplateRelativePoint(event);
+      this._transform.x = point.x;
+      this._transform.y = point.y;
+      this.clampTransform();
+
+      if (this._activeJob) this._activeJob.transform = {...this._transform};
+      this.updateModelPreview();
+      this.renderMeshCanvas();
+      this.scheduleActiveJobSave();
+
+      this._status = `Objekt per Doppelklick gesetzt: X ${point.x}px, Y ${point.y}px.`;
+      this.render();
+    }
+
+    handleContextMenu(event) {
+      const plate = event.target?.closest?.(".buildplate");
+      if (!plate) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      this._studioKeyboardActive = true;
+      this.focusStudioShell();
+
+      const point = this.buildplateRelativePoint(event);
+      this._studioContextMenu = point;
+      this._status = "Studio-Kontextmenü geöffnet.";
+      this.render();
+    }
+
+    handleKeyDown(event) {
+      if (this.isEditingTransformInput()) return;
+
+      const key = String(event.key || "");
+      const lower = key.toLowerCase();
+      const step = event.shiftKey ? 25 : this._keyboardStep;
+      let handled = true;
+
+      if (key === "ArrowLeft") this.adjustTransform("x", -step, {status:`X ${-step}px per Tastatur.`, render:true});
+      else if (key === "ArrowRight") this.adjustTransform("x", step, {status:`X +${step}px per Tastatur.`, render:true});
+      else if (key === "ArrowUp") this.adjustTransform("y", -step, {status:`Y ${-step}px per Tastatur.`, render:true});
+      else if (key === "ArrowDown") this.adjustTransform("y", step, {status:`Y +${step}px per Tastatur.`, render:true});
+      else if (lower === "q") this.adjustTransform("rz", -15, {status:"Rotation Z -15 Grad per Tastatur.", render:true});
+      else if (lower === "e") this.adjustTransform("rz", 15, {status:"Rotation Z +15 Grad per Tastatur.", render:true});
+      else if (key === "+" || key === "=") this.setViewZoom((this._viewZoom || 1) + 0.10);
+      else if (key === "-" || key === "_") this.setViewZoom((this._viewZoom || 1) - 0.10);
+      else if (lower === "x") this.toggleMirror("x");
+      else if (lower === "y") this.toggleMirror("y");
+      else if (lower === "z") this.toggleMirror("z");
+      else if (lower === "c") this.centerActiveObject();
+      else if (lower === "f") this.layFlatActiveObject();
+      else if (lower === "g") this.snapTransformToGrid();
+      else if (key === "Delete") this.deleteActiveJob();
+      else handled = false;
+
+      if (handled) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }
+
+    focusStudioShell() {
+      const shell = this.shadowRoot?.querySelector(".studio-shell");
+      try { shell?.focus?.({preventScroll:true}); } catch (_error) {}
+    }
+
+    centerActiveObject() {
+      this._transform.x = 0;
+      this._transform.y = 0;
+      this.clampTransform();
+      if (this._activeJob) this._activeJob.transform = {...this._transform};
+      this.updateModelPreview();
+      this.renderMeshCanvas();
+      this.scheduleActiveJobSave();
+      this._status = "Objekt auf der Buildplate zentriert.";
+      this.render();
+    }
+
+    layFlatActiveObject() {
+      this._transform.rx = 0;
+      this._transform.ry = 0;
+      this._transform.z = 0;
+      this.clampTransform();
+      if (this._activeJob) this._activeJob.transform = {...this._transform};
+      this.updateModelPreview();
+      this.renderMeshCanvas();
+      this.scheduleActiveJobSave();
+      this._status = "Flach-legen-Planung angewendet.";
+      this.render();
+    }
+
+    snapTransformToGrid() {
+      this._transform.x = Math.round(toNumber(this._transform.x, 0) / 10) * 10;
+      this._transform.y = Math.round(toNumber(this._transform.y, 0) / 10) * 10;
+      this._transform.z = Math.round(toNumber(this._transform.z, 0));
+      this._transform.rz = Math.round(toNumber(this._transform.rz, 0) / 15) * 15;
+      this.clampTransform();
+
+      if (this._activeJob) this._activeJob.transform = {...this._transform};
+      this.updateModelPreview();
+      this.renderMeshCanvas();
+      this.scheduleActiveJobSave();
+
+      this._status = "Transform auf Raster gerundet.";
+      this.render();
+    }
+
+    async duplicateActiveJob() {
+      const source = this.buildDryRunJob();
+      const name = `${this.jobName(source)} Kopie`;
+      const transform = {
+        ...defaultTransform(),
+        ...(source.transform || {}),
+        x: toNumber(source.transform?.x, 0) + 24,
+        y: toNumber(source.transform?.y, 0) + 24
+      };
+
+      const plan = {
+        ...(source.plan || {}),
+        version: STUDIO_VERSION,
+        source: source.source || source.origin || "studio",
+        origin: source.source || source.origin || "studio",
+        modelName: name,
+        file_name: source.file_name || source.filename || name,
+        filename: source.filename || source.file_name || name,
+        file_path: source.file_path || source.path || "",
+        path: source.file_path || source.path || "",
+        model: {
+          ...(source.model || {}),
+          name,
+          path: source.file_path || source.path || "",
+          source: source.source || source.origin || "studio"
+        },
+        transform,
+        profile_context: this.buildProfileContext(),
+        real_slicing_enabled: false,
+        direct_print_enabled: false,
+        status: "prepared",
+        stage: "waiting",
+        message: "Duplizierter Studio-Job. Echter Slicer-Lauf ist deaktiviert."
+      };
+
+      try {
+        const response = await this.ws({
+          type:"printer_control_center/studio_jobs/create",
+          serial:source.serial || "",
+          plan
+        });
+        const job = response?.job || response || null;
+        if (!job?.id) throw new Error("Backend returned no duplicated job id.");
+        this.applyActiveJob(job, {status:false});
+        this._status = `Studio-Job dupliziert: ${this.jobName(job)}.`;
+      } catch (error) {
+        this._status = `Duplizieren fehlgeschlagen: ${String(error?.message || error)}`;
+      }
+
+      this.render();
+    }
+
+    deleteActiveJob() {
+      if (!this._activeJobId) {
+        this._status = "Kein aktiver Studio-Job zum Entfernen ausgewählt.";
+        this.render();
+        return;
+      }
+
+      const removedName = this.jobName();
+      this._jobs = (Array.isArray(this._jobs) ? this._jobs : []).filter((job) => String(job?.id) !== String(this._activeJobId));
+      const next = this._jobs[0] || null;
+
+      if (next) {
+        this.applyActiveJob(next, {status:false, render:false});
+      } else {
+        this._activeJob = null;
+        this._activeJobId = "";
+        this._transform = defaultTransform();
+        this._studioMesh = null;
+        this._studioMeshJobId = "";
+        this._studioMeshUrl = "";
+      }
+
+      this._status = `Studio-Job aus der aktiven Studio-Auswahl entfernt: ${removedName}.`;
+      this.render();
+    }
+
+    activeJobPath() {
+      const job = this._activeJob || this.buildDryRunJob();
+      return String(job?.file_path || job?.path || job?.model?.path || job?.filename || job?.file_name || "").trim();
+    }
+
+    meshJobKey() {
+      const job = this._activeJob || {};
+      return `${job.id || ""}|${this.activeJobPath()}`;
+    }
+
+    async ensureStudioMeshLoaded(force=false) {
+      if (!this._hass || this._studioMeshLoading) return;
+      const path = this.activeJobPath();
+      if (!path) return;
+
+      const key = this.meshJobKey();
+      if (!force && this._studioMesh && this._studioMeshJobId === key) return;
+
+      this._studioMeshLoading = true;
+      this._studioMeshError = "";
+      this._studioMeshStatus = "Echtes Modell wird geladen ...";
+
+      try {
+        const url = await this.requestStudioMeshUrl();
+        if (!url) throw new Error("Kein STL-/Geometrie-Link vom Backend erhalten.");
+        this._studioMeshUrl = url;
+        const response = await fetch(url, {credentials:"include"});
+        if (!response.ok) throw new Error(`STL-Download HTTP ${response.status}`);
+        const buffer = await response.arrayBuffer();
+        this._studioMesh = this.parseStlMesh(buffer);
+        this._studioMeshJobId = key;
+        this._studioMeshStatus = `Echtes STL-Mesh geladen: ${this._studioMesh.triangles.length} Dreiecke.`;
+      } catch (error) {
+        this._studioMesh = null;
+        this._studioMeshError = String(error?.message || error);
+        this._studioMeshStatus = `Echtes Modell nicht geladen: ${this._studioMeshError}`;
+      } finally {
+        this._studioMeshLoading = false;
+        this.render();
+      }
+    }
+
+    async requestStudioMeshUrl() {
+      const job = this._activeJob || this.buildDryRunJob();
+      const path = this.activeJobPath();
+      const serial = job?.serial || this._config?.serial || "";
+      const source = job?.source || job?.origin || "archive";
+      const filename = job?.filename || job?.file_name || path.split("/").pop() || "";
+
+      const requests = [
+        {type:"printer_control_center/project/link", serial, source, path, file_path:path, filename, mode:"stl", kind:"stl", target:"stl"},
+        {type:"printer_control_center/project/link", serial, source, path, file_path:path, filename, mode:"model_stl", kind:"model_stl", target:"stl"},
+        {type:"printer_control_center/project/link", serial, source, path, file_path:path, filename, format:"stl"},
+      ];
+
+      for (const request of requests) {
+        try {
+          const response = await this.ws(request);
+          const url = this.extractMeshUrl(response);
+          if (url) return url;
+        } catch (_error) {}
+      }
+
+      return "";
+    }
+
+    extractMeshUrl(response) {
+      const candidates = [
+        response?.url,
+        response?.href,
+        response?.download_url,
+        response?.absolute_download_url,
+        response?.signed_url,
+        response?.link,
+        response?.data?.url,
+        response?.data?.download_url,
+        response?.result?.url,
+        response?.result?.download_url,
+      ];
+
+      for (const value of candidates) {
+        const text = String(value || "").trim();
+        if (text) return text;
+      }
+
+      return "";
+    }
+
+    parseStlMesh(buffer) {
+      const view = new DataView(buffer);
+      const bytes = new Uint8Array(buffer);
+      const decoder = new TextDecoder("utf-8", {fatal:false});
+      const maybeText = decoder.decode(bytes.slice(0, Math.min(bytes.length, 512))).trim().toLowerCase();
+
+      let triangles = [];
+
+      if (bytes.length >= 84) {
+        const declared = view.getUint32(80, true);
+        const expected = 84 + declared * 50;
+        if (declared > 0 && expected <= bytes.length) {
+          const maxTriangles = Math.min(declared, 12000);
+          const step = Math.max(1, Math.ceil(declared / maxTriangles));
+          for (let i = 0; i < declared; i += step) {
+            const offset = 84 + i * 50 + 12;
+            if (offset + 36 > bytes.length) break;
+            triangles.push([
+              [view.getFloat32(offset, true), view.getFloat32(offset + 4, true), view.getFloat32(offset + 8, true)],
+              [view.getFloat32(offset + 12, true), view.getFloat32(offset + 16, true), view.getFloat32(offset + 20, true)],
+              [view.getFloat32(offset + 24, true), view.getFloat32(offset + 28, true), view.getFloat32(offset + 32, true)]
+            ]);
+          }
+        }
+      }
+
+      if (!triangles.length && maybeText.startsWith("solid")) {
+        const text = decoder.decode(bytes);
+        const values = [...text.matchAll(/vertex\s+([\-0-9.eE]+)\s+([\-0-9.eE]+)\s+([\-0-9.eE]+)/g)]
+          .map((match) => [Number(match[1]), Number(match[2]), Number(match[3])])
+          .filter((point) => point.every(Number.isFinite));
+        for (let i = 0; i + 2 < values.length; i += 3) {
+          triangles.push([values[i], values[i + 1], values[i + 2]]);
+        }
+      }
+
+      if (!triangles.length) {
+        throw new Error("STL-Geometrie konnte nicht gelesen werden.");
+      }
+
+      const points = triangles.flat();
+      const min = [Infinity, Infinity, Infinity];
+      const max = [-Infinity, -Infinity, -Infinity];
+      for (const p of points) {
+        for (let i = 0; i < 3; i++) {
+          min[i] = Math.min(min[i], p[i]);
+          max[i] = Math.max(max[i], p[i]);
+        }
+      }
+
+      const center = [(min[0]+max[0])/2, (min[1]+max[1])/2, (min[2]+max[2])/2];
+      const size = Math.max(max[0]-min[0], max[1]-min[1], max[2]-min[2], 1);
+
+      return {triangles, min, max, center, size};
+    }
+
+    renderMeshCanvas() {
+      const canvas = this.shadowRoot?.querySelector(".studio-mesh-canvas");
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      const width = Math.round(rect.width * dpr);
+      const height = Math.round(rect.height * dpr);
+      if (canvas.width !== width) canvas.width = width;
+      if (canvas.height !== height) canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.clearRect(0, 0, width, height);
+
+      const mesh = this._studioMesh;
+      if (!mesh?.triangles?.length) return;
+
+      const t = this.clampTransform();
+      const zoom = Math.max(0.25, Math.min(4, toNumber(this._viewZoom, 1)));
+      const base = Math.min(width, height) * 0.34 * zoom * Math.max(0.05, toNumber(t.scale, 100) / 100);
+      const stretchX = Math.max(0.05, toNumber(t.sx, 100) / 100) * (Number(t.mx) === -1 ? -1 : 1);
+      const stretchY = Math.max(0.05, toNumber(t.sy, 100) / 100) * (Number(t.my) === -1 ? -1 : 1);
+      const stretchZ = Math.max(0.05, toNumber(t.sz, 100) / 100) * (Number(t.mz) === -1 ? -1 : 1);
+      const rz = toNumber(t.rz, 0) * Math.PI / 180;
+      const cos = Math.cos(rz);
+      const sin = Math.sin(rz);
+      const offsetX = width / 2 + toNumber(t.x, 0) * dpr;
+      const offsetY = height / 2 + toNumber(t.y, 0) * dpr;
+
+      const project = (p) => {
+        let x = ((p[0] - mesh.center[0]) / mesh.size) * stretchX;
+        let y = ((p[1] - mesh.center[1]) / mesh.size) * stretchY;
+        let z = ((p[2] - mesh.center[2]) / mesh.size) * stretchZ;
+
+        const rx = x * cos - y * sin;
+        const ry = x * sin + y * cos;
+
+        return [
+          offsetX + (rx - ry * 0.28) * base,
+          offsetY + (ry * 0.48 - z * 0.72) * base
+        ];
+      };
+
+      ctx.save();
+      ctx.lineWidth = Math.max(0.75, dpr);
+      ctx.strokeStyle = "rgba(0,210,255,.82)";
+      ctx.fillStyle = "rgba(0,169,214,.08)";
+
+      const maxDraw = Math.min(mesh.triangles.length, 9000);
+      const step = Math.max(1, Math.ceil(mesh.triangles.length / maxDraw));
+
+      for (let i = 0; i < mesh.triangles.length; i += step) {
+        const tri = mesh.triangles[i];
+        const a = project(tri[0]);
+        const b = project(tri[1]);
+        const c = project(tri[2]);
+
+        ctx.beginPath();
+        ctx.moveTo(a[0], a[1]);
+        ctx.lineTo(b[0], b[1]);
+        ctx.lineTo(c[0], c[1]);
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      ctx.restore();
     }
 
     isEditingTransformInput() {
@@ -5468,7 +6014,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Alpha24: no full render on every keystroke.
+      // Alpha25: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -5483,7 +6029,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Alpha24: render is intentionally skipped while editing to avoid cursor jumps.
+      // Alpha25: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -5553,6 +6099,24 @@
         this.adjustTransform("skewX", 5, {status:"Zerren X +5 Grad angewendet.", render:true});
       }
 
+      if (action === "toggle-shortcuts") {
+        this._showShortcutHelp = !this._showShortcutHelp;
+        this._status = this._showShortcutHelp ? "Tastaturhilfe eingeblendet." : "Tastaturhilfe ausgeblendet.";
+        this.render();
+        return;
+      }
+
+      if (action === "close-context") {
+        this._studioContextMenu = null;
+        this.render();
+        return;
+      }
+
+      if (action === "reload-mesh") {
+        this.ensureStudioMeshLoaded(true);
+        return;
+      }
+
       if (action === "snap-grid") {
         this.snapTransformToGrid();
         return;
@@ -5590,7 +6154,7 @@
         this._health = null;
         this.updateModelPreview();
         this.scheduleActiveJobSave();
-        this._status = "Transform, Spiegelung, Zerren und Zoom zurueckgesetzt.";
+        this._status = "Transform, Spiegelung, Zerren und Zoom zurückgesetzt.";
         this.render();
       }
 
@@ -5686,7 +6250,7 @@
       if (!this._lastDryRun && !this._lastStudioPlan) {
         return `
           <div class="plan-note">
-            Noch kein Dry-Run-Plan erzeugt. "Plan pruefen" verwendet den aktiven persistenten Studio-Job ohne echtes Slicen.
+            Noch kein Dry-Run-Plan erzeugt. "Plan prüfen" verwendet den aktiven persistenten Studio-Job ohne echtes Slicen.
           </div>
         `;
       }
@@ -5717,7 +6281,7 @@
     renderHealth() {
       const health = this._health;
       if (!health) {
-        return `<div class="health-note">No health result yet. Use "Plan pruefen" first, then "Health pruefen".</div>`;
+        return `<div class="health-note">No health result yet. Use "Plan prüfen" first, then "Health prüfen".</div>`;
       }
 
       const checks = Array.isArray(health.checks) ? health.checks : [];
@@ -5791,6 +6355,16 @@
             .model{cursor:grab;}
             .model.dragging{cursor:grabbing;box-shadow:0 28px 60px rgba(0,0,0,.58),0 0 0 2px rgba(0,169,214,.65);}
             .plate-help{position:absolute;right:14px;top:12px;font-size:11px;color:var(--pcc-muted);text-align:right;line-height:1.35;}
+            .action{min-height:28px;padding:5px 9px;font-size:12px;line-height:1.1;}
+            .action-grid{gap:6px;}
+            .model-label{pointer-events:none;}
+            .studio-mesh-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:auto;}
+            .mesh-status{position:absolute;left:14px;bottom:12px;z-index:5;font-size:11px;color:var(--pcc-muted);max-width:56%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .buildplate.mesh-loaded .model{background:rgba(0,169,214,.08);border-style:dashed;opacity:.45;}
+            .studio-context{position:absolute;z-index:30;min-width:158px;padding:8px;border:1px solid var(--pcc-border);border-radius:12px;background:rgba(5,18,22,.96);box-shadow:0 20px 40px rgba(0,0,0,.42);}
+            .studio-context .action{display:block;width:100%;margin:3px 0;text-align:left;}
+            .shortcut-help{margin-top:10px;padding:10px;border:1px solid var(--pcc-border);border-radius:12px;background:rgba(0,169,214,.08);font-size:12px;line-height:1.45;}
+            .studio-compact-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
             @media(max-width:1100px){.studio-grid{grid-template-columns:1fr}.buildplate-wrap{min-height:520px}}
           </style>
 
@@ -5814,11 +6388,11 @@
               <button class="action" data-action="skew-right">Zerr X +</button>
               <button class="action" data-action="snap-grid">Raster</button>
               <button class="action" data-action="duplicate">Duplizieren</button>
-              <button class="action" data-action="delete">Loeschen</button>
+              <button class="action" data-action="delete">Löschen</button>
               <button class="action" data-action="center">Zentrieren</button>
               <button class="action" data-action="lay-flat">Flach legen</button>
-              <button class="action" data-action="slice">Plan pruefen</button>
-              <button class="action" data-action="health">Health pruefen</button>
+              <button class="action" data-action="slice">Plan prüfen</button>
+              <button class="action" data-action="health">Health prüfen</button>
               <button class="action" data-action="jobs-refresh">Jobs neu laden</button>
             </div>
 
@@ -5840,11 +6414,23 @@
               </aside>
 
               <main class="buildplate-wrap">
-                <div class="buildplate">
-                  <div class="plate-label">Buildplate - alpha24 Interactive Studio Control</div>
+                <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
+                  <div class="plate-label">Buildplate - alpha25 Interactive Control Fix + Mesh Viewer</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
+                  <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
+                  <div class="mesh-status">${escStudio(this._studioMeshStatus || "Echtes Modell noch nicht geladen.")}</div>
                   <div class="model" title="Modell ziehen"></div>
                   <div class="model-label">${escStudio(activeName)}</div>
+                  ${this._studioContextMenu ? html`
+                    <div class="studio-context" style="left:${Math.max(8, this._studioContextMenu.screenX || 8)}px;top:${Math.max(8, this._studioContextMenu.screenY || 8)}px;">
+                      <button class="action" data-action="center">Zentrieren</button>
+                      <button class="action" data-action="snap-grid">Raster anwenden</button>
+                      <button class="action" data-action="reload-mesh">Echtes Modell neu laden</button>
+                      <button class="action" data-action="duplicate">Duplizieren</button>
+                      <button class="action" data-action="delete">Löschen</button>
+                      <button class="action" data-action="close-context">Schließen</button>
+                    </div>
+                  ` : ""}
                 </div>
                 <div class="status">${escStudio(this._status)}</div>
                 ${this.renderPlanSummary()}
@@ -5883,10 +6469,21 @@
                   <button class="action" data-action="center">Zentrieren</button>
                   <button class="action" data-action="lay-flat">Flach legen</button>
                   <button class="action" data-action="reset">Reset</button>
+                  <button class="action" data-action="reload-mesh">Modell neu laden</button>
+                  <button class="action" data-action="toggle-shortcuts">Tastaturhilfe</button>
                   <button class="action" data-action="health">Health</button>
                 </div>
 
-                <h3 style="margin-top:16px">Studio Health</h3>
+                  ${this._showShortcutHelp ? html`
+                  <div class="shortcut-help">
+                    <b>Tastaturbefehle</b><br>
+                    Pfeile: verschieben, Shift+Pfeile: grob verschieben<br>
+                    Q/E: drehen, +/-: Zoom, G: Raster<br>
+                    X/Y/Z: Spiegeln, C: zentrieren, F: flach legen, Entf: entfernen<br>
+                    Rechtsklick: Studio-Kontextmenü
+                  </div>
+                ` : ""}
+              <h3 style="margin-top:16px">Studio Health</h3>
                 ${this.renderHealth()}
               </aside>
             </div>
@@ -5907,7 +6504,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 alpha24 Interactive Studio Control with drag, keyboard shortcuts, snap-to-grid, persistent jobs and profile-bank backed Dry-Run planning."
+      description: "v5 alpha25 Interactive Control Fix + Mesh Viewer with real STL geometry display, drag, keyboard shortcuts, context menu and profile-bank backed Dry-Run planning."
     });
   }
 })();

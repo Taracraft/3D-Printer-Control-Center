@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta3*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta4*/
 (() => {
-  const VERSION = "5.0.0-beta3";
+  const VERSION = "5.0.0-beta4";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta3",
+        version: "5.0.0-beta4",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta3";
+  const STUDIO_VERSION = "5.0.0-beta4";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -4881,7 +4881,7 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta3 Studio UI Cleanup bereit. Obere Navigation ist bereinigt, Bearbeitung bleibt rechts, Rechtsklickmenü ist nativ eingeblendet, Löschen ist persistent und Mesh-Link-Fallbacks sind erweitert. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+      this._status = "beta4 Context Menu + Model Image Fix bereit. Rechtsklickmenü nutzt keine ShadowRoot-dataset-Zugriffe mehr, die obere Navigation bleibt bereinigt und das Studio zeigt STL-Mesh oder ein echtes Modellbild aus dem Galerie-Handoff. Echtes Slicen und Direktdruck bleiben deaktiviert.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -4944,7 +4944,7 @@
       this.ensureStudioMeshLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Beta3: Home Assistant pushes frequent hass updates.
+      // Beta4: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -6039,7 +6039,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta3: no full render on every keystroke.
+      // Beta4: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -6054,7 +6054,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta3: render is intentionally skipped while editing to avoid cursor jumps.
+      // Beta4: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -6384,6 +6384,9 @@
             .action-grid{gap:6px;}
             .model-label{pointer-events:none;}
             .studio-mesh-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:auto;}
+            .studio-model-image{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:contain;pointer-events:auto;filter:drop-shadow(0 20px 34px rgba(0,0,0,.5));opacity:.92;}
+            .buildplate.mesh-loaded .studio-model-image{opacity:.22;}
+            .studio-context.beta4-floating-context{position:fixed!important;z-index:2147483000!important;}
             .mesh-status{position:absolute;left:14px;bottom:12px;z-index:5;font-size:11px;color:var(--pcc-muted);max-width:56%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .buildplate.mesh-loaded .model{background:rgba(0,169,214,.08);border-style:dashed;opacity:.45;}
             .studio-context{position:absolute;z-index:30;min-width:158px;padding:8px;border:1px solid var(--pcc-border);border-radius:12px;background:rgba(5,18,22,.96);box-shadow:0 20px 40px rgba(0,0,0,.42);}
@@ -6440,9 +6443,12 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta3 Studio UI Cleanup</div>
+                  <div class="plate-label">Buildplate - beta4 Context Menu + Model Image Fix</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
+                  ${this._studioModelImageUrl ? html`
+                    <img class="studio-model-image" src="${this._studioModelImageUrl}" alt="Echtes Modellbild">
+                  ` : ""}
                   <div class="mesh-status">${escStudio(this._studioMeshStatus || "Echtes Modell noch nicht geladen.")}</div>
                   <div class="model" title="Modell ziehen"></div>
                   <div class="model-label">${escStudio(activeName)}</div>
@@ -6621,9 +6627,9 @@
 
   PCC_BETA3_STUDIO_CLASS.prototype.bindBetaContextMenu = function bindBetaContextMenu() {
     const root = this.shadowRoot;
-    if (!root || root.dataset.beta3ContextBound === "1") return;
+    if (!root || this._beta3ContextBound === true) return;
 
-    root.dataset.beta3ContextBound = "1";
+    this._beta3ContextBound = true;
 
     const handler = (event) => {
       const path = typeof event.composedPath === "function" ? event.composedPath() : [];
@@ -6816,6 +6822,292 @@
     return "";
   };
 
+
+  const PCC_BETA4_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+
+  PCC_BETA4_STUDIO_CLASS.prototype.updateStudioModelImage = function updateStudioModelImage() {
+    const url = this.activeJobPreviewUrl?.() || "";
+    this._studioModelImageUrl = url;
+    return url;
+  };
+
+  PCC_BETA4_STUDIO_CLASS.prototype.activeJobPreviewUrl = function activeJobPreviewUrl() {
+    const job = this._activeJob || this.buildDryRunJob?.() || {};
+    const handoff = (() => {
+      try {
+        return window.PCC_STUDIO_HANDOFF?.latest?.()?.job || null;
+      } catch (_error) {
+        return null;
+      }
+    })();
+
+    const candidates = [
+      job.preview_data_url,
+      job.previewDataUrl,
+      job.preview_url,
+      job.thumbnail,
+      job.image,
+      job.image_url,
+      job.model?.preview_data_url,
+      job.model?.preview_url,
+      job.model?.thumbnail,
+      job.model?.image,
+      job.preview?.data_url,
+      job.preview?.url,
+      handoff?.preview_data_url,
+      handoff?.preview_url,
+      handoff?.thumbnail,
+      handoff?.image,
+      handoff?.model?.preview_data_url,
+      handoff?.model?.preview_url,
+      handoff?.preview?.data_url,
+      handoff?.preview?.url
+    ];
+
+    for (const value of candidates) {
+      const text = String(value || "").trim();
+      if (!text) continue;
+      if (text.startsWith("data:image/")) return text;
+      if (text.startsWith("blob:")) return text;
+      if (text.startsWith("http://") || text.startsWith("https://")) return text;
+      if (text.startsWith("/")) return `${window.location.origin}${text}`;
+    }
+
+    return "";
+  };
+
+  PCC_BETA4_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const panels = [...root.querySelectorAll(".panel")];
+    const rightInspector = panels.length ? panels[panels.length - 1] : null;
+
+    const editActions = new Set([
+      "move", "rotate", "scale",
+      "zoom-in", "zoom-out",
+      "mirror-x", "mirror-y", "mirror-z",
+      "skew-left", "skew-right",
+      "snap-grid",
+      "duplicate", "delete",
+      "center", "lay-flat", "reset"
+    ]);
+
+    for (const button of [...root.querySelectorAll("button[data-action]")]) {
+      if (button.closest(".studio-context")) continue;
+      if (rightInspector && rightInspector.contains(button)) continue;
+
+      const action = String(button.dataset.action || "");
+      if (editActions.has(action)) button.remove();
+    }
+
+    for (const empty of [...root.querySelectorAll(".action-grid")]) {
+      if (empty.closest(".studio-context")) continue;
+      if (!empty.querySelector("button")) empty.remove();
+    }
+
+    const contextMenu = root.querySelector(".studio-context");
+    if (contextMenu) {
+      contextMenu.style.position = "fixed";
+      contextMenu.style.zIndex = "2147483000";
+    }
+
+    this.updateStudioModelImage?.();
+  };
+
+  PCC_BETA4_STUDIO_CLASS.prototype.bindBetaContextMenu = function bindBetaContextMenu() {
+    const root = this.shadowRoot;
+    if (!root || this._beta4ContextBound === true) return;
+
+    this._beta4ContextBound = true;
+
+    const handler = (event) => {
+      const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+      const target = event.target;
+
+      const hit =
+        target?.closest?.(".buildplate") ||
+        target?.closest?.(".buildplate-wrap") ||
+        target?.closest?.(".studio-mesh-canvas") ||
+        target?.closest?.(".studio-model-image") ||
+        target?.closest?.(".model") ||
+        target?.closest?.(".model-label") ||
+        path.find?.((node) => node?.classList?.contains?.("buildplate")) ||
+        path.find?.((node) => node?.classList?.contains?.("buildplate-wrap")) ||
+        path.find?.((node) => node?.classList?.contains?.("studio-mesh-canvas")) ||
+        path.find?.((node) => node?.classList?.contains?.("studio-model-image"));
+
+      if (!hit) return;
+      this.handleContextMenu(event);
+    };
+
+    root.addEventListener("contextmenu", handler, {capture:true});
+    root.addEventListener("pointerdown", (event) => {
+      if (event.button === 2) handler(event);
+    }, {capture:true});
+
+    const plate = root.querySelector(".buildplate");
+    if (plate && plate._beta4PlateContextBound !== true) {
+      plate._beta4PlateContextBound = true;
+      plate.addEventListener("contextmenu", handler, {capture:true});
+      plate.addEventListener("pointerdown", (event) => {
+        if (event.button === 2) handler(event);
+      }, {capture:true});
+    }
+  };
+
+  PCC_BETA4_STUDIO_CLASS.prototype.showBetaStudioContextMenu = function showBetaStudioContextMenu(point) {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".studio-context.beta4-floating-context,.studio-context.beta3-floating-context").forEach((node) => node.remove());
+
+    const menu = document.createElement("div");
+    menu.className = "studio-context beta4-floating-context";
+    menu.style.position = "fixed";
+    menu.style.left = `${Math.max(8, Number(point?.clientX || point?.screenX || 8))}px`;
+    menu.style.top = `${Math.max(8, Number(point?.clientY || point?.screenY || 8))}px`;
+    menu.style.zIndex = "2147483000";
+    menu.innerHTML = `
+      <button class="action" data-beta4-action="center">Zentrieren</button>
+      <button class="action" data-beta4-action="snap-grid">Raster anwenden</button>
+      <button class="action" data-beta4-action="reload-mesh">Echtes Modell neu laden</button>
+      <button class="action" data-beta4-action="duplicate">Duplizieren</button>
+      <button class="action danger" data-beta4-action="delete">Löschen</button>
+      <button class="action" data-beta4-action="close-context">Schließen</button>
+    `;
+
+    menu.addEventListener("click", (event) => {
+      const button = event.target?.closest?.("button[data-beta4-action]");
+      if (!button) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const action = String(button.dataset.beta4Action || "");
+      this._studioContextMenu = null;
+      menu.remove();
+
+      if (action === "center") this.centerActiveObject();
+      else if (action === "snap-grid") this.snapTransformToGrid();
+      else if (action === "reload-mesh") this.ensureStudioMeshLoaded(true);
+      else if (action === "duplicate") this.duplicateActiveJob();
+      else if (action === "delete") this.deleteActiveJob();
+      else this.render();
+    });
+
+    root.appendChild(menu);
+  };
+
+  PCC_BETA4_STUDIO_CLASS.prototype.handleContextMenu = function handleContextMenu(event) {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const plate =
+      event.target?.closest?.(".buildplate") ||
+      event.target?.closest?.(".buildplate-wrap") ||
+      root.querySelector(".buildplate");
+
+    if (!plate) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    this._studioKeyboardActive = true;
+    if (typeof this.focusStudioShell === "function") this.focusStudioShell();
+
+    const rect = plate.getBoundingClientRect();
+    const point = {
+      x: Math.round(event.clientX - rect.left - rect.width / 2),
+      y: Math.round(event.clientY - rect.top - rect.height / 2),
+      screenX: Math.round(event.clientX - rect.left),
+      screenY: Math.round(event.clientY - rect.top),
+      clientX: Math.round(event.clientX),
+      clientY: Math.round(event.clientY)
+    };
+
+    this._studioContextMenu = point;
+    this._status = "Studio-Kontextmenü geöffnet.";
+    this.showBetaStudioContextMenu(point);
+  };
+
+  PCC_BETA4_STUDIO_CLASS.prototype.ensureStudioMeshLoaded = async function ensureStudioMeshLoaded(force=false) {
+    if (!this._hass || this._studioMeshLoading) return;
+
+    const path = this.activeJobPath?.() || "";
+    if (!path) {
+      this.updateStudioModelImage?.();
+      this.render();
+      return;
+    }
+
+    const key = this.meshJobKey?.() || path;
+    if (!force && this._studioMesh && this._studioMeshJobId === key) return;
+
+    this._studioMeshLoading = true;
+    this._studioMeshError = "";
+    this._studioMeshStatus = "Echtes Modell wird geladen …";
+    this.updateStudioModelImage?.();
+
+    try {
+      const url = await this.requestStudioMeshUrl();
+      if (!url) throw new Error("Kein STL-/Geometrie-Link vom Backend erhalten.");
+
+      this._studioMeshUrl = url;
+      const response = await fetch(url, {credentials:"include"});
+      if (!response.ok) throw new Error(`STL-Download HTTP ${response.status}`);
+
+      const buffer = await response.arrayBuffer();
+      this._studioMesh = this.parseStlMesh(buffer);
+      this._studioMeshJobId = key;
+      this._studioMeshStatus = `Echtes STL-Mesh geladen: ${this._studioMesh.triangles.length} Dreiecke.`;
+    } catch (error) {
+      this._studioMesh = null;
+      this._studioMeshError = String(error?.message || error);
+      const image = this.updateStudioModelImage?.() || "";
+      this._studioMeshStatus = image
+        ? `STL-Mesh nicht geladen: ${this._studioMeshError}. Modellbild-Fallback aktiv.`
+        : `Echtes Modell nicht geladen: ${this._studioMeshError}`;
+    } finally {
+      this._studioMeshLoading = false;
+      this.render();
+    }
+  };
+
+  PCC_BETA4_STUDIO_CLASS.prototype.requestStudioMeshUrl = async function requestStudioMeshUrl() {
+    const job = this._activeJob || this.buildDryRunJob();
+    const path = this.activeJobPath();
+    const serial = job?.serial || this._config?.serial || "";
+    const rawSource = String(job?.source || job?.origin || "archive").toLowerCase();
+    const source = rawSource === "sdcard" || rawSource === "printer_sd" ? "sd" : rawSource;
+    const filename = job?.filename || job?.file_name || path.split("/").pop() || "";
+
+    const requests = [
+      {type:"printer_control_center/project/link", serial, source, path, filename, format:"stl"},
+      {type:"printer_control_center/project/link", serial, source, path, filename, file_type:"stl"},
+      {type:"printer_control_center/project/link", serial, source, path, filename, mode:"download", format:"stl"},
+      {type:"printer_control_center/project/link", serial, source, path, filename, target:"stl"},
+      {type:"printer_control_center/project/link", serial, source, path, filename},
+      {type:"printer_control_center/project/link", serial, source:source === "sd" ? "sd_model_stl" : "archive_model_stl", path, filename, format:"stl"},
+      {type:"printer_control_center/project/link", serial, source:source === "sd" ? "sd_model_3mf" : "archive_model_3mf", path, filename, format:"stl"},
+    ];
+
+    const errors = [];
+
+    for (const request of requests) {
+      try {
+        const response = await this.ws(request);
+        const url = this.extractMeshUrl(response);
+        if (url) return url;
+      } catch (error) {
+        errors.push(String(error?.message || error));
+      }
+    }
+
+    this._studioMeshError = errors.slice(0, 3).join(" | ");
+    return "";
+  };
+
   if (!customElements.get("printer-control-center-studio-card")) {
     customElements.define("printer-control-center-studio-card", PrinterControlCenterStudioCard);
   }
@@ -6825,7 +7117,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta3 Studio UI Cleanup with cleaned top navigation, right-inspector-only editing, native right-click context menu, persistent delete and expanded STL mesh link fallbacks."
+      description: "v5 beta4 Context Menu + Model Image Fix with robust right-click context menu binding, right-inspector-only editing and STL mesh/model-image fallback."
     });
   }
 })();

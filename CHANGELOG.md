@@ -1,3 +1,22 @@
+## 5.0.0-beta4 - Context Menu + Model Image Fix
+
+### English
+- Fixed the beta3 Studio startup failure caused by reading `dataset` from a ShadowRoot in the context-menu binding.
+- Reworked the Studio right-click context menu to use instance-level binding state and a Shadow DOM floating menu.
+- Kept Studio editing controls in the right Transform inspector only.
+- Added a visible model-image fallback from the active Studio job / gallery handoff while keeping STL mesh rendering as the preferred real model path.
+- Kept expanded STL link fallback requests for real geometry loading.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Beta3-Startfehler behoben, der durch `dataset`-Zugriff auf einen ShadowRoot im Kontextmenü-Binding ausgelöst wurde.
+- Studio-Rechtsklickmenü auf instanzbasierten Binding-Status und ein schwebendes Shadow-DOM-Menü umgestellt.
+- Bearbeitungsfunktionen bleiben nur rechts im Transform-Inspector.
+- Sichtbaren Modellbild-Fallback aus aktivem Studio-Job/Galerie-Handoff ergänzt, während STL-Mesh-Rendering der bevorzugte echte Modellpfad bleibt.
+- Erweiterte STL-Link-Fallbacks für echte Geometrieladung bleiben aktiv.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta3 - Studio UI Cleanup
 
 ### English

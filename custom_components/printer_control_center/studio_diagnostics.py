@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-DIAGNOSTICS_VERSION = "5.0.0-alpha21"
+DIAGNOSTICS_VERSION = "5.0.0-alpha22"
 
 
 def _utcnow() -> str:
@@ -52,6 +52,21 @@ def build_studio_health_report(
     dry_run_plan = _safe_dict(dry.get("studio_plan"))
     dry_run_slicer = _safe_dict(dry_run_plan.get("slicer"))
 
+    active_job = {}
+    for entry in job_list:
+        candidate = _safe_dict(entry.get("job") if isinstance(entry, dict) else {})
+        if not candidate and isinstance(entry, dict):
+            candidate = entry
+        if candidate:
+            active_job = candidate
+            break
+
+    active_plan = _safe_dict(active_job.get("plan"))
+    active_model = _safe_dict(active_job.get("model") or active_plan.get("model"))
+    active_transform = _safe_dict(active_job.get("transform") or active_plan.get("transform"))
+    active_path = active_job.get("file_path") or active_job.get("path") or active_model.get("path")
+    active_source = active_job.get("source") or active_job.get("origin") or active_model.get("source")
+
     checks = [
         _ok(
             "profile_bank_present",
@@ -92,6 +107,26 @@ def build_studio_health_report(
             "job_ui_payload_present",
             isinstance(job_list, list),
             f"Frontend supplied {len(job_list)} job entries for diagnostics.",
+        ),
+        _ok(
+            "active_studio_job_present",
+            bool(active_job),
+            "Active persistent Studio job is available." if active_job else "No active persistent Studio job supplied yet.",
+        ),
+        _ok(
+            "gallery_handoff_ready",
+            bool(active_path and active_source),
+            f"Gallery handoff source={active_source}, path={active_path}" if active_path and active_source else "No gallery/file-manager handoff path detected yet.",
+        ),
+        _ok(
+            "transform_state_present",
+            bool(active_transform),
+            "Transform state is attached to the active job." if active_transform else "No transform state found on active job.",
+        ),
+        _ok(
+            "persistent_job_store_ready",
+            isinstance(job_list, list),
+            f"Studio job payload contains {len(job_list)} entries.",
         ),
         _ok(
             "real_slicing_disabled",

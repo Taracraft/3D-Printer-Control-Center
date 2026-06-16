@@ -294,9 +294,13 @@ async def ws_studio_health(
 ) -> None:
     """Return a non-invasive Studio health report."""
     profile_bank = await async_load_profile_bank(hass)
+    supplied_jobs = msg.get("jobs") or []
+    if not supplied_jobs:
+        supplied_jobs = await async_load_studio_jobs(hass)
+
     report = build_studio_health_report(
         profile_bank=profile_bank,
-        jobs=msg.get("jobs") or [],
+        jobs=supplied_jobs,
         dry_run=msg.get("dry_run") or {},
     )
     connection.send_result(msg["id"], report)

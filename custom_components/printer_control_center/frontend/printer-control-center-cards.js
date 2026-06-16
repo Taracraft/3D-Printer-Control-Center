@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-alpha21*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-alpha22*/
 (() => {
-  const VERSION = "5.0.0-alpha21";
+  const VERSION = "5.0.0-alpha22";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -3308,6 +3308,7 @@
               ${action("print","Drucken …","🖨",!project)}
               ${action("plan","Planen …","🗓",!project)}
               ${action("model-open","In Bambu Studio öffnen (Original-3MF)","↗",!project)}
+              ${action("studio-open","In 3D-Studio oeffnen","[S]",!project)}
               ${action("model-download","Modell-3MF herunterladen","⬇",!project)}
               ${action("stl-download","Modell-STL herunterladen","⬇",!project)}
               ${action("preview","3D-Vorschau","◈")}
@@ -3357,6 +3358,76 @@
       }
     }
 
+
+    defaultStudioTransform(){
+      return {x:0,y:0,z:0,rx:0,ry:0,rz:0,scale:100,sx:100,sy:100,sz:100};
+    }
+
+    buildStudioPlanFromItem(map,item){
+      const serial=this.serial(map);
+      const source=this._source==="sd"?"sd":"archive";
+      const path=String(item?.path||"");
+      const name=String(item?.name||path.split("/").filter(Boolean).pop()||"3MF model");
+      const now=new Date().toISOString();
+      return {
+        version: VERSION,
+        schema: "printer-control-center.v5.gallery-handoff",
+        source,
+        origin: source,
+        serial,
+        created_at: now,
+        updated_at: now,
+        modelName: name,
+        file_name: name,
+        filename: name,
+        file_path: path,
+        path,
+        modelKey: `${source}:${path}`,
+        model: {
+          name,
+          path,
+          source,
+          size: Number(item?.size||0),
+          modified: item?.modified||null,
+          preview_data_url: item?.preview_data_url||""
+        },
+        transform: this.defaultStudioTransform(),
+        profile_context: {},
+        real_slicing_enabled: false,
+        direct_print_enabled: false,
+        status: "prepared",
+        stage: "waiting",
+        message: "Aus Galerie/Dateimanager an 3D-Studio uebergeben. Echter Slicer-Lauf ist deaktiviert."
+      };
+    }
+
+    async openInStudio(map,item){
+      if(!item)return;
+      if(!this.projectCapable(item)){
+        this._error="Nur 3MF-Projektdateien koennen an das 3D-Studio uebergeben werden.";
+        this.render();
+        return;
+      }
+
+      try{
+        const plan=this.buildStudioPlanFromItem(map,item);
+        const response=await this.ws({
+          type:"printer_control_center/studio_jobs/create",
+          serial:this.serial(map),
+          plan
+        });
+        const job=response?.job||response||null;
+        window.PCC_STUDIO_HANDOFF?.broadcast?.(job);
+        this._contextMenu=null;
+        this._previewItem=null;
+        this._notice=`3D-Studio-Job erstellt: ${item.name}. Oeffne die Studio-Seite und nutze "Plan pruefen".`;
+        this.render();
+      }catch(error){
+        this._error=`3D-Studio-Handoff fehlgeschlagen: ${String(error?.message||error)}`;
+        this.render();
+      }
+    }
+
     showPreparedDialog(type,item){
       this._dialog={type,item,quantity:1,scheduled_for:""};
       this._contextMenu=null;
@@ -3401,6 +3472,11 @@
         // Bambuddy-compatible desktop handoff: serve the unchanged original 3MF.
         // Geometry-only 3MF/STL generation remains available only as an explicit download fallback.
         this.projectLink(map,this._source,item.path,"studio");
+        return;
+      }
+
+      if(action==="studio-open"){
+        this.openInStudio(map,item);
         return;
       }
 
@@ -3714,6 +3790,7 @@
                 <button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">🖨 Drucken …</button>
                 <button data-context-direct="plan" data-context-path="${esc(item.path)}">🗓 Planen …</button>
                 <button class="primary" data-context-direct="model-open" data-context-path="${esc(item.path)}">↗ In Bambu Studio öffnen (Original-3MF)</button>
+                <button data-context-direct="studio-open" data-context-path="${esc(item.path)}">[S] In 3D-Studio oeffnen</button>
                 <button data-context-direct="model-download" data-context-path="${esc(item.path)}">⬇ Modell-3MF herunterladen</button>
                 <button data-context-direct="stl-download" data-context-path="${esc(item.path)}">⬇ Modell-STL herunterladen</button>
               `:""}
@@ -4726,9 +4803,40 @@
   console.info(`3D-Printer Control Center ${VERSION}: ${picker.length} cards registered`);
 })();
 
-/* v5 alpha21: consolidated Studio frontend on stable gallery baseline. */
+/* v5 alpha22: shared Gallery/File-Manager -> Studio handoff bridge. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-alpha21";
+  const KEY = "printer_control_center_studio_handoff_alpha22";
+  window.PCC_STUDIO_HANDOFF_KEY = KEY;
+  window.PCC_STUDIO_HANDOFF = {
+    key: KEY,
+    broadcast(job) {
+      const payload = {
+        version: "5.0.0-alpha22",
+        updatedAt: new Date().toISOString(),
+        job: job || null
+      };
+      try {
+        window.localStorage.setItem(KEY, JSON.stringify(payload));
+      } catch (_error) {}
+      try {
+        window.dispatchEvent(new CustomEvent("printer-control-center-studio-handoff", {detail: payload}));
+      } catch (_error) {}
+      return payload;
+    },
+    latest() {
+      try {
+        return JSON.parse(window.localStorage.getItem(KEY) || "null");
+      } catch (_error) {
+        return null;
+      }
+    }
+  };
+})();
+
+/* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
+(() => {
+  const STUDIO_VERSION = "5.0.0-alpha22";
+  const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   const escStudio = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -4743,6 +4851,8 @@
     return Number.isFinite(number) ? number : fallback;
   };
 
+  const defaultTransform = () => ({x:0,y:0,z:0,rx:0,ry:0,rz:0,scale:100,sx:100,sy:100,sz:100});
+
   class PrinterControlCenterStudioCard extends HTMLElement {
     constructor() {
       super();
@@ -4751,22 +4861,38 @@
       this._health = null;
       this._lastDryRun = null;
       this._lastStudioPlan = null;
-      this._status = "alpha21 Studio release ready. Profile bank, Dry-Run and Health are connected. Real slicing and direct printing remain disabled.";
-      this._transform = {
-        x: 0,
-        y: 0,
-        z: 0,
-        rx: 0,
-        ry: 0,
-        rz: 0,
-        scale: 100,
-        sx: 100,
-        sy: 100,
-        sz: 100
+      this._jobs = [];
+      this._jobsLoaded = false;
+      this._jobsLoading = false;
+      this._activeJob = null;
+      this._activeJobId = "";
+      this._profileBank = null;
+      this._profileBankLoaded = false;
+      this._profileBankLoading = false;
+      this._status = "alpha22 Beta Foundation bereit. Galerie/Dateimanager-Handoff, persistente Studio-Jobs, Dry-Run und Health sind verbunden. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+      this._transform = defaultTransform();
+      this._saveTimer = null;
+
+      this._handoffHandler = (event) => this.consumeStudioHandoff(event?.detail || null);
+      this._storageHandler = (event) => {
+        if (event?.key === HANDOFF_KEY) this.consumeStudioHandoff(null);
       };
 
       this.shadowRoot.addEventListener("click", (event) => this.handleClick(event));
       this.shadowRoot.addEventListener("change", (event) => this.handleChange(event));
+      this.shadowRoot.addEventListener("input", (event) => this.handleInput(event));
+    }
+
+    connectedCallback() {
+      window.addEventListener("printer-control-center-studio-handoff", this._handoffHandler);
+      window.addEventListener("storage", this._storageHandler);
+      this.consumeStudioHandoff(null);
+    }
+
+    disconnectedCallback() {
+      window.removeEventListener("printer-control-center-studio-handoff", this._handoffHandler);
+      window.removeEventListener("storage", this._storageHandler);
+      if (this._saveTimer) window.clearTimeout(this._saveTimer);
     }
 
     setConfig(config) {
@@ -4776,21 +4902,29 @@
 
     set hass(hass) {
       this._hass = hass;
-      this.ensureStudioProfileBankLoaded?.();
+      this.ensureStudioProfileBankLoaded();
+      this.ensureStudioJobsLoaded(false);
+      this.consumeStudioHandoff(null);
       this.render();
+    }
+
+    async ws(payload) {
+      if (this._hass?.connection?.sendMessagePromise) {
+        return this._hass.connection.sendMessagePromise(payload);
+      }
+      if (this._hass?.callWS) {
+        return this._hass.callWS(payload);
+      }
+      throw new Error("Home Assistant WebSocket connection is not available.");
     }
 
     async ensureStudioProfileBankLoaded() {
       if (this._profileBankLoading || this._profileBankLoaded) return;
-      if (!this._hass?.connection?.sendMessagePromise) return;
-
+      if (!this._hass) return;
       this._profileBankLoading = true;
 
       try {
-        const response = await this._hass.connection.sendMessagePromise({
-          type: "printer_control_center/studio_profiles/get"
-        });
-
+        const response = await this.ws({type: "printer_control_center/studio_profiles/get"});
         this._profileBank = response?.profile_bank || response?.bank || response || null;
         this._profileBankLoaded = Boolean(this._profileBank);
       } catch (error) {
@@ -4803,10 +4937,53 @@
       }
     }
 
+    async ensureStudioJobsLoaded(force=false) {
+      if (this._jobsLoading) return;
+      if (this._jobsLoaded && !force) return;
+      if (!this._hass) return;
+
+      this._jobsLoading = true;
+      try {
+        const response = await this.ws({type:"printer_control_center/studio_jobs/list"});
+        this._jobs = Array.isArray(response?.jobs) ? response.jobs : [];
+        this._jobsLoaded = true;
+
+        if (!this._activeJob && this._jobs.length) {
+          this.applyActiveJob(this._jobs[0], {render:false, status:false});
+        }
+      } catch (error) {
+        this._status = `Studio-Jobs konnten nicht geladen werden: ${String(error?.message || error)}`;
+      } finally {
+        this._jobsLoading = false;
+        this.render();
+      }
+    }
+
+    consumeStudioHandoff(payload) {
+      let data = payload;
+      if (!data) {
+        try {
+          data = JSON.parse(window.localStorage.getItem(HANDOFF_KEY) || "null");
+        } catch (_error) {
+          data = null;
+        }
+      }
+
+      const job = data?.job || null;
+      if (!job?.id) return;
+      if (String(job.id) === String(this._activeJobId || "")) return;
+
+      this.applyActiveJob(job, {render:false});
+      this._jobsLoaded = false;
+      this.ensureStudioJobsLoaded(true);
+      this._status = `Studio-Job aus Galerie/Dateimanager geladen: ${this.jobName(job)}.`;
+      this.render();
+    }
+
     defaultProfileContext() {
       return {
         version: STUDIO_VERSION,
-        source: "isolated_studio_alpha21_fallback",
+        source: "studio_alpha22_fallback",
         selection: {
           printer_profile_id: "bambu_a1_x1_p1_h2_generic",
           filament_profile_id: "pla_generic",
@@ -4872,7 +5049,7 @@
 
       return {
         version: STUDIO_VERSION,
-        source: "studio_profile_bank_alpha21",
+        source: "studio_profile_bank_alpha22",
         selection: {
           printer_profile_id: printer.id || selection.printer_profile_id || "printer",
           filament_profile_id: filament.id || selection.filament_profile_id || "filament",
@@ -4886,8 +5063,12 @@
       };
     }
 
+    buildProfileContext() {
+      return this.currentProfileContextFromBank?.() || this.defaultProfileContext();
+    }
+
     profileLabels() {
-      const context = this.currentProfileContextFromBank() || this.defaultProfileContext();
+      const context = this.buildProfileContext();
       return {
         printer: context.printer_profile?.name || "Bambu A1 / X1 / P1 / H2",
         plate: Array.isArray(context.printer_profile?.build_plate_mm)
@@ -4898,34 +5079,122 @@
         process: context.process_profile?.name || "0.20 mm Standard"
       };
     }
-    buildProfileContext() {
-      return this.currentProfileContextFromBank?.() || this.defaultProfileContext();
+
+    normalizeTransform(value) {
+      const source = value && typeof value === "object" ? value : {};
+      const base = defaultTransform();
+      for (const key of Object.keys(base)) {
+        base[key] = toNumber(source[key], base[key]);
+      }
+      return base;
     }
-    buildDryRunJob() {
-      return {
-        id: "isolated-studio-preview",
-        name: "Isolated Studio Preview",
-        source: "frontend_alpha21",
+
+    jobName(job=this._activeJob) {
+      return String(job?.name || job?.modelName || job?.model?.name || job?.file_name || job?.filename || "Studio Preview");
+    }
+
+    jobPath(job=this._activeJob) {
+      return String(job?.file_path || job?.path || job?.model?.path || "");
+    }
+
+    jobSource(job=this._activeJob) {
+      return String(job?.source || job?.origin || job?.model?.source || "frontend");
+    }
+
+    applyActiveJob(job, options={}) {
+      if (!job) return;
+      this._activeJob = {...job};
+      this._activeJobId = String(job.id || "");
+      this._transform = this.normalizeTransform(job.transform || job.plan?.transform || this._transform);
+      if (Array.isArray(this._jobs)) {
+        const existing = this._jobs.findIndex((entry) => String(entry?.id) === String(job.id));
+        if (existing >= 0) this._jobs[existing] = this._activeJob;
+        else this._jobs = [this._activeJob, ...this._jobs];
+      }
+      if (options.status !== false) {
+        this._status = `Aktiver Studio-Job: ${this.jobName(job)}. Transformdaten und Profilkontext sind bereit.`;
+      }
+      if (options.render !== false) this.render();
+    }
+
+    scheduleActiveJobSave() {
+      if (!this._activeJob?.id || !this._hass) return;
+      if (this._saveTimer) window.clearTimeout(this._saveTimer);
+      this._saveTimer = window.setTimeout(() => this.saveActiveJobState(), 350);
+    }
+
+    async saveActiveJobState() {
+      if (!this._activeJob?.id || !this._hass) return;
+      const patch = {
         transform: {...this._transform},
+        profile_context: this.buildProfileContext(),
+        status: "prepared",
+        stage: "waiting",
+        message: "Transformdaten im 3D-Studio aktualisiert. Echter Slicer-Lauf ist deaktiviert.",
+        real_slicing_enabled: false,
+        direct_print_enabled: false
+      };
+
+      try {
+        const response = await this.ws({
+          type:"printer_control_center/studio_jobs/update",
+          job_id:String(this._activeJob.id),
+          patch
+        });
+        if (response?.job) this.applyActiveJob(response.job, {render:false, status:false});
+      } catch (error) {
+        this._status = `Studio-Job konnte nicht gespeichert werden: ${String(error?.message || error)}`;
+      }
+    }
+
+    buildDryRunJob() {
+      const active = this._activeJob || {};
+      const id = active.id || "isolated-studio-preview";
+      const name = this.jobName(active);
+      const path = this.jobPath(active);
+      const source = this.jobSource(active);
+
+      return {
+        ...active,
+        id,
+        name,
+        modelName: name,
+        file_name: active.file_name || active.filename || name,
+        filename: active.filename || active.file_name || name,
+        file_path: path,
+        path,
+        source,
+        origin: source,
+        model: {
+          ...(active.model || {}),
+          name,
+          path,
+          source
+        },
+        transform: {...this._transform},
+        profile_context: this.buildProfileContext(),
         real_slicing_enabled: false,
         direct_print_enabled: false
       };
     }
 
     buildLocalStudioPlan(dryRun) {
-      const profileContext = dryRun?.profile_context || this.buildProfileContext();
+      const target = dryRun?.job || this.buildDryRunJob();
+      const profileContext = dryRun?.profile_context || target.profile_context || this.buildProfileContext();
       const dry = dryRun?.dry_run || {};
       const now = new Date().toISOString();
 
       return {
         version: STUDIO_VERSION,
         schema: 1,
-        source: "frontend_alpha21_fallback",
+        source: "frontend_alpha22_fallback",
         updated_at: now,
         job: {
-          id: "isolated-studio-preview",
-          name: "Isolated Studio Preview",
-          source: "frontend_alpha21",
+          id: target.id,
+          name: this.jobName(target),
+          file_name: target.file_name || target.filename || this.jobName(target),
+          file_path: target.file_path || target.path || "",
+          source: target.source || target.origin || "frontend",
           updated_at: now
         },
         profile_context: {
@@ -4953,43 +5222,53 @@
         valid: dry.ok !== false && profileContext.valid !== false
       };
     }
+
     async runDryRunPlan() {
-      if (!this._hass?.connection?.sendMessagePromise) {
+      if (!this._hass) {
         this._status = "Dry-Run konnte nicht gestartet werden: Home Assistant WebSocket fehlt.";
         this.render();
         return;
       }
 
-      this._status = "Dry-Run-Plan wird geprüft ...";
+      await this.ensureStudioJobsLoaded(false);
+      const targetJob = this.buildDryRunJob();
+      this._status = `Dry-Run-Plan wird geprueft: ${this.jobName(targetJob)} ...`;
       this.render();
 
       try {
-        const result = await this._hass.connection.sendMessagePromise({
+        const payload = {
           type: "printer_control_center/studio_worker/dry_run",
-          target_job: this.buildDryRunJob(),
+          target_job: targetJob,
           profile_context: this.buildProfileContext()
-        });
+        };
+        if (targetJob.id && targetJob.id !== "isolated-studio-preview") payload.job_id = String(targetJob.id);
 
-        const dryRun = result?.result || result?.patch || result?.job || result || {};
-        if (!dryRun.profile_context) {
-          dryRun.profile_context = this.buildProfileContext();
-        }
-        if (!dryRun.dry_run) {
-          dryRun.dry_run = {
-            ok: dryRun.status !== "dry_run_incomplete",
+        const result = await this.ws(payload);
+        const returnedJob = result?.job || null;
+        const patch = result?.result || result?.dryRun || result?.patch || returnedJob || result || {};
+        const mergedJob = returnedJob || {...targetJob, ...patch};
+
+        if (!patch.profile_context) patch.profile_context = this.buildProfileContext();
+        if (!patch.dry_run) {
+          patch.dry_run = {
+            ok: patch.status !== "dry_run_incomplete",
             real_slicing_enabled: false,
             direct_print_enabled: false,
             warnings: []
           };
         }
-        dryRun.studio_plan = dryRun.studio_plan || this.buildLocalStudioPlan(dryRun);
 
-        this._lastDryRun = dryRun;
-        this._lastStudioPlan = dryRun.studio_plan;
-        this._status = "Dry-Run-Plan erfolgreich geprüft. Studio-Plan ist für Health verfügbar. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+        patch.job = mergedJob;
+        patch.studio_plan = patch.studio_plan || mergedJob.studio_plan || this.buildLocalStudioPlan(patch);
+
+        this.applyActiveJob(mergedJob, {render:false, status:false});
+        this._lastDryRun = patch;
+        this._lastStudioPlan = patch.studio_plan;
+        this._status = `Dry-Run-Plan erfolgreich geprueft: ${this.jobName(mergedJob)}. Echtes Slicen und Direktdruck bleiben deaktiviert.`;
       } catch (error) {
         this._lastDryRun = {
           status: "dry_run_incomplete",
+          job: targetJob,
           dry_run: {
             ok: false,
             warnings: [String(error?.message || error)],
@@ -5000,57 +5279,48 @@
         };
         this._lastDryRun.studio_plan = this.buildLocalStudioPlan(this._lastDryRun);
         this._lastStudioPlan = this._lastDryRun.studio_plan;
-        this._status = "Dry-Run-Plan meldet einen Hinweis, Studio-Plan-Fallback ist verfügbar.";
+        this._status = "Dry-Run-Plan meldet einen Hinweis, Studio-Plan-Fallback ist verfuegbar.";
       }
 
       this.render();
     }
 
     async runHealthCheck() {
-      if (!this._hass?.connection?.sendMessagePromise) {
+      if (!this._hass) {
         this._health = {
           status: "warnings",
           summary: {ok: 0, warnings: 1, checks: 1},
-          checks: [{
-            name: "websocket_connection",
-            ok: false,
-            detail: "Home Assistant WebSocket connection is not available in this frontend context."
-          }],
-          safety: {
-            real_slicing_enabled: false,
-            direct_print_enabled: false,
-            stage: "frontend_only"
-          }
+          checks: [{name: "websocket_connection", ok: false, detail: "Home Assistant WebSocket connection is not available."}],
+          safety: {real_slicing_enabled: false, direct_print_enabled: false, stage: "frontend_only"}
         };
         this._status = "Health check could not use Home Assistant WebSocket.";
         this.render();
         return;
       }
 
+      await this.ensureStudioJobsLoaded(false);
       this._status = "Running Studio health check ...";
       this.render();
 
       try {
-        this._health = await this._hass.connection.sendMessagePromise({
+        const jobs = this._activeJob ? [this._activeJob] : this._jobs;
+        this._health = await this.ws({
           type: "printer_control_center/studio/health",
-          jobs: this._lastStudioPlan ? [{studio_plan: this._lastStudioPlan}] : [],
-          dry_run: this._lastDryRun || {}
+          jobs,
+          dry_run: {
+            ...(this._lastDryRun || {}),
+            job: this._activeJob || this.buildDryRunJob(),
+            studio_plan: this._lastStudioPlan || this._activeJob?.studio_plan || null,
+            profile_context: this.buildProfileContext()
+          }
         });
         this._status = "Studio health check completed.";
       } catch (error) {
         this._health = {
           status: "warnings",
           summary: {ok: 0, warnings: 1, checks: 1},
-          checks: [{
-            name: "studio_health_websocket",
-            ok: false,
-            detail: String(error?.message || error)
-          }],
-          safety: {
-            real_slicing_enabled: false,
-            direct_print_enabled: false,
-            stage: "diagnostics_only"
-          }
+          checks: [{name: "studio_health_websocket", ok: false, detail: String(error?.message || error)}],
+          safety: {real_slicing_enabled: false, direct_print_enabled: false, stage: "diagnostics_only"}
         };
         this._status = "Studio health check returned a warning.";
       }
@@ -5058,11 +5328,21 @@
       this.render();
     }
 
+    handleInput(event) {
+      const field = event.target?.dataset?.field;
+      if (!field) return;
+      this._transform[field] = toNumber(event.target.value, this._transform[field] || 0);
+      if (this._activeJob) this._activeJob.transform = {...this._transform};
+      this.scheduleActiveJobSave();
+      this.render();
+    }
+
     handleChange(event) {
       const field = event.target?.dataset?.field;
       if (!field) return;
-
       this._transform[field] = toNumber(event.target.value, this._transform[field] || 0);
+      if (this._activeJob) this._activeJob.transform = {...this._transform};
+      this.scheduleActiveJobSave();
       this.render();
     }
 
@@ -5078,9 +5358,22 @@
         this.render();
       }
 
+      if (action === "jobs-refresh") {
+        this._jobsLoaded = false;
+        this.ensureStudioJobsLoaded(true);
+      }
+
+      if (action === "job-select") {
+        const id = event.target.dataset.jobId || "";
+        const job = this._jobs.find((entry) => String(entry?.id) === String(id));
+        if (job) this.applyActiveJob(job);
+      }
+
       if (action === "center") {
         this._transform.x = 0;
         this._transform.y = 0;
+        if (this._activeJob) this._activeJob.transform = {...this._transform};
+        this.scheduleActiveJobSave();
         this._status = "Object centered on build plate.";
         this.render();
       }
@@ -5089,26 +5382,30 @@
         this._transform.rx = 0;
         this._transform.ry = 0;
         this._transform.z = 0;
+        if (this._activeJob) this._activeJob.transform = {...this._transform};
+        this.scheduleActiveJobSave();
         this._status = "Lay-flat planning applied.";
         this.render();
       }
 
       if (action === "reset") {
-        this._transform = {x:0,y:0,z:0,rx:0,ry:0,rz:0,scale:100,sx:100,sy:100,sz:100};
+        this._transform = defaultTransform();
+        if (this._activeJob) this._activeJob.transform = {...this._transform};
         this._lastDryRun = null;
         this._lastStudioPlan = null;
         this._health = null;
+        this.scheduleActiveJobSave();
         this._status = "Transform and local plan state reset.";
         this.render();
       }
 
       if (action === "duplicate") {
-        this._status = "Duplicate is planned for a later Studio state step.";
+        this._status = "Duplicate is planned for the multi-object Studio step.";
         this.render();
       }
 
       if (action === "delete") {
-        this._status = "Delete is disabled in this recovery build.";
+        this._status = "Delete is disabled in this Beta Foundation build.";
         this.render();
       }
 
@@ -5137,11 +5434,54 @@
       `;
     }
 
+    captureUiState() {
+      const active = this.shadowRoot?.activeElement;
+      return {
+        scrollY: Number(window.scrollY || 0),
+        field: active?.dataset?.field || "",
+        start: Number.isInteger(active?.selectionStart) ? active.selectionStart : null,
+        end: Number.isInteger(active?.selectionEnd) ? active.selectionEnd : null
+      };
+    }
+
+    restoreUiState(state) {
+      if (!state) return;
+      window.requestAnimationFrame(() => {
+        if (state.field) {
+          const input = this.shadowRoot?.querySelector(`[data-field="${CSS.escape(state.field)}"]`);
+          if (input) {
+            input.focus({preventScroll:true});
+            try { input.setSelectionRange(state.start ?? input.value.length, state.end ?? input.value.length); } catch (_error) {}
+          }
+        }
+        if (Number.isFinite(state.scrollY)) {
+          try { window.scrollTo(window.scrollX || 0, state.scrollY); } catch (_error) {}
+        }
+      });
+    }
+
+    renderJobsList() {
+      const jobs = Array.isArray(this._jobs) ? this._jobs.slice(0, 8) : [];
+      if (!jobs.length) {
+        return `<div class="health-note">Noch kein persistenter Studio-Job. Oeffne ein 3MF-Modell in der Galerie ueber "In 3D-Studio oeffnen".</div>`;
+      }
+
+      return jobs.map((job) => {
+        const active = String(job?.id) === String(this._activeJobId);
+        return `
+          <button class="job-row ${active ? "active" : ""}" data-action="job-select" data-job-id="${escStudio(job?.id || "")}">
+            <strong>${escStudio(this.jobName(job))}</strong>
+            <small>${escStudio(this.jobSource(job))} · ${escStudio(this.jobPath(job) || "kein Pfad")}</small>
+          </button>
+        `;
+      }).join("");
+    }
+
     renderPlanSummary() {
       if (!this._lastDryRun && !this._lastStudioPlan) {
         return `
           <div class="plan-note">
-            Noch kein Dry-Run-Plan erzeugt. "Plan pruefen" erstellt einen Backend-Dry-Run ohne echtes Slicen.
+            Noch kein Dry-Run-Plan erzeugt. "Plan pruefen" verwendet den aktiven persistenten Studio-Job ohne echtes Slicen.
           </div>
         `;
       }
@@ -5152,12 +5492,15 @@
       const printer = profile.printer_profile?.name || "Bambu A1 / X1 / P1 / H2";
       const filament = profile.filament_profile?.name || "PLA Generic";
       const process = profile.process_profile?.name || "0.20 mm Standard";
+      const job = plan.job || this._activeJob || {};
 
       return `
         <div class="plan-summary">
           <span class="badge ${dry.ok === false ? "warn" : "ok"}">${dry.ok === false ? "Plan Hinweis" : "Plan bereit"}</span>
           <span class="badge">Slicen ${dry.real_slicing_enabled ? "aktiv" : "aus"}</span>
           <span class="badge">Druck ${dry.direct_print_enabled ? "aktiv" : "aus"}</span>
+          <div class="health-row"><span>Modell</span><strong>${escStudio(job.name || this.jobName())}</strong></div>
+          <div class="health-row"><span>Pfad</span><strong>${escStudio(job.file_path || this.jobPath() || "kein Pfad")}</strong></div>
           <div class="health-row"><span>Plan-Drucker</span><strong>${escStudio(printer)}</strong></div>
           <div class="health-row"><span>Plan-Filament</span><strong>${escStudio(filament)}</strong></div>
           <div class="health-row"><span>Plan-Prozess</span><strong>${escStudio(process)}</strong></div>
@@ -5169,11 +5512,7 @@
     renderHealth() {
       const health = this._health;
       if (!health) {
-        return `
-          <div class="health-note">
-            No health result yet. Use "Plan pruefen" first, then "Health pruefen".
-          </div>
-        `;
+        return `<div class="health-note">No health result yet. Use "Plan pruefen" first, then "Health pruefen".</div>`;
       }
 
       const checks = Array.isArray(health.checks) ? health.checks : [];
@@ -5188,6 +5527,7 @@
         <div class="health-summary">
           <span class="badge ${health.status === "ok" ? "ok" : "warn"}">${escStudio(health.status || "unknown")}</span>
           <span class="badge">OK ${escStudio(health.summary?.ok ?? 0)} / Hinweise ${escStudio(health.summary?.warnings ?? 0)}</span>
+          <span class="badge">Checks ${escStudio(health.summary?.checks ?? checks.length)}</span>
           <span class="badge">Slicen ${health.safety?.real_slicing_enabled ? "aktiv" : "aus"}</span>
           <span class="badge">Druck ${health.safety?.direct_print_enabled ? "aktiv" : "aus"}</span>
         </div>
@@ -5197,8 +5537,14 @@
 
     render() {
       if (!this.shadowRoot) return;
+      const uiState = this.captureUiState();
 
       const t = this._transform;
+      const labels = this.profileLabels();
+      const activeName = this.jobName();
+      const activePath = this.jobPath();
+      const activeSource = this.jobSource();
+
       const objectStyle = `
         transform:
           translate(calc(-50% + ${t.x}px), calc(-50% + ${t.y}px))
@@ -5210,191 +5556,38 @@
       this.shadowRoot.innerHTML = `
         <ha-card>
           <style>
-            :host{
-              display:block;
-              --pcc-accent:#00a9d6;
-              --pcc-panel:rgba(20,31,34,.92);
-              --pcc-border:rgba(0,169,214,.45);
-              --pcc-muted:rgba(255,255,255,.68);
-            }
-            .studio-shell{
-              min-height:720px;
-              background:linear-gradient(135deg,rgba(5,9,10,.96),rgba(14,30,34,.96));
-              color:var(--primary-text-color,#fff);
-              border:1px solid var(--pcc-border);
-              border-radius:12px;
-              overflow:hidden;
-            }
-            .studio-topbar{
-              display:flex;
-              gap:8px;
-              align-items:center;
-              flex-wrap:wrap;
-              padding:10px 12px;
-              border-bottom:1px solid var(--pcc-border);
-              background:rgba(0,0,0,.22);
-            }
-            .studio-topbar h2{
-              margin:0 14px 0 0;
-              font-size:18px;
-              white-space:nowrap;
-            }
-            button.tool,
-            button.action{
-              min-height:32px;
-              border:1px solid var(--pcc-border);
-              background:rgba(0,169,214,.10);
-              color:var(--primary-text-color,#fff);
-              border-radius:9px;
-              padding:5px 10px;
-              cursor:pointer;
-            }
-            button.tool.active{
-              background:rgba(0,169,214,.35);
-              box-shadow:0 0 0 1px rgba(0,169,214,.65) inset;
-            }
-            .studio-grid{
-              display:grid;
-              grid-template-columns:260px minmax(360px,1fr) 320px;
-              gap:12px;
-              padding:12px;
-            }
-            .panel{
-              border:1px solid var(--pcc-border);
-              border-radius:12px;
-              background:var(--pcc-panel);
-              padding:12px;
-            }
-            .panel h3{
-              margin:0 0 10px 0;
-              font-size:14px;
-            }
-            .profile-row,
-            .health-row{
-              display:flex;
-              justify-content:space-between;
-              gap:10px;
-              border-top:1px solid rgba(255,255,255,.12);
-              padding:7px 0;
-              font-size:12px;
-            }
-            .profile-row span,
-            .health-row span{
-              color:var(--pcc-muted);
-            }
-            .buildplate-wrap{
-              min-height:610px;
-              display:flex;
-              flex-direction:column;
-              gap:10px;
-            }
-            .buildplate{
-              position:relative;
-              flex:1;
-              min-height:520px;
-              border:1px solid var(--pcc-border);
-              border-radius:16px;
-              overflow:hidden;
-              background:
-                linear-gradient(rgba(0,169,214,.16) 1px,transparent 1px),
-                linear-gradient(90deg,rgba(0,169,214,.16) 1px,transparent 1px),
-                radial-gradient(circle at center,rgba(0,169,214,.16),rgba(0,0,0,.18));
-              background-size:32px 32px,32px 32px,100% 100%;
-              perspective:900px;
-            }
-            .plate-label{
-              position:absolute;
-              left:14px;
-              top:12px;
-              font-size:12px;
-              color:var(--pcc-muted);
-            }
-            .model{
-              position:absolute;
-              left:50%;
-              top:50%;
-              width:140px;
-              height:110px;
-              border-radius:18px;
-              background:linear-gradient(145deg,#00a9d6,#15576a);
-              border:1px solid rgba(255,255,255,.45);
-              box-shadow:0 22px 48px rgba(0,0,0,.45);
-              transform-origin:center center;
-              ${objectStyle}
-            }
-            .model::after{
-              content:"";
-              position:absolute;
-              inset:16px;
-              border-radius:14px;
-              border:1px solid rgba(255,255,255,.28);
-            }
-            .status,
-            .plan-note,
-            .plan-summary{
-              border:1px solid rgba(255,255,255,.16);
-              border-radius:10px;
-              padding:10px;
-              font-size:12px;
-              color:var(--pcc-muted);
-              background:rgba(0,0,0,.20);
-            }
-            .field{
-              display:grid;
-              grid-template-columns:80px 1fr 32px;
-              gap:6px;
-              align-items:center;
-              margin:7px 0;
-              font-size:12px;
-            }
-            .field span{
-              color:var(--pcc-muted);
-            }
-            .field input{
-              width:100%;
-              box-sizing:border-box;
-              border:1px solid var(--pcc-border);
-              border-radius:8px;
-              background:rgba(0,0,0,.25);
-              color:var(--primary-text-color,#fff);
-              min-height:30px;
-              padding:4px 7px;
-            }
-            .field em{
-              font-style:normal;
-              color:var(--pcc-muted);
-            }
-            .action-grid{
-              display:grid;
-              grid-template-columns:1fr 1fr;
-              gap:7px;
-              margin-top:10px;
-            }
-            .badge{
-              display:inline-flex;
-              border:1px solid var(--pcc-border);
-              border-radius:999px;
-              min-height:22px;
-              align-items:center;
-              padding:2px 8px;
-              margin:2px 4px 2px 0;
-              font-size:11px;
-            }
+            :host{display:block;--pcc-accent:#00a9d6;--pcc-panel:rgba(20,31,34,.92);--pcc-border:rgba(0,169,214,.45);--pcc-muted:rgba(255,255,255,.68);}
+            .studio-shell{min-height:720px;background:linear-gradient(135deg,rgba(5,9,10,.96),rgba(14,30,34,.96));color:var(--primary-text-color,#fff);border:1px solid var(--pcc-border);border-radius:12px;overflow:hidden;}
+            .studio-topbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--pcc-border);background:rgba(0,0,0,.22);}
+            .studio-topbar h2{margin:0 14px 0 0;font-size:18px;white-space:nowrap;}
+            button.tool,button.action{min-height:32px;border:1px solid var(--pcc-border);background:rgba(0,169,214,.10);color:var(--primary-text-color,#fff);border-radius:9px;padding:5px 10px;cursor:pointer;}
+            button.tool.active,.job-row.active{background:rgba(0,169,214,.35);box-shadow:0 0 0 1px rgba(0,169,214,.65) inset;}
+            .studio-grid{display:grid;grid-template-columns:280px minmax(360px,1fr) 340px;gap:12px;padding:12px;}
+            .panel{border:1px solid var(--pcc-border);border-radius:12px;background:var(--pcc-panel);padding:12px;min-width:0;}
+            .panel h3{margin:0 0 10px 0;font-size:14px;}
+            .profile-row,.health-row{display:flex;justify-content:space-between;gap:10px;border-top:1px solid rgba(255,255,255,.12);padding:7px 0;font-size:12px;min-width:0;}
+            .profile-row span,.health-row span{color:var(--pcc-muted);}
+            .profile-row strong,.health-row strong{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+            .job-list{display:grid;gap:6px;margin-top:10px;}
+            .job-row{display:grid;gap:2px;text-align:left;border:1px solid rgba(0,169,214,.24);border-radius:9px;background:rgba(0,0,0,.18);color:inherit;padding:7px;cursor:pointer;}
+            .job-row small{color:var(--pcc-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .buildplate-wrap{min-height:610px;display:flex;flex-direction:column;gap:10px;}
+            .buildplate{position:relative;flex:1;min-height:520px;border:1px solid var(--pcc-border);border-radius:16px;overflow:hidden;background:linear-gradient(rgba(0,169,214,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(0,169,214,.16) 1px,transparent 1px),radial-gradient(circle at center,rgba(0,169,214,.16),rgba(0,0,0,.18));background-size:32px 32px,32px 32px,100% 100%;perspective:900px;}
+            .plate-label{position:absolute;left:14px;top:12px;font-size:12px;color:var(--pcc-muted);}
+            .model-label{position:absolute;left:50%;top:calc(50% + 82px);transform:translateX(-50%);font-size:12px;color:var(--pcc-muted);max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .model{position:absolute;left:50%;top:50%;width:140px;height:110px;border-radius:18px;background:linear-gradient(145deg,#00a9d6,#15576a);border:1px solid rgba(255,255,255,.45);box-shadow:0 22px 48px rgba(0,0,0,.45);transform-origin:center center;${objectStyle}}
+            .model::after{content:"";position:absolute;inset:16px;border-radius:14px;border:1px solid rgba(255,255,255,.28);}
+            .status,.plan-note,.plan-summary{border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:10px;font-size:12px;color:var(--pcc-muted);background:rgba(0,0,0,.20);}
+            .field{display:grid;grid-template-columns:80px 1fr 32px;gap:6px;align-items:center;margin:7px 0;font-size:12px;}
+            .field span{color:var(--pcc-muted);}
+            .field input{width:100%;box-sizing:border-box;border:1px solid var(--pcc-border);border-radius:8px;background:rgba(0,0,0,.25);color:var(--primary-text-color,#fff);min-height:30px;padding:4px 7px;}
+            .field em{font-style:normal;color:var(--pcc-muted);}
+            .action-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;}
+            .badge{display:inline-flex;border:1px solid var(--pcc-border);border-radius:999px;min-height:22px;align-items:center;padding:2px 8px;margin:2px 4px 2px 0;font-size:11px;}
             .badge.ok{border-color:rgba(60,180,90,.65)}
             .badge.warn{border-color:rgba(230,160,40,.75)}
-            .health-note{
-              color:var(--pcc-muted);
-              font-size:12px;
-              line-height:1.45;
-            }
-            @media(max-width:1100px){
-              .studio-grid{
-                grid-template-columns:1fr;
-              }
-              .buildplate-wrap{
-                min-height:520px;
-              }
-            }
+            .health-note{color:var(--pcc-muted);font-size:12px;line-height:1.45;}
+            @media(max-width:1100px){.studio-grid{grid-template-columns:1fr}.buildplate-wrap{min-height:520px}}
           </style>
 
           <div class="studio-shell">
@@ -5410,24 +5603,31 @@
               <button class="action" data-action="lay-flat">Flach legen</button>
               <button class="action" data-action="slice">Plan pruefen</button>
               <button class="action" data-action="health">Health pruefen</button>
+              <button class="action" data-action="jobs-refresh">Jobs neu laden</button>
             </div>
 
             <div class="studio-grid">
               <aside class="panel">
                 <h3>Projekt</h3>
-                <div class="profile-row"><span>Drucker</span><strong>${escStudio(this.profileLabels().printer)}</strong></div>
-                <div class="profile-row"><span>Druckplatte</span><strong>${escStudio(this.profileLabels().plate)}</strong></div>
-                <div class="profile-row"><span>Duese</span><strong>${escStudio(this.profileLabels().nozzle)}</strong></div>
-                <div class="profile-row"><span>Filament</span><strong>${escStudio(this.profileLabels().filament)}</strong></div>
-                <div class="profile-row"><span>Prozess</span><strong>${escStudio(this.profileLabels().process)}</strong></div>
+                <div class="profile-row"><span>Aktives Modell</span><strong title="${escStudio(activeName)}">${escStudio(activeName)}</strong></div>
+                <div class="profile-row"><span>Quelle</span><strong>${escStudio(activeSource)}</strong></div>
+                <div class="profile-row"><span>Pfad</span><strong title="${escStudio(activePath)}">${escStudio(activePath || "kein Galeriepfad")}</strong></div>
+                <div class="profile-row"><span>Drucker</span><strong>${escStudio(labels.printer)}</strong></div>
+                <div class="profile-row"><span>Druckplatte</span><strong>${escStudio(labels.plate)}</strong></div>
+                <div class="profile-row"><span>Duese</span><strong>${escStudio(labels.nozzle)}</strong></div>
+                <div class="profile-row"><span>Filament</span><strong>${escStudio(labels.filament)}</strong></div>
+                <div class="profile-row"><span>Prozess</span><strong>${escStudio(labels.process)}</strong></div>
                 <div class="profile-row"><span>Slicer</span><strong>planning_only</strong></div>
                 <div class="profile-row"><span>Direktdruck</span><strong>deaktiviert</strong></div>
+                <h3 style="margin-top:16px">Studio-Jobs</h3>
+                <div class="job-list">${this.renderJobsList()}</div>
               </aside>
 
               <main class="buildplate-wrap">
                 <div class="buildplate">
-                  <div class="plate-label">Buildplate · alpha21 Studio Dry-Run/Profile Release</div>
+                  <div class="plate-label">Buildplate · alpha22 Beta Foundation · persistent Studio job</div>
                   <div class="model"></div>
+                  <div class="model-label">${escStudio(activeName)}</div>
                 </div>
                 <div class="status">${escStudio(this._status)}</div>
                 ${this.renderPlanSummary()}
@@ -5460,6 +5660,8 @@
           </div>
         </ha-card>
       `;
+
+      this.restoreUiState(uiState);
     }
   }
 
@@ -5472,7 +5674,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 alpha21 Studio/CAD frontend with profile-bank backed Dry-Run planning."
+      description: "v5 alpha22 Beta Foundation Studio/CAD frontend with Gallery handoff, persistent jobs and profile-bank backed Dry-Run planning."
     });
   }
 })();

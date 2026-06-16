@@ -22,6 +22,10 @@ def _utcnow() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _safe_dict(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
 def _store_path(hass: Any) -> Path:
     return Path(hass.config.path(STORE_DIRECTORY, STORE_FILENAME))
 
@@ -44,7 +48,7 @@ def _save_jobs_sync(path: Path, jobs: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "schema": "printer-control-center.v5.slice-jobs",
-        "version": "5.0.0-alpha21",
+        "version": "5.0.0-alpha22",
         "updatedAt": _utcnow(),
         "jobs": jobs[:MAX_JOBS],
     }
@@ -64,27 +68,77 @@ async def async_save_studio_jobs(hass: Any, jobs: list[dict[str, Any]]) -> list[
 
 
 def build_studio_job(plan: dict[str, Any] | None = None, serial: str | None = None) -> dict[str, Any]:
+    """Build a persistent Studio job from a gallery/file-manager handoff plan.
+
+    Alpha22 promotes the previous isolated preview into a real, persistent
+    Studio job. The job stays planning-only: real slicing and direct printing
+    remain explicitly disabled.
+    """
     plan_data = deepcopy(plan or {})
-    model = plan_data.get("model") if isinstance(plan_data.get("model"), dict) else {}
-    model_name = str(model.get("name") or plan_data.get("modelName") or "3MF model")
+    model = _safe_dict(plan_data.get("model"))
+
+    source = str(plan_data.get("source") or model.get("source") or plan_data.get("origin") or "")
+    file_path = str(model.get("path") or plan_data.get("file_path") or plan_data.get("path") or "")
+    file_name = str(
+        model.get("name")
+        or plan_data.get("file_name")
+        or plan_data.get("filename")
+        or plan_data.get("modelName")
+        or (Path(file_path).name if file_path else "")
+        or "3MF model"
+    )
+    model_name = str(model.get("name") or plan_data.get("modelName") or file_name or "3MF model")
+
+    transform = _safe_dict(plan_data.get("transform"))
+    if not transform:
+        transform = {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "rx": 0,
+            "ry": 0,
+            "rz": 0,
+            "scale": 100,
+            "sx": 100,
+            "sy": 100,
+            "sz": 100,
+        }
+
+    profile_context = _safe_dict(plan_data.get("profile_context"))
     created = _utcnow()
 
     return {
         "id": f"job-{uuid4().hex[:12]}",
         "schema": "printer-control-center.v5.slice-job",
-        "version": "5.0.0-alpha21",
+        "version": "5.0.0-alpha22",
         "createdAt": created,
         "updatedAt": created,
         "serial": str(serial or plan_data.get("serial") or model.get("serial") or ""),
+        "name": model_name,
         "modelName": model_name,
-        "modelKey": str(plan_data.get("modelKey") or ""),
+        "file_name": file_name,
+        "filename": file_name,
+        "file_path": file_path,
+        "path": file_path,
+        "source": source,
+        "origin": source,
+        "modelKey": str(plan_data.get("modelKey") or file_path or file_name),
+        "model": model or {
+            "name": model_name,
+            "path": file_path,
+            "source": source,
+        },
+        "transform": transform,
+        "profile_context": profile_context,
         "plan": plan_data,
         "status": "prepared",
         "progress": 0,
         "stage": "waiting",
-        "message": "Slice-Job vorbereitet. Echter Slicer-Lauf ist noch deaktiviert.",
+        "message": "Studio-Job aus Galerie/Dateimanager vorbereitet. Echter Slicer-Lauf ist noch deaktiviert.",
         "output": None,
         "directPrint": False,
+        "real_slicing_enabled": False,
+        "direct_print_enabled": False,
         "workerStatus": "not_started",
         "workerCommand": None,
         "workerMessage": "Slicer-Worker ist vorbereitet, aber noch nicht aktiviert.",

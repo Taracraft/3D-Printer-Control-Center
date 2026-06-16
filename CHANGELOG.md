@@ -1,3 +1,24 @@
+## 5.0.0-alpha22 - Beta Foundation Gallery-to-Studio Workflow
+
+### English
+- Added a larger Beta Foundation step for the v5 Studio workflow.
+- Added Gallery/File-Manager to 3D-Studio handoff while keeping the existing Bambu Studio original-3MF handoff unchanged.
+- Promoted the previous isolated Studio preview into a persistent Studio job with model name, file path, source, transform data and profile context.
+- Updated Dry-Run planning to use the active persistent Studio job.
+- Expanded Studio health checks with active job, gallery handoff, transform state and persistent job store readiness.
+- Preserved mobile scroll/focus state during Studio render updates.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Groesserer Beta-Foundation-Schritt fuer den v5-Studio-Workflow.
+- Galerie/Dateimanager kann ein 3MF-Modell jetzt an das 3D-Studio uebergeben; der bestehende Bambu-Studio-Original-3MF-Import bleibt unveraendert.
+- Die bisherige isolierte Studio-Vorschau wird zu einem persistenten Studio-Job mit Modellname, Dateipfad, Quelle, Transformdaten und Profilkontext.
+- Dry-Run/Plan pruefen verwendet den aktiven persistenten Studio-Job.
+- Studio-Health wurde um aktive Jobs, Galerie-Handoff, Transformstatus und persistenten Job-Store erweitert.
+- Mobile Scroll-/Fokusposition bleibt bei Studio-Render-Updates erhalten.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 # Changelog
 
 ## 5.0.0-alpha21 - Consolidated Studio Dry-Run/Profile release

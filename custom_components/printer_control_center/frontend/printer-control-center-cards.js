@@ -4966,7 +4966,7 @@
       try {
         const result = await this._hass.connection.sendMessagePromise({
           type: "printer_control_center/studio_worker/dry_run",
-          target_target_job: this.buildDryRunJob(),
+          target_job: this.buildDryRunJob(),
           profile_context: this.buildProfileContext()
         });
 

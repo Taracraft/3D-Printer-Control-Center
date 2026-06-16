@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta1*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta2*/
 (() => {
-  const VERSION = "5.0.0-beta1";
+  const VERSION = "5.0.0-beta2";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -2520,8 +2520,8 @@
       const amsName=amsDisplayName(this._hass,map);
       const basicButtons=`
         <div class="toolbar">
-          <button data-action="light">ðŸ’¡ Licht</button>
-          <button data-action="toggle-camera">ðŸ“· Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button>
+          <button data-action="light">💡 Licht</button>
+          <button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button>
           <button data-action="camera-popout">â†— Großansicht</button>
           ${printControlButtons(status)}
           <button data-action="refresh">â†» Aktualisieren</button>
@@ -2645,7 +2645,7 @@
   }
   class ControlsCard extends BaseCard {
     static getConfigElement(){return editorFor("controls")} static getStubConfig(){return {...commonStub(),title:"Steuerung"}}
-    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const status=stateValue(this._hass,m.printStatus,"idle");this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="light">ðŸ’¡ Licht</button><button data-action="toggle-camera">ðŸ“· Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— Großansicht</button>${printControlButtons(status)}<button data-action="refresh">â†» Aktualisieren</button></div>`);this.bind(m)}
+    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const status=stateValue(this._hass,m.printStatus,"idle");this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="light">💡 Licht</button><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— Großansicht</button>${printControlButtons(status)}<button data-action="refresh">â†» Aktualisieren</button></div>`);this.bind(m)}
   }
   class AmsCard extends BaseCard {
     static getConfigElement(){return editorFor("ams")} static getStubConfig(){return {...commonStub(),title:"AMS"}}
@@ -2661,7 +2661,7 @@
   }
   class MediaCard extends BaseCard {
     static getConfigElement(){return editorFor("media")} static getStubConfig(){return {...commonStub(),title:"Kamera / Modellvorschau",card_size:"l"}}
-    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const o=isPrinterOnline(this._hass,m),s=stateValue(this._hass,m.printStatus);this.shadowRoot.innerHTML=frame(this._config,`<div class="row between"><h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="toggle-camera">ðŸ“· Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— Großansicht</button></div></div>${mediaHtml(this._hass,m,this._config,this.cameraVisible(),o,s)}`)}
+    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const o=isPrinterOnline(this._hass,m),s=stateValue(this._hass,m.printStatus);this.shadowRoot.innerHTML=frame(this._config,`<div class="row between"><h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— Großansicht</button></div></div>${mediaHtml(this._hass,m,this._config,this.cameraVisible(),o,s)}`)}
   }
   class BrandCard extends BaseCard {
     static getConfigElement(){return editorFor("brand")} static getStubConfig(){return commonStub()}
@@ -3303,7 +3303,7 @@
         <div class="archive-context-backdrop" data-context-close></div>
         <div class="archive-context-menu" style="left:${Number(menu.left||8)}px;top:${Number(menu.top||8)}px">
           ${folder
-            ? action("open-folder","Öffnen","ðŸ“")
+            ? action("open-folder","Öffnen","📁")
             : `
               ${action("print","Drucken â€¦","ðŸ–¨",!project)}
               ${action("plan","Planen â€¦","ðŸ—“",!project)}
@@ -3321,7 +3321,7 @@
           <div class="archive-context-separator"></div>
           ${action("rename","Umbenennen","âœŽ")}
           ${action("move","Verschieben","â‡¢")}
-          ${action("delete","Löschen","ðŸ—‘")}
+          ${action("delete","Löschen","🗑")}
         </div>
       `;
     }
@@ -3672,9 +3672,9 @@
           <button class="archive-tile-menu" data-context-button="${esc(item.path)}" title="Aktionen">â‹®</button>
 
           ${folder
-            ? `<button class="file-preview-button folder-preview" data-open-folder="${esc(item.path)}" title="Ordner öffnen">ðŸ“</button>`
+            ? `<button class="file-preview-button folder-preview" data-open-folder="${esc(item.path)}" title="Ordner öffnen">📁</button>`
             : `<button class="file-preview-button" data-preview-path="${esc(item.path)}" title="3D-Vorschau öffnen">
-                ${preview?`<img src="${esc(preview)}" alt="${esc(item.name)}">`:"ðŸ“„"}
+                ${preview?`<img src="${esc(preview)}" alt="${esc(item.name)}">`:"📄"}
               </button>`
           }
 
@@ -3690,7 +3690,7 @@
 
           <div class="file-actions">
             ${folder
-              ? `<button class="primary" data-open-folder="${esc(item.path)}">ðŸ“ Öffnen</button>
+              ? `<button class="primary" data-open-folder="${esc(item.path)}">📁 Öffnen</button>
                  <button data-dialog-type="rename" data-dialog-path="${esc(item.path)}">âœŽ Umbenennen</button>
                  <button data-context-button="${esc(item.path)}">â‹®</button>`
               : `
@@ -3720,7 +3720,7 @@
               <span class="archive-launcher-preview-media">
                 ${item.preview_data_url
                   ? `<img src="${esc(item.preview_data_url)}" alt="${esc(item.name)}">`
-                  : "ðŸ“„"
+                  : "📄"
                 }
               </span>
               <span class="archive-launcher-preview-name">${esc(item.name)}</span>
@@ -3750,7 +3750,7 @@
         const depth=normalized===root?0:normalized.replace(/^\/+|\/+$/g,"").split("/").filter(Boolean).length;
         const active=normalized===current;
         return `<button class="archive-tree-folder ${active?"active":""}" data-folder="${esc(normalized)}" style="--tc-folder-depth:${depth}">
-          <span>${depth?"ðŸ“":"âŒ‚"}</span><span>${esc(folder.name||"Hauptordner")}</span>
+          <span>${depth?"📁":"âŒ‚"}</span><span>${esc(folder.name||"Hauptordner")}</span>
         </button>`;
       }).join("");
     }
@@ -3798,7 +3798,7 @@
               ${project?"":`<button data-context-direct="download" data-context-path="${esc(item.path)}">â¬‡ Download</button>`}
               <button data-dialog-type="rename" data-dialog-path="${esc(item.path)}">âœŽ Umbenennen</button>
               <button data-dialog-type="move" data-dialog-path="${esc(item.path)}">â‡¢ Verschieben</button>
-              <button class="danger" data-dialog-type="delete" data-dialog-path="${esc(item.path)}">ðŸ—‘ Löschen</button>
+              <button class="danger" data-dialog-type="delete" data-dialog-path="${esc(item.path)}">🗑 Löschen</button>
               <button data-preview-close>âœ• Vorschau schließen</button>
             </aside>
           </div>
@@ -4518,11 +4518,11 @@
       return `<article class="queue-picker-item ${selected?"selected":""}">
         ${folder?"":`<label class="queue-picker-check"><input type="checkbox" data-queue-picker-select="${esc(item.path)}" ${selected?"checked":""}></label>`}
         <button class="queue-picker-media" ${folder?`data-queue-picker-folder="${esc(item.path)}"`:""}>
-          ${folder?"ðŸ“":item.preview_data_url?`<img src="${esc(item.preview_data_url)}" alt="${esc(item.name)}">`:"ðŸ“„"}
+          ${folder?"📁":item.preview_data_url?`<img src="${esc(item.preview_data_url)}" alt="${esc(item.name)}">`:"📄"}
         </button>
         <strong class="queue-name" title="${esc(item.name)}">${esc(item.name)}</strong>
         <small>${folder?"Ordner":`${esc(bytesLabel(item.size||0))} - ${esc(this._pickerSource==="sd"?"SD-Karte":"Archiv")}`}</small>
-        ${folder?`<button data-queue-picker-folder="${esc(item.path)}">ðŸ“ Öffnen</button>`:""}
+        ${folder?`<button data-queue-picker-folder="${esc(item.path)}">📁 Öffnen</button>`:""}
       </article>`;
     }
 
@@ -4643,7 +4643,7 @@
       const schedule=item.scheduled_for||"";
       const preview=item.preview_data_url
         ? `<img src="${esc(item.preview_data_url)}" alt="${esc(item.name)}">`
-        : `<span class="queue-preview-fallback">ðŸ“„</span>`;
+        : `<span class="queue-preview-fallback">📄</span>`;
       const draftQuantity=this._queueDraftQuantities.get(String(item.id));
       const shownQuantity=draftQuantity===undefined?item.quantity||1:draftQuantity;
       return `<article class="queue-row" title="${esc(item.source==="sd"?"SD-Karte":"Lokales Archiv")} - ${esc(item.path)}">
@@ -4660,7 +4660,7 @@
           <button data-queue-move="down" data-queue-id="${esc(item.id)}" title="Nach unten">â†“ Nach unten</button>
           <button class="primary queue-print" data-queue-studio="${esc(item.id)}">ðŸ–¨ Drucken â€¦</button>
           <button data-queue-complete="${esc(item.id)}">âœ“ 1 erledigt</button>
-          <button class="danger" data-queue-delete="${esc(item.id)}">ðŸ—‘ Entfernen</button>
+          <button class="danger" data-queue-delete="${esc(item.id)}">🗑 Entfernen</button>
         </div>
       </article>`;
     }
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta1",
+        version: "5.0.0-beta2",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta1";
+  const STUDIO_VERSION = "5.0.0-beta2";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -4881,7 +4881,7 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta1 Studio Stabilization bereit. Rechte Transform-Spalte, Rechtsklickmenü, echte STL-Geometrie, deduplizierter Import und stabile Tastatursteuerung sind aktiv. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+      this._status = "beta2 Studio Prototype Hotfix bereit. CustomElement-Prototyp, rechte Transform-Spalte, Rechtsklickmenü, STL-Geometrie, deduplizierter Import und stabile Tastatursteuerung sind aktiv. Echtes Slicen und Direktdruck bleiben deaktiviert.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -4944,7 +4944,7 @@
       this.ensureStudioMeshLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Beta1: Home Assistant pushes frequent hass updates.
+      // Beta2: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -5197,8 +5197,8 @@
       const originalRender = this.render.bind(this);
       this.render = (...args) => {
         const result = originalRender(...args);
-        this.cleanupBetaStudioUi();
-        this.bindBetaContextMenu();
+        if (typeof this.cleanupBetaStudioUi === "function") this.cleanupBetaStudioUi();
+        if (typeof this.bindBetaContextMenu === "function") this.bindBetaContextMenu();
         this.queueMeshRender();
         return result;
       };
@@ -6039,7 +6039,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta1: no full render on every keystroke.
+      // Beta2: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -6054,7 +6054,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta1: render is intentionally skipped while editing to avoid cursor jumps.
+      // Beta2: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -6440,7 +6440,7 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta1 Studio Stabilization</div>
+                  <div class="plate-label">Buildplate - beta2 Studio Prototype Hotfix</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   <div class="mesh-status">${escStudio(this._studioMeshStatus || "Echtes Modell noch nicht geladen.")}</div>
@@ -6519,6 +6519,63 @@
       this.restoreUiState(uiState);
     }
   }
+  const PCC_BETA_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+
+  PCC_BETA_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const safeActions = new Set(["health", "reload-mesh", "toggle-shortcuts", "close-context"]);
+    const contextMenu = root.querySelector(".studio-context");
+    const actionGrids = [...root.querySelectorAll(".action-grid")];
+    const buildplateWrap = root.querySelector(".buildplate-wrap");
+
+    for (const grid of actionGrids) {
+      if (grid.closest(".studio-context")) continue;
+
+      const actions = [...grid.querySelectorAll("button[data-action]")].map((button) => String(button.dataset.action || ""));
+      const onlyEditActions = actions.length > 0 && actions.every((action) => !safeActions.has(action));
+
+      const beforeBuildplate = buildplateWrap
+        ? Boolean(grid.compareDocumentPosition(buildplateWrap) & Node.DOCUMENT_POSITION_FOLLOWING)
+        : false;
+
+      if (onlyEditActions && beforeBuildplate) {
+        grid.remove();
+      }
+    }
+
+    const buildplateOnlyActions = new Set([
+      "move", "rotate", "scale", "center", "lay-flat", "reset",
+      "duplicate", "delete", "snap-grid",
+      "mirror-x", "mirror-y", "mirror-z",
+      "skew-left", "skew-right",
+      "zoom-in", "zoom-out"
+    ]);
+
+    for (const button of [...root.querySelectorAll(".buildplate-wrap button[data-action]")]) {
+      if (button.closest(".studio-context")) continue;
+      const action = String(button.dataset.action || "");
+      if (buildplateOnlyActions.has(action)) button.remove();
+    }
+
+    if (contextMenu) {
+      contextMenu.style.position = "fixed";
+      contextMenu.style.zIndex = "9999";
+    }
+  };
+
+  PCC_BETA_STUDIO_CLASS.prototype.bindBetaContextMenu = function bindBetaContextMenu() {
+    const plate = this.shadowRoot?.querySelector(".buildplate");
+    if (!plate || plate.dataset.betaContextBound === "1") return;
+
+    plate.dataset.betaContextBound = "1";
+    plate.addEventListener("contextmenu", (event) => this.handleContextMenu(event), {capture:true});
+    plate.addEventListener("pointerdown", (event) => {
+      if (event.button === 2) this.handleContextMenu(event);
+    }, {capture:true});
+  };
+
 
   if (!customElements.get("printer-control-center-studio-card")) {
     customElements.define("printer-control-center-studio-card", PrinterControlCenterStudioCard);
@@ -6529,7 +6586,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta1 Studio Stabilization with real STL geometry display, right-click context menu, cleaned duplicate controls and profile-bank backed Dry-Run planning."
+      description: "v5 beta2 Studio Prototype Hotfix with guarded CustomElement methods, real STL geometry display, right-click context menu and deduplicated imports."
     });
   }
 })();

@@ -1,3 +1,24 @@
+## 5.0.0-beta2 - Studio Prototype Hotfix
+
+### English
+- Fixed the beta1 Studio startup failure where `cleanupBetaStudioUi` could be missing on the registered CustomElement prototype.
+- Guarded Studio render-wrapper helper calls and patched cleanup/context-menu helpers onto the currently registered Studio CustomElement prototype.
+- Kept the right-click Studio context menu mandatory and visible.
+- Added a global import file deduplication helper so duplicate upload/import selections are filtered in the gallery scope as well.
+- Continued frontend UTF-8/mojibake cleanup for German labels and action icons.
+- Real STL/geometry canvas rendering remains the Studio model path; preview images are not used as the Studio model.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Beta1-Startfehler im Studio behoben, bei dem `cleanupBetaStudioUi` auf dem registrierten CustomElement-Prototyp fehlen konnte.
+- Render-Wrapper-Hilfsaufrufe abgesichert und Cleanup-/Kontextmenü-Helfer zusätzlich auf den aktuell registrierten Studio-CustomElement-Prototyp gelegt.
+- Rechtsklick-Kontextmenü im Studio bleibt verbindlich und sichtbar.
+- Globale Import-Deduplizierung ergänzt, damit doppelte Datei-Auswahlen auch im Galerie-/Upload-Scope gefiltert werden.
+- UTF-8-/Mojibake-Bereinigung für deutsche Labels und Aktionssymbole fortgeführt.
+- Echtes STL-/Geometrie-Canvas bleibt der Studio-Modellpfad; Vorschaubilder werden nicht als Studio-Modell verwendet.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta1 - Studio Stabilization
 
 ### English

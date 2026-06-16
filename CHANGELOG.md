@@ -1,3 +1,12 @@
+## 4.0.8 - 2026-06-16
+
+- Fix UTF-8/mojibake handling in backend entities and frontend cards, including temperature units.
+- Keep temperature units as `°C` instead of corrupted `Â°C`.
+- Improve AMS fallback handling: a manually configured AMS 2 Pro is no longer overwritten by an empty live detection result.
+- Show configured AMS capacity when live AMS telemetry is not available yet.
+- Improve cloud-only/offline presentation for missing live telemetry, camera connection and temperature values.
+- Prepare a real GitHub Release newer than v4.0.7 so HACS can detect the current release.
+
 # Changelog
 
 ## [4.0.1] - 2026-06-14

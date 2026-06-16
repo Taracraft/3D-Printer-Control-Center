@@ -1,3 +1,12 @@
+## 4.0.8 - 2026-06-16
+
+- UTF-8-/Mojibake-Behandlung in Backend-Entitaeten und Frontend-Karten korrigiert, inklusive Temperatureinheiten.
+- Temperatureinheiten bleiben `°C` statt fehlerhaftem `Â°C`.
+- AMS-Fallback verbessert: Ein manuell konfiguriertes AMS 2 Pro wird nicht mehr durch eine leere Live-Erkennung ueberschrieben.
+- Konfigurierte AMS-Kapazitaet wird angezeigt, wenn noch keine Live-AMS-Telemetrie verfuegbar ist.
+- Cloud-only-/Offline-Darstellung fuer fehlende Live-Telemetrie, Kamera-Verbindung und Temperaturwerte verbessert.
+- Echter GitHub Release nach v4.0.7 vorbereitet, damit HACS die aktuelle Version erkennen kann.
+
 # Änderungsprotokoll
 
 ## [4.0.1] - 2026-06-14
@@ -9,102 +18,102 @@
 - Zeilenende in den Übersetzungsdateien normalisiert.
 - HACS-Parser-Kompatibilität für `manifest.json` wiederhergestellt.
 
-# Ã„nderungsprotokoll
+# Änderungsprotokoll
 
 ## [4.0.0] - 2026-06-14
 
 ### Schwerpunkt
 
-- VerÃ¶ffentlichung der eigenstÃ¤ndigen v4-Kamera- und ModellfÃ¤higkeitslogik.
-- Die Integration bleibt vollstÃ¤ndig standalone und benÃ¶tigt keine BambuLab-Home-Assistant-Integration als funktionale AbhÃ¤ngigkeit.
-- Andere Bambu-Integrationen werden nur als technische Referenz fÃ¼r Protokolle und Kameraansteuerung betrachtet.
-- Das Dashboard wurde fÃ¼r breitere Ansichten, kompaktere Diagnose und bessere Modellanzeige Ã¼berarbeitet.
+- Veröffentlichung der eigenständigen v4-Kamera- und Modellfähigkeitslogik.
+- Die Integration bleibt vollständig standalone und benötigt keine BambuLab-Home-Assistant-Integration als funktionale Abhängigkeit.
+- Andere Bambu-Integrationen werden nur als technische Referenz für Protokolle und Kameraansteuerung betrachtet.
+- Das Dashboard wurde für breitere Ansichten, kompaktere Diagnose und bessere Modellanzeige überarbeitet.
 
-### HinzugefÃ¼gt
+### Hinzugefügt
 
-#### EigenstÃ¤ndige Kamera-FÃ¤higkeitserkennung
+#### Eigenständige Kamera-Fähigkeitserkennung
 
-- Interne Kamera-FÃ¤higkeitsmatrix fÃ¼r unterstÃ¼tzte Bambu-Druckerfamilien ergÃ¤nzt.
-- EigenstÃ¤ndige Erkennung der Kameraart anhand des Druckermodells ergÃ¤nzt.
+- Interne Kamera-Fähigkeitsmatrix für unterstützte Bambu-Druckerfamilien ergänzt.
+- Eigenständige Erkennung der Kameraart anhand des Druckermodells ergänzt.
 - Kamera-Transport und Kamera-Port werden innerhalb der eigenen Integration bestimmt.
-- Diagnosewerte fÃ¼r Kamera-Transport, Kamera-Port und Kamera-VerfÃ¼gbarkeit ergÃ¤nzt.
+- Diagnosewerte für Kamera-Transport, Kamera-Port und Kamera-Verfügbarkeit ergänzt.
 - Trennung zwischen Chamber-Image-Kameras und RTSPS-Kameras umgesetzt.
-- Vorbereitung fÃ¼r kÃ¼nftige direkte RTSPS-Livekamera-Anbindung ergÃ¤nzt.
+- Vorbereitung für künftige direkte RTSPS-Livekamera-Anbindung ergänzt.
 - Kameralogik bewusst ohne Fallback auf externe Home-Assistant-Kamera-Entities umgesetzt.
 
-#### Chamber-Image-KameraunterstÃ¼tzung
+#### Chamber-Image-Kameraunterstützung
 
-- UnterstÃ¼tzungspfad fÃ¼r A1-, A1-mini-, P1P- und P1S-Ã¤hnliche Chamber-Image-Kameras ergÃ¤nzt.
+- Unterstützungspfad für A1-, A1-mini-, P1P- und P1S-ähnliche Chamber-Image-Kameras ergänzt.
 - TCP-Port `6000` als Chamber-Image-Kamera-Port klassifiziert.
-- Dashboard-Label `Chamber Image / TCP 6000` ergÃ¤nzt.
-- Kamera-Diagnose fÃ¼r LAN-basierte Chamber-Image-Kameras verbessert.
-- Native Kamera-Statuslogik fÃ¼r lokale LAN-Nutzung vorbereitet und vereinheitlicht.
+- Dashboard-Label `Chamber Image / TCP 6000` ergänzt.
+- Kamera-Diagnose für LAN-basierte Chamber-Image-Kameras verbessert.
+- Native Kamera-Statuslogik für lokale LAN-Nutzung vorbereitet und vereinheitlicht.
 
-#### RTSPS-KameraunterstÃ¼tzung
+#### RTSPS-Kameraunterstützung
 
-- RTSPS-Kamerafamilie fÃ¼r X1-, X1-Carbon-, X1E-, H2-, P2- und X2-Klasse vorbereitet.
+- RTSPS-Kamerafamilie für X1-, X1-Carbon-, X1E-, H2-, P2- und X2-Klasse vorbereitet.
 - TCP-Port `322` als RTSPS-Kamera-Port klassifiziert.
-- Dashboard-Label `RTSPS / TCP 322` ergÃ¤nzt.
-- Modellbasierte Auswahl der RTSPS-Kameraart ergÃ¤nzt.
-- Grundlage fÃ¼r eigenstÃ¤ndige RTSPS-Implementierung ohne externe Entity-AbhÃ¤ngigkeit gelegt.
+- Dashboard-Label `RTSPS / TCP 322` ergänzt.
+- Modellbasierte Auswahl der RTSPS-Kameraart ergänzt.
+- Grundlage für eigenständige RTSPS-Implementierung ohne externe Entity-Abhängigkeit gelegt.
 
 #### Druckermodell und Anzeigename
 
-- Automatische Druckermodellerkennung aus Bambu-Telemetrie ergÃ¤nzt.
+- Automatische Druckermodellerkennung aus Bambu-Telemetrie ergänzt.
 - `product_name` aus den Bambu-Modulinformationen wird bevorzugt verwendet.
-- Seriennummern werden nicht mehr als Druckermodell angezeigt, wenn ein besserer Name verfÃ¼gbar ist.
-- Fallback-Erkennung Ã¼ber Entity-Prefix und konfigurierten Druckernamen ergÃ¤nzt.
+- Seriennummern werden nicht mehr als Druckermodell angezeigt, wenn ein besserer Name verfügbar ist.
+- Fallback-Erkennung über Entity-Prefix und konfigurierten Druckernamen ergänzt.
 - Der im Einrichtungsassistenten eingegebene Name kann als sichtbarer Dashboard-Name dienen.
-- Hinweis im Einrichtungsassistenten ergÃ¤nzt, dass der eingegebene Druckername im Dashboard angezeigt wird, wenn kein Modell automatisch erkannt wird.
-- Deutsche und englische Texte fÃ¼r den Anzeigenamen-Hinweis ergÃ¤nzt.
+- Hinweis im Einrichtungsassistenten ergänzt, dass der eingegebene Druckername im Dashboard angezeigt wird, wenn kein Modell automatisch erkannt wird.
+- Deutsche und englische Texte für den Anzeigenamen-Hinweis ergänzt.
 
 #### Dashboard und Diagnose
 
-- Kompakte Diagnose-Badges fÃ¼r Drucker und Kamera ergÃ¤nzt.
+- Kompakte Diagnose-Badges für Drucker und Kamera ergänzt.
 - Lange technische Diagnoseanzeige reduziert.
 - Lesbare Modellanzeige wie `Bambu Lab A1` statt Seriennummer umgesetzt.
 - Kameraanzeige auf einen kompakten Transporthinweis reduziert.
 - Footer- und Diagnosebereich optisch kompakter gestaltet.
-- Frontend-Resource-Versionierung fÃ¼r den Release aktualisiert.
+- Frontend-Resource-Versionierung für den Release aktualisiert.
 - Bestehendes automatisch erzeugtes Dashboard auf neue Resource-Version migrierbar gemacht.
 
 #### Breiteres Dashboard-Layout
 
-- Sections-basiertes Dashboard-Layout ergÃ¤nzt.
-- Druckerkarte erhÃ¤lt mehr horizontale Breite.
+- Sections-basiertes Dashboard-Layout ergänzt.
+- Druckerkarte erhält mehr horizontale Breite.
 - Warteschlangenkarte wird daneben eingeordnet.
-- Container-Query-basiertes Frontend-Layout ergÃ¤nzt.
-- Breite Ansichten nutzen den verfÃ¼gbaren Platz besser.
+- Container-Query-basiertes Frontend-Layout ergänzt.
+- Breite Ansichten nutzen den verfügbaren Platz besser.
 - Schmale Ansichten bleiben responsiv und stapeln die Inhalte weiterhin sauber.
 - Unterer Informationsbereich wurde reduziert, damit das Dashboard weniger langgezogen wirkt.
 
-#### Modell- und AMS-FÃ¤higkeiten
+#### Modell- und AMS-Fähigkeiten
 
-- Neue ModellfÃ¤higkeitslogik ergÃ¤nzt.
-- Neue Datei fÃ¼r Capability-Definitionen ergÃ¤nzt.
+- Neue Modellfähigkeitslogik ergänzt.
+- Neue Datei für Capability-Definitionen ergänzt.
 - BMCU-370-/BCMU-370-Behandlung verbessert.
-- Manuell gewÃ¤hlte AMS-/BMCU-Konfiguration bleibt erhalten.
-- Automatische Erkennung Ã¼berschreibt eine manuelle BMCU-370-Auswahl nicht mehr ungewollt.
+- Manuell gewählte AMS-/BMCU-Konfiguration bleibt erhalten.
+- Automatische Erkennung überschreibt eine manuelle BMCU-370-Auswahl nicht mehr ungewollt.
 - AMS-Anzeige im Dashboard lesbarer gemacht.
-- Technische Kamera- und ModellfÃ¤higkeitsnotizen fÃ¼r die v4-Arbeit vorbereitet.
+- Technische Kamera- und Modellfähigkeitsnotizen für die v4-Arbeit vorbereitet.
 
-### GeÃ¤ndert
+### Geändert
 
 #### Architektur
 
-- Kamera- und ModellfÃ¤higkeitserkennung in die eigene Integration verlagert.
-- Keine funktionale AbhÃ¤ngigkeit von der BambuLab-Home-Assistant-Integration.
-- Externe Bambu-Integrationen dienen nur noch als Referenzquelle fÃ¼r Protokollverhalten.
-- Backend-Diagnose und Frontend-Anzeige stÃ¤rker vereinheitlicht.
+- Kamera- und Modellfähigkeitserkennung in die eigene Integration verlagert.
+- Keine funktionale Abhängigkeit von der BambuLab-Home-Assistant-Integration.
+- Externe Bambu-Integrationen dienen nur noch als Referenzquelle für Protokollverhalten.
+- Backend-Diagnose und Frontend-Anzeige stärker vereinheitlicht.
 - Dashboard-Erzeugung auf breiteres Standardlayout umgestellt.
 
 #### Frontend
 
 - Frontend-Version auf `4.0.0` aktualisiert.
-- VollstÃ¤ndige Druckerkarte fÃ¼r breite Ansichten Ã¼berarbeitet.
+- Vollständige Druckerkarte für breite Ansichten überarbeitet.
 - Breitenverteilung zwischen Druckerkarte und Warteschlange verbessert.
 - Diagnosebereich gestrafft.
-- AbstÃ¤nde im unteren Kartenbereich reduziert.
+- Abstände im unteren Kartenbereich reduziert.
 - Modellname und Kameraart werden kompakter angezeigt.
 - Cache-Busting der Frontend-Ressource aktualisiert.
 
@@ -114,7 +123,7 @@
 - Integrationskonstante auf `4.0.0` aktualisiert.
 - Druckermodellerkennung verbessert.
 - Kamerastatus-Ausgabe verbessert.
-- Sensorwerte fÃ¼r Kamera-Transport und Kamera-Port erweitert.
+- Sensorwerte für Kamera-Transport und Kamera-Port erweitert.
 - Dashboard-Standarderzeugung angepasst.
 - Modell- und Capability-Erkennung erweitert.
 
@@ -125,8 +134,8 @@
 - Behoben, dass die Seriennummer als Druckermodell angezeigt wurde.
 - Behoben, dass beim Bambu A1 nicht automatisch `Bambu Lab A1` angezeigt wurde.
 - Behoben, dass der echte Bambu-`product_name` nicht bevorzugt im Dashboard landete.
-- Fallback-Reihenfolge fÃ¼r Modellname, Anzeigename und Seriennummer korrigiert.
-- Setup-Hinweis fÃ¼r den sichtbaren Dashboard-Namen ergÃ¤nzt.
+- Fallback-Reihenfolge für Modellname, Anzeigename und Seriennummer korrigiert.
+- Setup-Hinweis für den sichtbaren Dashboard-Namen ergänzt.
 
 #### Kamera-Diagnose
 
@@ -139,28 +148,28 @@
 #### Dashboard-Layout
 
 - Zu schmal und vertikal gestreckt wirkende Dashboardansicht verbessert.
-- Altes Masonry-Layout fÃ¼r das Standarddashboard durch breiteres Sections-Layout ersetzt.
+- Altes Masonry-Layout für das Standarddashboard durch breiteres Sections-Layout ersetzt.
 - Druckerkarte nutzt in breiten Ansichten mehr Platz.
 - Bestehendes Dashboard-Storage des Testsystems migrierbar gemacht.
 - Unterer Informationsbereich kompakter gesetzt.
 
-#### Release-QualitÃ¤t
+#### Release-Qualität
 
 - Python-Syntaxproblem aus der rc2-Vorbereitung behoben.
 - Frontend-Resource-Cache-Version korrigiert.
 - Leere-Zeile-am-Dateiende-Warnungen bereinigt.
-- ZIP-StrukturprÃ¼fung fÃ¼r das finale Installationspaket durchgefÃ¼hrt.
+- ZIP-Strukturprüfung für das finale Installationspaket durchgeführt.
 - Finales Installationspaket `pcc-4.0.0-ha-install.zip` vorbereitet.
 
 ### Hinweise
 
-- Version 4.0.0 ist der erste Release mit eigenstÃ¤ndiger Kamera- und ModellfÃ¤higkeitslogik.
-- Die Integration bleibt weiterhin eine eigenstÃ¤ndige Home-Assistant-Custom-Integration.
-- FÃ¼r X-/H-/P2-Klassen ist die RTSPS-Zuordnung vorbereitet; die tatsÃ¤chliche Livekamera-Umsetzung bleibt modell- und firmwareabhÃ¤ngig.
-- FÃ¼r A-/P1-Klassen ist die Chamber-Image-Kameraklassifizierung Ã¼ber TCP 6000 vorbereitet.
+- Version 4.0.0 ist der erste Release mit eigenständiger Kamera- und Modellfähigkeitslogik.
+- Die Integration bleibt weiterhin eine eigenständige Home-Assistant-Custom-Integration.
+- Für X-/H-/P2-Klassen ist die RTSPS-Zuordnung vorbereitet; die tatsächliche Livekamera-Umsetzung bleibt modell- und firmwareabhängig.
+- Für A-/P1-Klassen ist die Chamber-Image-Kameraklassifizierung über TCP 6000 vorbereitet.
 - Die stabile v3-Historie bleibt unterhalb dieses Eintrags erhalten.
 
-# Ãƒâ€žnderungsprotokoll
+# Ãƒ„nderungsprotokoll
 
 ## [3.0.0] - 2026-06-05
 
@@ -171,9 +180,9 @@
 - Laufzeitverhalten gegenÃƒÂ¼ber der bestÃƒÂ¤tigten Basis 2.0.3 unverÃƒÂ¤ndert gelassen
 - vollstÃƒÂ¤ndige ÃƒÂ¶ffentliche Entwicklungshistorie von Alpha bis zur stabilen Version erhalten
 
-Alle wesentlichen Ãƒâ€žnderungen am **3D-Printer Control Center** werden in dieser Datei dokumentiert.
+Alle wesentlichen Ãƒ„nderungen am **3D-Printer Control Center** werden in dieser Datei dokumentiert.
 
-Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich ÃƒÂ¼ber zahlreiche Alpha- und Release-Candidate-StÃƒÂ¤nde bis zur ersten stabilen ÃƒÂ¶ffentlichen Version. Die frÃƒÂ¼he Vorab-Historie wurde aus Entwicklungsnotizen, erhaltenen Testartefakten und bestÃƒÂ¤tigten Meilensteinen rekonstruiert. Wenn eine exakte Ãƒâ€žnderung eines einzelnen internen Zwischenstands nicht sicher belegbar war, wurden eng zusammengehÃƒÂ¶rige Iterationen bewusst zusammengefasst, statt Details zu erfinden.
+Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich ÃƒÂ¼ber zahlreiche Alpha- und Release-Candidate-StÃƒÂ¤nde bis zur ersten stabilen ÃƒÂ¶ffentlichen Version. Die frÃƒÂ¼he Vorab-Historie wurde aus Entwicklungsnotizen, erhaltenen Testartefakten und bestÃƒÂ¤tigten Meilensteinen rekonstruiert. Wenn eine exakte Ãƒ„nderung eines einzelnen internen Zwischenstands nicht sicher belegbar war, wurden eng zusammengehÃƒÂ¶rige Iterationen bewusst zusammengefasst, statt Details zu erfinden.
 
 ## [2.0.3] - 2026-06-05
 
@@ -234,7 +243,7 @@ Das Projekt begann als interner Home-Assistant-Prototyp und entwickelte sich Ã�
 
 ## [2.0.0] - 2026-06-05
 
-### Inkompatible Ãƒâ€žnderungen
+### Inkompatible Ãƒ„nderungen
 
 - Interne Home-Assistant-Domain von `taracraft_3d_printer` auf `printer_control_center` umbenannt.
 - Integrationsordner auf `custom_components/printer_control_center` umgestellt.

@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 4.0.7 */
+/* 3D-Printer Control Center - HACS Release 4.0.8 */
 (() => {
-  const VERSION = "4.0.7";
+  const VERSION = "4.0.8";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4724,4 +4724,105 @@
   }
   window.__printerControlCenterCards={version:VERSION,registeredCards:picker.map(([type,name])=>({type,name}))};
   console.info(`3D-Printer Control Center ${VERSION}: ${picker.length} cards registered`);
+})();
+
+
+;(() => {
+  if (window.__pccV408MojibakeSanitizer) return;
+  window.__pccV408MojibakeSanitizer = true;
+
+  const replacements = [
+    ["\u00c2\u00b0C", "\u00b0C"],
+    ["\u00c2\u00b0", "\u00b0"],
+    ["\u00c3\u0084", "\u00c4"],
+    ["\u00c3\u201e", "\u00c4"],
+    ["\u00c3\u0096", "\u00d6"],
+    ["\u00c3\u2013", "\u00d6"],
+    ["\u00c3\u009c", "\u00dc"],
+    ["\u00c3\u0152", "\u00dc"],
+    ["\u00c3\u00a4", "\u00e4"],
+    ["\u00c3\u00b6", "\u00f6"],
+    ["\u00c3\u00bc", "\u00fc"],
+    ["\u00c3\u009f", "\u00df"],
+    ["\u00c3\u0178", "\u00df"],
+    ["\u00e2\u0080\u0093", "\u2013"],
+    ["\u00e2\u20ac\u0153", "\u2013"],
+    ["\u00e2\u0080\u0094", "\u2014"],
+    ["\u00e2\u20ac\u009d", "\u2014"],
+    ["\u00e2\u0080\u00a6", "\u2026"],
+    ["\u00e2\u20ac\u00a6", "\u2026"],
+    ["\u00e2\u0080\u009e", "\u201e"],
+    ["\u00e2\u20ac\u017e", "\u201e"],
+    ["\u00e2\u0080\u009c", "\u201c"],
+    ["\u00e2\u0080\u009d", "\u201d"],
+    ["\u00e2\u0080\u0099", "\u2019"],
+    ["\u00e2\u0080\u0098", "\u2018"],
+    ["\u00e2\u0080\u00a2", "\u2022"],
+    ["\u00e2\u0086\u0092", "\u2192"],
+    ["\u00e2\u009c\u0093", "\u2713"],
+    ["\u00e2\u009c\u0094", "\u2714"],
+    ["\u00e2\u009c\u0095", "\u2715"],
+    ["\u00e2\u009c\u0096", "\u2716"]
+  ];
+
+  const fixText = (value) => {
+    let text = String(value ?? "");
+    for (const [bad, good] of replacements) {
+      if (text.includes(bad)) text = text.split(bad).join(good);
+    }
+    return text;
+  };
+
+  const sanitizeNode = (root, depth = 0) => {
+    if (!root || depth > 3) return;
+    try {
+      if (root.nodeType === Node.TEXT_NODE) {
+        const fixed = fixText(root.nodeValue);
+        if (fixed !== root.nodeValue) root.nodeValue = fixed;
+        return;
+      }
+
+      if (root.shadowRoot) sanitizeNode(root.shadowRoot, depth + 1);
+
+      if (root.querySelectorAll) {
+        for (const el of root.querySelectorAll("*")) {
+          if (el.shadowRoot) sanitizeNode(el.shadowRoot, depth + 1);
+          for (const attr of ["title", "aria-label", "placeholder"]) {
+            if (el.hasAttribute && el.hasAttribute(attr)) {
+              const oldValue = el.getAttribute(attr);
+              const newValue = fixText(oldValue);
+              if (newValue !== oldValue) el.setAttribute(attr, newValue);
+            }
+          }
+        }
+
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        for (const node of nodes) sanitizeNode(node, depth + 1);
+      }
+    } catch (err) {
+      console.debug("PCC v4.0.8 UTF-8 sanitizer skipped node", err);
+    }
+  };
+
+  const run = () => {
+    if (document.body) sanitizeNode(document.body);
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run, { once: true });
+  } else {
+    run();
+  }
+
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes || []) sanitizeNode(node);
+    }
+  });
+
+  if (document.body) {
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
 })();

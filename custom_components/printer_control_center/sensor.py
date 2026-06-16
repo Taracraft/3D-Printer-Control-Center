@@ -70,6 +70,115 @@ def _ams_display_label(coordinator: PrinterControlCenterCoordinator) -> str:
     return _ams_label(coordinator, detected)
 
 
+
+
+def _pcc_v408_configured_ams_type(coordinator):
+    """Return configured AMS type without depending on live telemetry."""
+    try:
+        existing = globals().get("_configured_ams_type")
+        if existing:
+            value = existing(coordinator)
+            if value:
+                return value
+    except Exception:
+        pass
+
+    entry = getattr(coordinator, "config_entry", None)
+    for source_name in ("options", "data"):
+        source = getattr(entry, source_name, {}) or {}
+        value = source.get("ams_type") or source.get("configured_ams_type")
+        if value:
+            return value
+    return ""
+
+
+def _pcc_v408_ams_label(coordinator, value):
+    """Return a readable AMS label with project helper fallback."""
+    try:
+        existing = globals().get("_ams_label")
+        if existing:
+            return existing(coordinator, value)
+    except Exception:
+        pass
+
+    raw = str(value or "").strip()
+    normalized = raw.lower()
+    labels = {
+        "ams_2_pro": "AMS 2 Pro",
+        "ams2pro": "AMS 2 Pro",
+        "ams_1_lite": "AMS 1 Lite",
+        "ams_lite": "AMS 1 Lite",
+        "bcmu_370": "AMS / BMCU-370",
+        "bmcu_370": "AMS / BMCU-370",
+        "none": "Kein AMS",
+        "unknown": "Unbekannt",
+        "": "Unbekannt",
+    }
+    return labels.get(normalized, raw or "Unbekannt")
+
+
+def _pcc_v408_configured_ams_slot_count(coordinator):
+    """Return configured AMS slot capacity when live AMS telemetry is missing."""
+    configured = str(_pcc_v408_configured_ams_type(coordinator) or "").strip().lower()
+    if configured in {
+        "ams",
+        "ams_1",
+        "ams_lite",
+        "ams_1_lite",
+        "ams_2_pro",
+        "ams2pro",
+        "bcmu_370",
+        "bmcu_370",
+    }:
+        return 4
+    return 0
+
+
+def _pcc_v408_ams_slot_count(coordinator):
+    """Prefer live loaded slots, then fall back to configured AMS capacity."""
+    try:
+        slots = coordinator.snapshot.ams_slots()
+        live_count = sum(
+            1
+            for slot in slots
+            if normalize_tray(slot).get("normalized_loaded")
+        )
+    except Exception:
+        live_count = 0
+
+    if live_count:
+        return live_count
+
+    return _pcc_v408_configured_ams_slot_count(coordinator)
+
+
+def _pcc_v408_detected_ams_label(coordinator):
+    """Do not let empty live detection override a manual AMS selection."""
+    snapshot = getattr(coordinator, "snapshot", None)
+    detected = str(getattr(snapshot, "detected_ams_type", "") or "").strip()
+    normalized = detected.lower()
+
+    if detected and normalized not in {
+        "none",
+        "unknown",
+        "keine",
+        "kein ams",
+        "no ams",
+    }:
+        return _pcc_v408_ams_label(coordinator, detected)
+
+    configured = _pcc_v408_configured_ams_type(coordinator)
+    if configured and str(configured).strip().lower() not in {
+        "auto",
+        "none",
+        "unknown",
+        "",
+    }:
+        return _pcc_v408_ams_label(coordinator, configured)
+
+    return _pcc_v408_ams_label(coordinator, detected or "unknown")
+
+
 @dataclass(frozen=True)
 class SensorDescription:
     key: str
@@ -95,10 +204,10 @@ DESCRIPTIONS = [
     SensorDescription("camera_port", "Camera port", lambda c: safe_state(c.camera_status().get("camera_port", ""), default="none")),
     SensorDescription("camera_last_error", "Camera last error", lambda c: safe_state(c.camera_status().get("camera_last_error", ""), default="none", limit=160)),
     SensorDescription("active_ams_slot", "Active AMS slot", lambda c: safe_state((c.snapshot.value("ams", default={}) or {}).get("tray_now", "unknown") if isinstance(c.snapshot.value("ams", default={}), dict) else "unknown")),
-    SensorDescription("ams_slot_count", "AMS slot count", lambda c: sum(1 for slot in c.snapshot.ams_slots() if normalize_tray(slot).get("normalized_loaded"))),
+    SensorDescription("ams_slot_count", "AMS slot count", lambda c: _pcc_v408_ams_slot_count(c)),
     SensorDescription("connection_mode", "Active connection mode", lambda c: safe_state(c.snapshot.transport)),
     SensorDescription("ams_display_name", "AMS display name", lambda c: _ams_display_label(c)),
-    SensorDescription("detected_ams_type", "Detected AMS type", lambda c: _ams_label(c, c.snapshot.detected_ams_type)),
+    SensorDescription("detected_ams_type", "Detected AMS type", lambda c: _pcc_v408_detected_ams_label(c)),
     SensorDescription("ams_detection_confidence", "AMS detection confidence", lambda c: safe_state(c.snapshot.detection_confidence)),
     SensorDescription("firmware_status", "Firmware status", lambda c: c.snapshot.firmware_state()),
     SensorDescription("serial_number", "Serial number", lambda c: c.serial),

@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 4.0.14 */
+/* 3D-Printer Control Center - HACS Release 4.0.15 */
 (() => {
-  const VERSION = "4.0.14";
+  const VERSION = "4.0.15";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4809,7 +4809,7 @@
         for (const node of nodes) sanitizeNode(node, depth + 1);
       }
     } catch (err) {
-      console.debug("PCC v4.0.14 UTF-8 sanitizer skipped node", err);
+      console.debug("PCC v4.0.15 UTF-8 sanitizer skipped node", err);
     }
   };
 
@@ -5429,6 +5429,263 @@
     scanAndPatch();
     observer.observe(document.body, { childList: true, subtree: true });
     setInterval(scanAndPatch, 2500);
+  };
+
+  if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", start, { once: true });
+  } else {
+    start();
+  }
+})();
+
+
+;(() => {
+  if (window.__pccV415HardInlineCameraPatch) return;
+  window.__pccV415HardInlineCameraPatch = true;
+
+  const CAMERA_SUFFIXES = ["_native_live_camera", "_live_camera", "_camera"];
+
+  function deepElements(root = document) {
+    const out = [];
+    const seen = new Set();
+
+    function visit(node) {
+      if (!node || seen.has(node)) return;
+      seen.add(node);
+
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        out.push(node);
+        if (node.shadowRoot) visit(node.shadowRoot);
+      }
+
+      const children = node.children ? Array.from(node.children) : [];
+      for (const child of children) visit(child);
+
+      if (node.querySelectorAll) {
+        for (const el of node.querySelectorAll("*")) {
+          if (!seen.has(el)) visit(el);
+        }
+      }
+    }
+
+    visit(root);
+    return out;
+  }
+
+  function resolveCameraEntity(hass) {
+    if (!hass || !hass.states) return null;
+
+    const preferred = Object.keys(hass.states).find((entityId) =>
+      entityId.startsWith("camera.") && entityId.endsWith("_native_live_camera")
+    );
+    if (preferred) return preferred;
+
+    const suffixMatch = Object.keys(hass.states).find((entityId) =>
+      entityId.startsWith("camera.") && CAMERA_SUFFIXES.some((suffix) => entityId.endsWith(suffix))
+    );
+    if (suffixMatch) return suffixMatch;
+
+    return Object.keys(hass.states).find((entityId) => {
+      if (!entityId.startsWith("camera.")) return false;
+      const attrs = hass.states[entityId].attributes || {};
+      const brand = String(attrs.brand || "").toLowerCase();
+      const name = String(attrs.friendly_name || "").toLowerCase();
+      return brand.includes("3d-printer control center")
+        || name.includes("bambu")
+        || name.includes("live camera")
+        || name.includes("live-kamera");
+    }) || null;
+  }
+
+  function hideRightCameraCards() {
+    for (const el of deepElements(document)) {
+      const tag = String(el.localName || "").toLowerCase();
+      if (tag === "printer-control-center-camera-card") {
+        el.style.display = "none";
+        el.hidden = true;
+        if (el.parentElement) {
+          el.parentElement.style.display = "none";
+          el.parentElement.hidden = true;
+        }
+      }
+    }
+  }
+
+  function getHassFromElement(el) {
+    let current = el;
+    while (current) {
+      if (current.hass) return current.hass;
+      if (current._hass) return current._hass;
+      current = current.parentElement || current.getRootNode()?.host || null;
+    }
+    return window.hassConnection?.hass || null;
+  }
+
+  function isPrinterCardElement(el) {
+    if (!el || !el.shadowRoot) return false;
+    const text = String(el.shadowRoot.textContent || "");
+    return text.includes("3D-Printer Control Center")
+      && (
+        text.includes("Kein aktiver Druckauftrag")
+        || text.includes("No active print job")
+        || text.includes("Düse")
+        || text.includes("Nozzle")
+      )
+      && text.includes("AMS");
+  }
+
+  function findLabelElement(root) {
+    for (const el of deepElements(root)) {
+      const text = String(el.textContent || "").trim();
+      if (
+        text === "Native Live-Kamera" ||
+        text === "Native Live Camera" ||
+        text.includes("Native Live-Kamera") ||
+        text.includes("Native Live Camera")
+      ) {
+        return el;
+      }
+    }
+    return null;
+  }
+
+  function findCameraPanel(root) {
+    const label = findLabelElement(root);
+    if (label) {
+      let current = label;
+      while (current && current !== root) {
+        const rect = current.getBoundingClientRect ? current.getBoundingClientRect() : null;
+        if (rect && rect.width >= 220 && rect.height >= 220 && rect.width <= 420 && rect.height <= 460) {
+          return current;
+        }
+        current = current.parentElement;
+      }
+    }
+
+    let best = null;
+    let bestScore = -1;
+
+    for (const el of deepElements(root)) {
+      if (!(el instanceof HTMLElement)) continue;
+      const rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+      if (!rect) continue;
+
+      const text = String(el.textContent || "");
+      if (rect.width < 220 || rect.height < 220) continue;
+      if (rect.width > 430 || rect.height > 500) continue;
+      if (text.includes("Düse") || text.includes("Bett") || text.includes("Firmware") || text.includes("WLAN")) continue;
+      if (text.includes("AMS 2 Pro") || text.includes("Slot 1") || text.includes("PETG")) continue;
+
+      const score = rect.width * rect.height;
+      if (score > bestScore) {
+        best = el;
+        bestScore = score;
+      }
+    }
+
+    return best;
+  }
+
+  async function createLiveCard(hass, entity) {
+    const config = {
+      type: "picture-entity",
+      entity,
+      camera_image: entity,
+      camera_view: "live",
+      show_name: false,
+      show_state: false,
+    };
+
+    if (window.loadCardHelpers) {
+      const helpers = await window.loadCardHelpers();
+      return helpers.createCardElement(config);
+    }
+
+    if (customElements.get("hui-picture-entity-card")) {
+      const card = document.createElement("hui-picture-entity-card");
+      card.setConfig(config);
+      return card;
+    }
+
+    throw new Error("picture-entity helper not available");
+  }
+
+  async function forceInlineCamera(cardEl) {
+    if (!isPrinterCardElement(cardEl)) return;
+
+    const root = cardEl.shadowRoot;
+    const hass = getHassFromElement(cardEl);
+    if (!root || !hass) return;
+
+    const entity = resolveCameraEntity(hass);
+    if (!entity) return;
+
+    const panel = findCameraPanel(root);
+    if (!panel) return;
+
+    if (panel.dataset.pccV415InlineEntity === entity && panel.querySelector("[data-pcc-v415-camera-host]")) {
+      const live = panel.querySelector("[data-pcc-v415-camera-host] > *");
+      if (live) live.hass = hass;
+      return;
+    }
+
+    panel.dataset.pccV415InlineEntity = entity;
+    panel.innerHTML = "";
+    panel.style.position = "relative";
+    panel.style.overflow = "hidden";
+    panel.style.padding = "0";
+    panel.style.minHeight = "300px";
+    panel.style.background = "transparent";
+
+    const host = document.createElement("div");
+    host.setAttribute("data-pcc-v415-camera-host", "1");
+    host.style.width = "100%";
+    host.style.height = "100%";
+    host.style.minHeight = "300px";
+    host.style.display = "block";
+
+    panel.appendChild(host);
+
+    try {
+      const liveCard = await createLiveCard(hass, entity);
+      liveCard.hass = hass;
+      liveCard.style.width = "100%";
+      liveCard.style.height = "100%";
+      host.appendChild(liveCard);
+    } catch (err) {
+      console.error("PCC v4.0.15 inline camera failed", err);
+      host.innerHTML = `
+        <div style="
+          min-height:300px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          color:var(--primary-text-color);
+          opacity:.75;
+          padding:16px;
+          text-align:center;
+        ">
+          Livekamera konnte links nicht geladen werden.
+        </div>
+      `;
+    }
+  }
+
+  function runPatch() {
+    hideRightCameraCards();
+
+    for (const el of deepElements(document)) {
+      if (el && el.shadowRoot) {
+        forceInlineCamera(el).catch((err) => console.error("PCC v4.0.15 scan failed", err));
+      }
+    }
+  }
+
+  const start = () => {
+    runPatch();
+    const observer = new MutationObserver(() => runPatch());
+    observer.observe(document.body, { childList: true, subtree: true });
+    setInterval(runPatch, 1500);
   };
 
   if (document.readyState === "loading") {

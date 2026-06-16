@@ -1,3 +1,10 @@
+## 4.0.15 - 2026-06-16
+
+- Inline-Livekamera in der Haupt-Druckerkarte hart korrigiert.
+- Home-Assistant-ShadowRoots werden rekursiv durchsucht, damit die Druckerkarte innerhalb von Lovelace zuverlässig gefunden wird.
+- Separate rechte Kamera-Karte wird entfernt/ausgeblendet und das linke Kamera-Feld der Druckerkarte durch die funktionierende Home-Assistant-Livekamera ersetzt.
+- Dynamische Kameraauflösung über `camera.*_native_live_camera` bleibt erhalten.
+
 ## 4.0.14 - 2026-06-16
 
 - Zusätzliche separate Livekamera-Karte aus dem verwalteten 3D-Druck-Dashboard entfernt.

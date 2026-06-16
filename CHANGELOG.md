@@ -1,3 +1,10 @@
+## 4.0.15 - 2026-06-16
+
+- Hard-fix inline live camera replacement in the main printer card.
+- Recursively scans Home Assistant shadow roots so the printer card can be patched inside Lovelace.
+- Removes/hides the separate right-side camera card and replaces the left printer-card camera panel with the working Home Assistant live camera.
+- Keeps dynamic camera resolution through `camera.*_native_live_camera`.
+
 ## 4.0.14 - 2026-06-16
 
 - Remove the extra standalone live camera card from the managed 3D print dashboard.

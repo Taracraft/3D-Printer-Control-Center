@@ -1,3 +1,10 @@
+## 4.0.16 - 2026-06-16
+
+- Stabilize the inline live camera renderer in the main printer card.
+- Remove the older v4.0.13, v4.0.14 and v4.0.15 runtime camera patch blocks so they no longer compete with each other.
+- Create the Home Assistant live camera card only once and update its `hass` reference instead of recreating the stream repeatedly.
+- Prevent MutationObserver refreshes inside the inline camera host from restarting the stream.
+
 ## 4.0.15 - 2026-06-16
 
 - Hard-fix inline live camera replacement in the main printer card.

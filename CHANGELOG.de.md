@@ -1,3 +1,10 @@
+## 4.0.16 - 2026-06-16
+
+- Inline-Livekamera-Renderer in der Haupt-Druckerkarte stabilisiert.
+- Alte Runtime-Kamerapatches aus v4.0.13, v4.0.14 und v4.0.15 entfernt, damit sie nicht mehr gegeneinander arbeiten.
+- Home-Assistant-Livekamera-Karte wird nur einmal erstellt und danach nur noch mit neuer `hass`-Referenz aktualisiert.
+- MutationObserver-Updates innerhalb des Inline-Kamera-Hosts lösen keinen Stream-Neuaufbau mehr aus.
+
 ## 4.0.15 - 2026-06-16
 
 - Inline-Livekamera in der Haupt-Druckerkarte hart korrigiert.

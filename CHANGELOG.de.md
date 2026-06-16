@@ -1,3 +1,24 @@
+## 5.0.0-alpha23 - Studio Transform Engine
+
+### English
+- Added a larger Studio Transform Engine step after the alpha22 Beta Foundation handoff.
+- Fixed cursor and text-selection jumps in transform inputs by avoiding full Studio card renders on every keypress and by suppressing full hass-update renders while transform fields are focused.
+- Added live DOM-based model preview updates for transform input changes.
+- Added working viewport/model zoom controls, quick rotation, scale controls, mirror X/Y/Z and skew controls.
+- Added skew X/Y transform fields and made stretch/scale/rotation/mirroring visually affect the Studio model preview.
+- Kept persistent Studio job transform storage, Dry-Run planning and Health checks active.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Groesserer Studio-Transform-Engine-Schritt nach dem alpha22 Beta-Foundation-Handoff.
+- Cursor- und Markierungs-Spruenge in Transform-Eingaben behoben, indem beim Tippen und bei laufenden hass-Updates kein kompletter Studio-Render mehr ausgeloest wird.
+- Live-Modellvorschau wird bei Transform-Eingaben direkt im DOM aktualisiert.
+- Zoom, Schnellrotation, Skalierung, Spiegeln X/Y/Z und Zerren wurden als Bedienaktionen ergaenzt.
+- Neue Zerr-X-/Zerr-Y-Felder; Strecken, Skalieren, Rotation und Spiegelung wirken sichtbar auf die Studio-Modellvorschau.
+- Persistente Studio-Job-Transformdaten, Dry-Run-Planung und Health bleiben aktiv.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-alpha22 - Beta Foundation Gallery-to-Studio Workflow
 
 ### English

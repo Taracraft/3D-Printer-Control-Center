@@ -13,7 +13,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
 
-PLAN_VERSION = "5.0.0-alpha22"
+PLAN_VERSION = "5.0.0-alpha23"
 
 
 def _utcnow() -> str:

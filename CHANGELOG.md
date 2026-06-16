@@ -1,3 +1,11 @@
+## 4.0.10 - 2026-06-16
+
+- Align the native RTSPS camera entity with the working BambuLab Home Assistant integration behavior.
+- Expose `CameraEntityFeature.STREAM` so Home Assistant treats the X1/X1C RTSPS camera as a stream-capable camera.
+- Use the Home Assistant stream pipeline for RTSPS stills and live view.
+- Build the stream source from `rtsps://bblp:<access_code>@<host>:322/streaming/live/1` with robust host and access-code fallback.
+- Add stream-source readiness diagnostics to the camera entity attributes.
+
 ## 4.0.9 - 2026-06-16
 
 - Fix remaining gallery button mojibake for the `Neuer Ordner` folder action.

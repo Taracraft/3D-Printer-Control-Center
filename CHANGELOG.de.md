@@ -1,3 +1,11 @@
+## 4.0.10 - 2026-06-16
+
+- Native RTSPS-Kamera an das Verhalten der funktionierenden BambuLab-Home-Assistant-Integration angepasst.
+- `CameraEntityFeature.STREAM` aktiviert, damit Home Assistant die X1/X1C-RTSPS-Kamera als streamfähige Kamera behandelt.
+- Home-Assistant-Stream-Pipeline für RTSPS-Livebild und Standbilder verwendet.
+- Stream-Quelle robust aus `rtsps://bblp:<access_code>@<host>:322/streaming/live/1` mit Host-/Access-Code-Fallback aufgebaut.
+- Diagnoseattribute zur Stream-Source-Bereitschaft an der Kamera-Entity ergänzt.
+
 ## 4.0.9 - 2026-06-16
 
 - Verbleibenden Mojibake-Fehler am Galerie-Button `Neuer Ordner` korrigiert.

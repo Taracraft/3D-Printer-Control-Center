@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 4.0.9 */
+/* 3D-Printer Control Center - HACS Release 4.0.10 */
 (() => {
-  const VERSION = "4.0.9";
+  const VERSION = "4.0.10";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4809,7 +4809,7 @@
         for (const node of nodes) sanitizeNode(node, depth + 1);
       }
     } catch (err) {
-      console.debug("PCC v4.0.9 UTF-8 sanitizer skipped node", err);
+      console.debug("PCC v4.0.10 UTF-8 sanitizer skipped node", err);
     }
   };
 

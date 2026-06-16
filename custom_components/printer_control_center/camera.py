@@ -1,7 +1,7 @@
 """Native Home Assistant camera platform."""
 from __future__ import annotations
 
-from homeassistant.components.camera import Camera
+from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -42,6 +42,7 @@ class PrinterControlCenterCamera(Camera):
     _attr_has_entity_name = True
     _attr_name = "Live camera"
     _attr_icon = "mdi:camera"
+    _attr_supported_features = CameraEntityFeature.STREAM
     _attr_brand = "3D-Printer Control Center"
     _attr_model = "Bambu camera capability router"
     _attr_frame_interval = 0.8
@@ -57,6 +58,28 @@ class PrinterControlCenterCamera(Camera):
         self.entry = entry
         self.serial = str(entry.data[CONF_SERIAL])
         self._attr_unique_id = f"{self.serial}_native_live_camera"
+
+
+    def _pcc_v410_access_code(self) -> str:
+        """Return the LAN access code from options, data or coordinator config."""
+        return str(
+            self.entry.options.get(CONF_ACCESS_CODE)
+            or self.entry.data.get(CONF_ACCESS_CODE)
+            or self.coordinator.config.get(CONF_ACCESS_CODE, "")
+            or ""
+        )
+
+    def _pcc_v410_camera_host(self) -> str:
+        """Return the camera host, preferring the active/configured printer IP."""
+        status = self.coordinator.camera_status()
+        return str(
+            status.get("camera_host")
+            or getattr(self.coordinator, "camera_host", "")
+            or self.coordinator.config.get("host", "")
+            or self.entry.options.get("host", "")
+            or self.entry.data.get("host", "")
+            or ""
+        )
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -83,6 +106,22 @@ class PrinterControlCenterCamera(Camera):
             return bool(external_camera_url(self.coordinator.config))
         return False
 
+
+    @property
+    def use_stream_for_stills(self) -> bool:
+        """Use HA stream pipeline for RTSPS cameras, like the BambuLab integration."""
+        mode = self.coordinator.camera_status().get("camera_mode")
+        return mode in {
+            CAMERA_MODE_RTSPS_322,
+            CAMERA_MODE_EXTERNAL_URL,
+            CAMERA_MODE_EXTERNAL_ENTITY,
+        }
+
+    @property
+    def is_recording(self) -> bool:
+        """Bambu live view is not a recording camera."""
+        return False
+
     @property
     def is_streaming(self) -> bool:
         mode = self.coordinator.camera_status().get("camera_mode")
@@ -96,6 +135,8 @@ class PrinterControlCenterCamera(Camera):
         status = dict(self.coordinator.camera_status())
         mode = status.get("camera_mode")
         if mode == CAMERA_MODE_RTSPS_322:
+            host = self._pcc_v410_camera_host()
+            access_code = self._pcc_v410_access_code()
             status.update(
                 {
                     "rtsp_transport": "rtsps",
@@ -103,6 +144,9 @@ class PrinterControlCenterCamera(Camera):
                     "rtsp_path": "/streaming/live/1",
                     "requires_lan_liveview": True,
                     "credential_user": "bblp",
+                    "ha_stream_supported": True,
+                    "ha_stream_source_ready": bool(host and access_code),
+                    "ha_stream_host": host,
                 }
             )
         elif mode == CAMERA_MODE_CHAMBER_IMAGE_6000 and self.coordinator.camera_client is not None:
@@ -136,10 +180,11 @@ class PrinterControlCenterCamera(Camera):
         """Return a stream URL for RTSPS/external camera modes."""
         mode = self.coordinator.camera_status().get("camera_mode")
         if mode == CAMERA_MODE_RTSPS_322:
-            return rtsps_url(
-                self.coordinator.camera_host,
-                str(self.coordinator.config.get(CONF_ACCESS_CODE, "")),
-            )
+            host = self._pcc_v410_camera_host()
+            access_code = self._pcc_v410_access_code()
+            if not host or not access_code:
+                return None
+            return rtsps_url(host, access_code)
         if mode == CAMERA_MODE_EXTERNAL_URL:
             return external_camera_url(self.coordinator.config) or None
         if mode == CAMERA_MODE_EXTERNAL_ENTITY:

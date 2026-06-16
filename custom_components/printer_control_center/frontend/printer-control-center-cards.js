@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 4.0.17 */
+/* 3D-Printer Control Center - HACS Release 4.0.18 */
 (() => {
-  const VERSION = "4.0.17";
+  const VERSION = "4.0.18";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -1041,6 +1041,18 @@
       .media img { width:100%; height:100%; min-height:160px; max-height:340px; object-fit:cover; display:block; }
       .media-label { position:absolute; left:8px; bottom:8px; padding:4px 7px; border-radius:999px; background:rgba(0,0,0,.72); font-size:11px; }
       .media-task { position:absolute; right:8px; bottom:8px; max-width:70%; padding:4px 7px; border-radius:999px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; background:rgba(0,0,0,.72); font-size:11px; }
+        .media-ha-picture-camera {
+          background: #000;
+        }
+        .media-ha-picture-camera printer-control-center-inline-camera {
+          display: block;
+          width: 100%;
+          height: 100%;
+          min-height: inherit;
+          border-radius: inherit;
+          overflow: hidden;
+        }
+
       .media-preview img { filter:brightness(.42) saturate(.78); object-fit:contain; }
       .media-popout { position:absolute; right:8px; top:8px; width:34px; height:30px; padding:0; border-radius:8px; background:rgba(0,0,0,.70); font-size:18px; }
       .two { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(220px,.85fr); gap:7px; }
@@ -2248,10 +2260,64 @@
     };
   }
 
+  function pccCameraDecisionText(hass, map, config, native) {
+    const parts = [];
+
+    for (const value of [
+      config?.printer_model,
+      config?.model,
+      config?.camera_mode,
+      config?.camera_transport,
+      stateValue(hass, map.model),
+      stateValue(hass, map.printerModel),
+      stateValue(hass, map.detectedModel),
+      stateValue(hass, map.cameraMode),
+      stateValue(hass, map.cameraTransport),
+      stateValue(hass, map.cameraPort),
+      stateValue(hass, map.serial),
+      attrs(hass, native?.entityId).model_name,
+      attrs(hass, native?.entityId).friendly_name,
+      attrs(hass, native?.entityId).camera_mode,
+      attrs(hass, native?.entityId).camera_transport,
+      attrs(hass, native?.entityId).camera_label,
+      attrs(hass, native?.entityId).camera_port,
+      attrs(hass, native?.entityId).rtsp_transport,
+      attrs(hass, native?.entityId).rtsp_port,
+    ]) {
+      if (value !== undefined && value !== null) parts.push(String(value));
+    }
+
+    return parts.join(" ").toLowerCase();
+  }
+
+  function pccUseHaPictureCamera(hass, map, config, native) {
+    if (!native?.entityId) return false;
+
+    const text = pccCameraDecisionText(hass, map, config, native);
+
+    if (text.includes("rtsps") || text.includes("tcp 322") || text.includes("rtsp_port 322") || text.includes("camera_port 322")) return true;
+    if (text.includes("x1") || text.includes("x1 carbon") || text.includes("h2") || text.includes("p2") || text.includes("x2")) return true;
+
+    if (text.includes("a1") || text.includes("a1 mini") || text.includes("tcp 6000") || text.includes("chamber")) return false;
+
+    return false;
+  }
+
   function mediaHtml(hass, map, config, cameraVisible, online, status) {
     const source = mediaSource(hass, map, config, cameraVisible, online, status);
     const task = stateValue(hass, map.task, "Kein aktiver Druckauftrag");
     const native = cameraProxy(hass, map, config);
+    const useHaPictureCamera = online && cameraVisible && pccUseHaPictureCamera(hass, map, config, native);
+
+    if (useHaPictureCamera) {
+      return `
+        <div class="media media-ha-picture-camera" data-pcc-camera-entity="${esc(native.entityId)}">
+          <printer-control-center-inline-camera entity="${esc(native.entityId)}"></printer-control-center-inline-camera>
+          <span class="media-label">${esc("Native Live-Kamera")}</span>
+          ${native.stream ? `<button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">↗</button>` : ""}
+        </div>
+      `;
+    }
 
     if (online && cameraVisible && !source.src) {
       return `
@@ -2488,6 +2554,13 @@
       if (!["light", "switch"].includes(domain)) return;
       this._hass.callService(domain, "toggle", { entity_id:value });
     }
+    bindInlineCameras() {
+      if (!this.shadowRoot || !this._hass) return;
+      this.shadowRoot.querySelectorAll("printer-control-center-inline-camera").forEach((node) => {
+        node.hass = this._hass;
+      });
+    }
+
     bind(map) {
       const bind = (action, handler) => this.shadowRoot.querySelector(`[data-action="${action}"]`)?.addEventListener("click", handler);
       bind("light", () => this.runBusy("light", () => this.call("light","toggle",map.light)));
@@ -2555,7 +2628,7 @@
           ${basicButtons}
           <div class="footer"><span>3D-Printer Control Center · ${VERSION}</span></div>
         `);
-        this.bind(map); return;
+        this.bind(map); this.bindInlineCameras(); return;
       }
 
       if(size==="m"){
@@ -2575,7 +2648,7 @@
           ${basicButtons}
           <div class="footer"><span>3D-Printer Control Center · ${VERSION}</span><a href="${DOCS}" target="_blank">${DOCS}</a></div>
         `);
-        this.bind(map); return;
+        this.bind(map); this.bindInlineCameras(); return;
       }
 
       this.shadowRoot.innerHTML=frame(this._config,`
@@ -2623,7 +2696,7 @@
         </div>
         <div class="footer"><span>3D-Printer Control Center ${VERSION}</span><a href="${DOCS}" target="_blank">${DOCS}</a></div>
       `);
-      this.bind(map);
+      this.bind(map); this.bindInlineCameras();
     }
   }
 
@@ -4809,7 +4882,7 @@
         for (const node of nodes) sanitizeNode(node, depth + 1);
       }
     } catch (err) {
-      console.debug("PCC v4.0.17 UTF-8 sanitizer skipped node", err);
+      console.debug("PCC v4.0.18 UTF-8 sanitizer skipped node", err);
     }
   };
 
@@ -4832,6 +4905,149 @@
   if (document.body) {
     observer.observe(document.body, { childList: true, subtree: true });
   }
+})();
+
+
+
+
+;(() => {
+  const CARD_TYPE = "printer-control-center-inline-camera";
+  if (customElements.get(CARD_TYPE)) return;
+
+  let helperPromise = null;
+
+  class PrinterControlCenterInlineCamera extends HTMLElement {
+    constructor() {
+      super();
+      this._hass = null;
+      this._card = null;
+      this._cardEntity = null;
+      this._loadingEntity = null;
+      this.attachShadow({ mode: "open" });
+    }
+
+    static get observedAttributes() {
+      return ["entity"];
+    }
+
+    connectedCallback() {
+      this._render();
+    }
+
+    attributeChangedCallback() {
+      this._render();
+    }
+
+    set hass(hass) {
+      this._hass = hass;
+      if (this._card) this._card.hass = hass;
+      this._render();
+    }
+
+    get entity() {
+      return String(this.getAttribute("entity") || "").trim();
+    }
+
+    _installShell() {
+      if (!this.shadowRoot || this.shadowRoot.querySelector("#host")) return;
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host {
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: 220px;
+            background: #000;
+            overflow: hidden;
+            border-radius: inherit;
+          }
+          #host {
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: inherit;
+            overflow: hidden;
+            background: #000;
+          }
+          #host > * {
+            width: 100%;
+            height: 100%;
+            display: block;
+          }
+          .empty {
+            width: 100%;
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-text-color);
+            opacity: .75;
+            padding: 12px;
+            box-sizing: border-box;
+            text-align: center;
+          }
+        </style>
+        <div id="host"></div>
+      `;
+    }
+
+    async _createCard(entity) {
+      const config = {
+        type: "picture-entity",
+        entity,
+        camera_image: entity,
+        camera_view: "live",
+        show_name: false,
+        show_state: false,
+      };
+
+      if (window.loadCardHelpers) {
+        helperPromise = helperPromise || window.loadCardHelpers();
+        const helpers = await helperPromise;
+        return helpers.createCardElement(config);
+      }
+
+      if (customElements.get("hui-picture-entity-card")) {
+        const card = document.createElement("hui-picture-entity-card");
+        card.setConfig(config);
+        return card;
+      }
+
+      throw new Error("picture-entity helper not available");
+    }
+
+    async _render() {
+      this._installShell();
+
+      const entity = this.entity;
+      const host = this.shadowRoot && this.shadowRoot.querySelector("#host");
+      if (!host || !entity) return;
+
+      if (this._card && this._cardEntity === entity) {
+        if (this._hass) this._card.hass = this._hass;
+        return;
+      }
+
+      if (this._loadingEntity === entity) return;
+      this._loadingEntity = entity;
+
+      try {
+        const card = await this._createCard(entity);
+        this._card = card;
+        this._cardEntity = entity;
+        this._loadingEntity = null;
+        if (this._hass) card.hass = this._hass;
+        host.innerHTML = "";
+        host.appendChild(card);
+      } catch (err) {
+        this._loadingEntity = null;
+        console.error("PCC inline HA camera card failed", err);
+        host.innerHTML = `<div class="empty">Livekamera konnte nicht geladen werden.</div>`;
+      }
+    }
+  }
+
+  customElements.define(CARD_TYPE, PrinterControlCenterInlineCamera);
 })();
 
 
@@ -5010,348 +5226,5 @@
       name: "3D-Printer Control Center Camera",
       description: "Auto-detecting live camera card for 3D-Printer Control Center.",
     });
-  }
-})();
-
-
-;(() => {
-  if (window.__pccV417ModelAwareLeftCameraOverlay) return;
-  window.__pccV417ModelAwareLeftCameraOverlay = true;
-
-  const CAMERA_SUFFIXES = ["_native_live_camera", "_live_camera", "_camera"];
-  let helperPromise = null;
-  let overlay = null;
-  let liveCard = null;
-  let liveEntity = null;
-  let scheduled = false;
-
-  function deepElements(root = document) {
-    const out = [];
-    const seen = new Set();
-
-    function visit(node) {
-      if (!node || seen.has(node)) return;
-      seen.add(node);
-
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        out.push(node);
-        if (node.shadowRoot) visit(node.shadowRoot);
-      }
-
-      if (node.children) {
-        for (const child of Array.from(node.children)) visit(child);
-      }
-
-      if (node.querySelectorAll) {
-        for (const el of node.querySelectorAll("*")) {
-          if (!seen.has(el)) visit(el);
-        }
-      }
-    }
-
-    visit(root);
-    return out;
-  }
-
-  function modelTextFromHass(hass) {
-    if (!hass || !hass.states) return "";
-    const parts = [];
-
-    for (const [entityId, stateObj] of Object.entries(hass.states)) {
-      if (!stateObj) continue;
-      const id = String(entityId).toLowerCase();
-      const attrs = stateObj.attributes || {};
-      const friendly = String(attrs.friendly_name || "").toLowerCase();
-
-      if (
-        id.includes("printer_model") ||
-        id.includes("model") ||
-        id.includes("bambu") ||
-        friendly.includes("printer model") ||
-        friendly.includes("druckermodell") ||
-        friendly.includes("bambu")
-      ) {
-        parts.push(String(stateObj.state || ""));
-        for (const key of [
-          "printer_model",
-          "configured_printer_model",
-          "detected_printer_model",
-          "model",
-          "friendly_name",
-          "device_name",
-        ]) {
-          if (attrs[key]) parts.push(String(attrs[key]));
-        }
-      }
-    }
-
-    return parts.join(" ").toLowerCase();
-  }
-
-  function isA1Printer(hass, cardEl) {
-    const cardText = cardEl && cardEl.shadowRoot ? String(cardEl.shadowRoot.textContent || "").toLowerCase() : "";
-    const modelText = `${cardText} ${modelTextFromHass(hass)}`;
-
-    if (modelText.includes("x1") || modelText.includes("x1 carbon") || modelText.includes("p1p") || modelText.includes("p1s")) {
-      return false;
-    }
-
-    return /\ba1\b/.test(modelText) || modelText.includes("a1 mini");
-  }
-
-  function resolveCameraEntity(hass) {
-    if (!hass || !hass.states) return null;
-
-    const preferred = Object.keys(hass.states).find((entityId) =>
-      entityId.startsWith("camera.") && entityId.endsWith("_native_live_camera")
-    );
-    if (preferred) return preferred;
-
-    const suffixMatch = Object.keys(hass.states).find((entityId) =>
-      entityId.startsWith("camera.") && CAMERA_SUFFIXES.some((suffix) => entityId.endsWith(suffix))
-    );
-    if (suffixMatch) return suffixMatch;
-
-    return Object.keys(hass.states).find((entityId) => {
-      if (!entityId.startsWith("camera.")) return false;
-      const attrs = hass.states[entityId].attributes || {};
-      const brand = String(attrs.brand || "").toLowerCase();
-      const name = String(attrs.friendly_name || "").toLowerCase();
-      return brand.includes("3d-printer control center")
-        || name.includes("bambu")
-        || name.includes("live camera")
-        || name.includes("live-kamera");
-    }) || null;
-  }
-
-  function hideRightCameraCards() {
-    for (const el of deepElements(document)) {
-      if (String(el.localName || "").toLowerCase() === "printer-control-center-camera-card") {
-        el.style.display = "none";
-        el.hidden = true;
-        if (el.parentElement) {
-          el.parentElement.style.display = "none";
-          el.parentElement.hidden = true;
-        }
-      }
-    }
-  }
-
-  function getHassFromElement(el) {
-    let current = el;
-    while (current) {
-      if (current.hass) return current.hass;
-      if (current._hass) return current._hass;
-      const root = current.getRootNode ? current.getRootNode() : null;
-      current = current.parentElement || (root && root.host) || null;
-    }
-    return null;
-  }
-
-  function isPrinterCardElement(el) {
-    if (!el || !el.shadowRoot) return false;
-    const text = String(el.shadowRoot.textContent || "");
-    return text.includes("3D-Printer Control Center")
-      && text.includes("AMS")
-      && (text.includes("Düse") || text.includes("Nozzle"))
-      && (
-        text.includes("Kein aktiver Druckauftrag")
-        || text.includes("No active print job")
-        || text.includes("Firmware")
-      );
-  }
-
-  function findPrinterCard() {
-    return deepElements(document).find((el) => isPrinterCardElement(el)) || null;
-  }
-
-  function findCameraRect(cardEl) {
-    const root = cardEl.shadowRoot;
-    const elements = deepElements(root).filter((el) => el instanceof HTMLElement);
-    const cardRect = cardEl.getBoundingClientRect();
-
-    const label = elements.find((el) => {
-      const t = String(el.textContent || "").trim();
-      return t.includes("Native Live-Kamera")
-        || t.includes("Native Live Camera")
-        || t.includes("Livekamera")
-        || t.includes("Live camera");
-    });
-
-    if (label) {
-      let current = label;
-      while (current && current !== root) {
-        const rect = current.getBoundingClientRect ? current.getBoundingClientRect() : null;
-        if (
-          rect &&
-          rect.width >= 220 &&
-          rect.height >= 180 &&
-          rect.left >= cardRect.left - 10 &&
-          rect.right <= cardRect.right + 10 &&
-          rect.top >= cardRect.top - 10
-        ) {
-          return rect;
-        }
-        current = current.parentElement;
-      }
-    }
-
-    let best = null;
-    let bestScore = -1;
-
-    for (const el of elements) {
-      const rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
-      if (!rect) continue;
-
-      const text = String(el.textContent || "");
-      if (rect.width < 220 || rect.height < 180) continue;
-      if (rect.width > 470 || rect.height > 540) continue;
-      if (rect.left < cardRect.left - 10 || rect.right > cardRect.right + 10) continue;
-      if (rect.top < cardRect.top - 10) continue;
-      if (rect.bottom <= 0 || rect.top >= window.innerHeight) continue;
-
-      if (text.includes("Düse") || text.includes("Bett") || text.includes("Firmware") || text.includes("WLAN")) continue;
-      if (text.includes("AMS 2 Pro") || text.includes("Slot 1") || text.includes("PETG")) continue;
-      if (text.includes("3D-Printer Control Center") && text.length > 80) continue;
-
-      const score = rect.width * rect.height;
-      if (score > bestScore) {
-        best = rect;
-        bestScore = score;
-      }
-    }
-
-    return best;
-  }
-
-  async function createLiveCard(entity) {
-    const config = {
-      type: "picture-entity",
-      entity,
-      camera_image: entity,
-      camera_view: "live",
-      show_name: false,
-      show_state: false,
-    };
-
-    if (window.loadCardHelpers) {
-      helperPromise = helperPromise || window.loadCardHelpers();
-      const helpers = await helperPromise;
-      return helpers.createCardElement(config);
-    }
-
-    if (customElements.get("hui-picture-entity-card")) {
-      const card = document.createElement("hui-picture-entity-card");
-      card.setConfig(config);
-      return card;
-    }
-
-    throw new Error("picture-entity helper not available");
-  }
-
-  async function ensureOverlay(hass, entity) {
-    if (!overlay) {
-      overlay = document.createElement("div");
-      overlay.setAttribute("data-pcc-v417-left-camera-overlay", "1");
-      overlay.style.position = "fixed";
-      overlay.style.zIndex = "4";
-      overlay.style.overflow = "hidden";
-      overlay.style.borderRadius = "14px";
-      overlay.style.background = "transparent";
-      overlay.style.pointerEvents = "none";
-      overlay.style.display = "none";
-      document.body.appendChild(overlay);
-    }
-
-    if (!liveCard || liveEntity !== entity) {
-      overlay.innerHTML = "";
-      liveCard = await createLiveCard(entity);
-      liveEntity = entity;
-      liveCard.style.width = "100%";
-      liveCard.style.height = "100%";
-      overlay.appendChild(liveCard);
-    }
-
-    liveCard.hass = hass;
-  }
-
-  async function runPatch() {
-    scheduled = false;
-
-    hideRightCameraCards();
-
-    const cardEl = findPrinterCard();
-    if (!cardEl) {
-      if (overlay) overlay.style.display = "none";
-      return;
-    }
-
-    const hass = getHassFromElement(cardEl);
-    if (!hass) {
-      if (overlay) overlay.style.display = "none";
-      return;
-    }
-
-    if (isA1Printer(hass, cardEl)) {
-      if (overlay) overlay.style.display = "none";
-      return;
-    }
-
-    const entity = resolveCameraEntity(hass);
-    if (!entity) {
-      if (overlay) overlay.style.display = "none";
-      return;
-    }
-
-    const rect = findCameraRect(cardEl);
-    if (!rect || rect.width < 100 || rect.height < 100 || rect.bottom <= 0 || rect.top >= window.innerHeight) {
-      if (overlay) overlay.style.display = "none";
-      return;
-    }
-
-    await ensureOverlay(hass, entity);
-
-    overlay.style.left = `${Math.round(rect.left)}px`;
-    overlay.style.top = `${Math.round(rect.top)}px`;
-    overlay.style.width = `${Math.round(rect.width)}px`;
-    overlay.style.height = `${Math.round(rect.height)}px`;
-    overlay.style.display = "block";
-  }
-
-  function schedulePatch() {
-    if (scheduled) return;
-    scheduled = true;
-    window.requestAnimationFrame(() => {
-      window.setTimeout(() => {
-        runPatch().catch((err) => console.error("PCC v4.0.17 overlay failed", err));
-      }, 120);
-    });
-  }
-
-  const start = () => {
-    schedulePatch();
-
-    window.addEventListener("resize", schedulePatch, { passive: true });
-    window.addEventListener("scroll", schedulePatch, { passive: true, capture: true });
-
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        const target = mutation.target;
-        if (target && target.closest && target.closest("[data-pcc-v417-left-camera-overlay]")) {
-          continue;
-        }
-        schedulePatch();
-        break;
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-    window.setInterval(schedulePatch, 2000);
-  };
-
-  if (document.readyState === "loading") {
-    window.addEventListener("DOMContentLoaded", start, { once: true });
-  } else {
-    start();
   }
 })();

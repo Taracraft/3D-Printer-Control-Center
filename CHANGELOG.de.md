@@ -1,3 +1,12 @@
+## 4.0.18 - 2026-06-16
+
+- v4.0.17-Body-Overlay-Kamera-Workaround entfernt.
+- Echten `mediaHtml()`-Renderpfad der Druckerkarte gepatcht, statt Kamerainhalt nachträglich zu injizieren oder als Overlay darüberzulegen.
+- Home-Assistant-`picture-entity`-Livekamera-Renderer wird innerhalb des vorhandenen linken Medienfelds der Druckerkarte für RTSPS/TCP-322-Kameras wie X1/X1C und verwandte Bambu-Lab-Modelle verwendet.
+- A1/TCP6000-artige Kameras bleiben auf dem bisherigen nativen Bildpfad.
+- Separate rechte Kamera-Karte aus dem verwalteten Dashboard-Pfad entfernt.
+- Livekamera wird nicht mehr als schwebendes Overlay über dem Dashboard angezeigt.
+
 ## 4.0.17 - 2026-06-16
 
 - Instabile Inline-Kamera-Ersetzung durch stabiles linkes Kamera-Overlay ersetzt.

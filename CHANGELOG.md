@@ -1,3 +1,14 @@
+## 4.0.19 - 2026-06-16
+
+- Remove the previous overlay and injection camera workarounds.
+- Patch the real printer-card media render path instead of placing a floating overlay above the dashboard.
+- Add a persistent inline camera element that reuses one Home Assistant `picture-entity` live camera instance instead of recreating the stream on every printer-card render.
+- Add a render guard so camera-only Home Assistant state updates do not force a full printer-card redraw.
+- Use the Home Assistant `camera.*_native_live_camera` entity for X1/X1C/P1/H2/P2/X2-style RTSPS/TCP 322 cameras.
+- Keep A1/TCP6000-style cameras on the existing native image path.
+- Replace the broken popout window with an internal large camera modal using the same stable inline camera renderer.
+- Keep the standalone right-side camera card out of the managed dashboard.
+
 ## 4.0.18 - 2026-06-16
 
 - Remove the v4.0.17 body overlay camera workaround.

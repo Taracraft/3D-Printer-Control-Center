@@ -1,3 +1,14 @@
+## 4.0.19 - 2026-06-16
+
+- Frühere Overlay- und Injection-Kamera-Workarounds entfernt.
+- Echten Medien-Renderpfad der Druckerkarte gepatcht, statt ein schwebendes Overlay über das Dashboard zu legen.
+- Persistentes Inline-Kameraelement ergänzt, das eine einzige Home-Assistant-`picture-entity`-Livekamera wiederverwendet, statt den Stream bei jedem Karten-Render neu zu erzeugen.
+- Render-Guard ergänzt, damit reine Kamera-Statusupdates aus Home Assistant kein vollständiges Neurendern der Druckerkarte auslösen.
+- Home-Assistant-Entity `camera.*_native_live_camera` wird für X1/X1C/P1/H2/P2/X2-artige RTSPS/TCP-322-Kameras verwendet.
+- A1/TCP6000-artige Kameras bleiben auf dem bisherigen nativen Bildpfad.
+- Defektes Popout-Fenster durch ein internes Großansicht-Modal mit demselben stabilen Inline-Kamera-Renderer ersetzt.
+- Separate rechte Kamera-Karte bleibt aus dem verwalteten Dashboard entfernt.
+
 ## 4.0.18 - 2026-06-16
 
 - v4.0.17-Body-Overlay-Kamera-Workaround entfernt.

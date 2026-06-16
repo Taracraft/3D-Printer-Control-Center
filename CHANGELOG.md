@@ -1,3 +1,30 @@
+## 5.0.0-beta6 - Studio Import Buildplate Showcase
+
+### English
+- Added a dedicated Studio import popup behind the Import button.
+- The Studio import popup can browse the existing Archive and SD-card model lists, shows previews, supports folder navigation and imports a selected 3MF into the Studio job store with a progress bar.
+- Added a Bambu Studio inspired build plate selector in the left Studio panel with Smooth PEI / High Temp, Textured PEI, Cool Plate / PLA, Engineering Plate and Bambu Cool Plate SuperTack options.
+- Added visible build plate styling and active build plate metadata on Studio jobs.
+- Reworked the Studio right-click context menu so it closes on left-click outside, remains stable while operating it, and uses right-opening action groups.
+- Cleaned the top Studio navigation to workflow actions only and restored a single Delete action.
+- Hardened persistent Studio job deletion and clears the stale model display when the last job is removed.
+- Expanded preview handoff and lazy preview recovery from the Archive/SD list so the Studio shows the real 3MF project thumbnail when STL mesh loading is unavailable.
+- Continued UTF-8/mojibake cleanup.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Eigenes Studio-Import-Popup hinter dem Button Importieren ergänzt.
+- Das Studio-Import-Popup kann vorhandene Archiv- und SD-Karten-Modelllisten durchsuchen, zeigt Vorschaubilder, unterstützt Ordnernavigation und importiert ein ausgewähltes 3MF mit Fortschrittsbalken in den Studio-Jobstore.
+- Bambu-Studio-ähnliche Druckplattenauswahl links im Studio ergänzt: Smooth PEI / High Temp, Textured PEI, Cool Plate / PLA, Engineering Plate und Bambu Cool Plate SuperTack.
+- Sichtbare Buildplate-Darstellung und aktive Druckplattenmetadaten im Studio-Job ergänzt.
+- Studio-Rechtsklickmenü überarbeitet: Linksklick außerhalb schließt es, Bedienung bleibt stabil, Aktionsgruppen öffnen nach rechts.
+- Obere Studio-Navigation auf Workflow-Aktionen bereinigt und eine einzelne Löschen-Aktion wiederhergestellt.
+- Persistentes Löschen gehärtet und alte Modellanzeige wird entfernt, wenn der letzte Job gelöscht wurde.
+- Preview-Handoff und nachträgliche Preview-Suche über Archiv/SD-Liste erweitert, damit das Studio das echte 3MF-Projektbild zeigt, wenn STL-Mesh-Laden nicht verfügbar ist.
+- UTF-8-/Mojibake-Bereinigung fortgeführt.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta5 - Studio Navigation + Preview Handoff
 
 ### English

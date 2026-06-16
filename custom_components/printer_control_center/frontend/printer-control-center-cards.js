@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta5*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta6*/
 (() => {
-  const VERSION = "5.0.0-beta5";
+  const VERSION = "5.0.0-beta6";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta5",
+        version: "5.0.0-beta6",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta5";
+  const STUDIO_VERSION = "5.0.0-beta6";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -4881,7 +4881,7 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta5 Studio Navigation + Preview Handoff bereit. Oben bleiben nur Workflow-Aktionen plus Löschen, Bearbeitung bleibt rechts, Rechtsklickmenü hat Untermenüs und Galerie-Previews werden in den Studio-Job übernommen. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+      this._status = "beta6 Studio Import Buildplate Showcase bereit. Import-Popup, Buildplate-Auswahl, Galerie-Preview-Handoff, stabiles Kontextmenü und persistentes Löschen sind aktiv. Echtes Slicen und Direktdruck bleiben deaktiviert.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -4944,7 +4944,7 @@
       this.ensureStudioMeshLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Beta5: Home Assistant pushes frequent hass updates.
+      // Beta6: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -6039,7 +6039,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta5: no full render on every keystroke.
+      // Beta6: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -6054,7 +6054,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta5: render is intentionally skipped while editing to avoid cursor jumps.
+      // Beta6: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -6443,7 +6443,7 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta5 Studio Navigation + Preview Handoff</div>
+                  <div class="plate-label">Buildplate - beta6 Studio Import Buildplate Showcase</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   ${this._studioModelImageUrl ? html`
@@ -7550,6 +7550,965 @@
     root.appendChild(menu);
   };
 
+
+  const PCC_BETA6_BUILD_PLATES = [
+    {id:"smooth_pei_high_temp", name:"Smooth PEI Plate / High Temp Plate", short:"Smooth PEI / High Temp", texture:"smooth"},
+    {id:"textured_pei", name:"Textured PEI Plate", short:"Textured PEI", texture:"textured"},
+    {id:"cool_plate", name:"Cool Plate/PLA Plate", short:"Cool Plate / PLA", texture:"cool"},
+    {id:"engineering_plate", name:"Engineering Plate", short:"Engineering Plate", texture:"engineering"},
+    {id:"bambu_cool_plate_supertack", name:"Bambu Cool Plate SuperTack", short:"Cool Plate SuperTack", texture:"supertack"}
+  ];
+
+  const PCC_BETA6_PREVIEW_KEYS = [
+    "preview_data_url", "previewDataUrl", "preview_url", "previewUrl",
+    "thumbnail", "thumb", "image", "image_url", "imageUrl",
+    "poster", "poster_url", "posterUrl"
+  ];
+
+  function pccBeta6NormalizeUrl(value) {
+    const text = String(value || "").trim();
+    if (!text) return "";
+    if (text.startsWith("data:image/")) return text;
+    if (text.startsWith("blob:")) return text;
+    if (text.startsWith("http://") || text.startsWith("https://")) return text;
+    if (text.startsWith("/")) return `${window.location.origin}${text}`;
+    return "";
+  }
+
+  function pccBeta6PreviewFromItem(item) {
+    if (!item) return "";
+
+    const candidates = [];
+    for (const key of PCC_BETA6_PREVIEW_KEYS) candidates.push(item?.[key]);
+
+    candidates.push(
+      item?.preview?.data_url,
+      item?.preview?.dataUrl,
+      item?.preview?.url,
+      item?.preview?.href,
+      item?.model?.preview_data_url,
+      item?.model?.preview_url,
+      item?.model?.thumbnail,
+      item?.model?.image
+    );
+
+    for (const value of candidates) {
+      const url = pccBeta6NormalizeUrl(value);
+      if (url) return url;
+    }
+
+    return "";
+  }
+
+  function pccBeta6InjectPreview(target, itemOrPreview) {
+    if (!target) return target;
+
+    const preview = typeof itemOrPreview === "string"
+      ? pccBeta6NormalizeUrl(itemOrPreview)
+      : pccBeta6PreviewFromItem(itemOrPreview);
+
+    if (!preview) return target;
+
+    target.preview_data_url = target.preview_data_url || preview;
+    target.preview_url = target.preview_url || preview;
+    target.thumbnail = target.thumbnail || preview;
+    target.image = target.image || preview;
+
+    target.preview = target.preview || {};
+    target.preview.data_url = target.preview.data_url || preview;
+    target.preview.url = target.preview.url || preview;
+
+    target.model = target.model || {};
+    target.model.preview_data_url = target.model.preview_data_url || preview;
+    target.model.preview_url = target.model.preview_url || preview;
+    target.model.thumbnail = target.model.thumbnail || preview;
+    target.model.image = target.model.image || preview;
+
+    return target;
+  }
+
+  const PCC_BETA6_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA6_ORIGINAL_HANDLE_CLICK = PCC_BETA6_STUDIO_CLASS.prototype.handleClick;
+  const PCC_BETA6_ORIGINAL_HANDLE_CHANGE = PCC_BETA6_STUDIO_CLASS.prototype.handleChange;
+
+  PCC_BETA6_STUDIO_CLASS.prototype.beta6Serial = function beta6Serial() {
+    return String(this._activeJob?.serial || this._config?.serial || "");
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.beta6CurrentBuildPlate = function beta6CurrentBuildPlate() {
+    const current =
+      this._studioBuildPlate ||
+      this._activeJob?.profile_context?.build_plate?.id ||
+      this._activeJob?.profile_context?.build_plate_id ||
+      "smooth_pei_high_temp";
+
+    return PCC_BETA6_BUILD_PLATES.find((plate) => plate.id === current) || PCC_BETA6_BUILD_PLATES[0];
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.beta6SetBuildPlate = function beta6SetBuildPlate(id) {
+    const plate = PCC_BETA6_BUILD_PLATES.find((item) => item.id === id) || PCC_BETA6_BUILD_PLATES[0];
+    this._studioBuildPlate = plate.id;
+
+    if (this._activeJob) {
+      this._activeJob.profile_context = this._activeJob.profile_context || {};
+      this._activeJob.profile_context.build_plate = {
+        id: plate.id,
+        name: plate.name,
+        texture: plate.texture
+      };
+      this._activeJob.build_plate = plate.name;
+      this.scheduleActiveJobSave?.();
+    }
+
+    this._status = `Druckplatte gewählt: ${plate.name}.`;
+    this.render();
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.jobName = function jobName(job=this._activeJob) {
+    const candidates = [
+      job?.modelName,
+      job?.file_name,
+      job?.filename,
+      job?.name,
+      job?.model?.name,
+      job?.model?.filename,
+      job?.model?.file_name,
+      job?.path,
+      job?.file_path
+    ];
+
+    for (const value of candidates) {
+      if (typeof value === "string" && value.trim()) {
+        return value.trim().split("/").filter(Boolean).pop() || value.trim();
+      }
+
+      if (value && typeof value === "object") {
+        for (const key of ["name", "filename", "file_name", "path"]) {
+          const nested = String(value?.[key] || "").trim();
+          if (nested) return nested.split("/").filter(Boolean).pop() || nested;
+        }
+      }
+    }
+
+    return "3MF-Modell";
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.beta6CleanObjectObjectLabels = function beta6CleanObjectObjectLabels() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    for (const node of nodes) {
+      const value = String(node.nodeValue || "");
+      if (value.includes("[object Object]")) {
+        node.nodeValue = value.replaceAll("[object Object]", "").trim();
+      }
+    }
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.beta6TopActionHost = function beta6TopActionHost() {
+    const root = this.shadowRoot;
+    if (!root) return null;
+
+    const buttons = [...root.querySelectorAll("button")];
+    const importButton = buttons.find((button) => button.textContent?.trim?.() === "Importieren");
+    if (importButton?.parentElement) return importButton.parentElement;
+
+    const planButton = buttons.find((button) => button.textContent?.includes?.("Plan prüfen"));
+    if (planButton?.parentElement) return planButton.parentElement;
+
+    return null;
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.beta6CleanTopNavigation = function beta6CleanTopNavigation() {
+    const host = this.beta6TopActionHost?.();
+    if (!host) return;
+
+    const keepTexts = new Set(["Importieren", "Plan prüfen", "Health prüfen", "Jobs neu laden", "Löschen"]);
+
+    for (const button of [...host.querySelectorAll("button")]) {
+      const text = String(button.textContent || "").trim();
+      if (!keepTexts.has(text)) button.remove();
+    }
+
+    const deleteButtons = [...host.querySelectorAll("button")].filter((button) => String(button.textContent || "").trim() === "Löschen");
+    deleteButtons.slice(1).forEach((button) => button.remove());
+
+    if (!deleteButtons.length) {
+      const button = document.createElement("button");
+      button.className = "action";
+      button.dataset.beta6TopDelete = "1";
+      button.textContent = "Löschen";
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.deleteActiveJob();
+      });
+      host.appendChild(button);
+    }
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.beta6InstallBuildPlateSwitcher = function beta6InstallBuildPlateSwitcher() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const panels = [...root.querySelectorAll(".panel")];
+    const leftPanel = panels[0];
+    if (!leftPanel) return;
+
+    const current = this.beta6CurrentBuildPlate();
+
+    let box = leftPanel.querySelector(".beta6-buildplate-switcher");
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "beta6-buildplate-switcher";
+      leftPanel.insertBefore(box, leftPanel.children[1] || null);
+    }
+
+    const options = PCC_BETA6_BUILD_PLATES.map((plate) => `
+      <option value="${escStudio(plate.id)}" ${plate.id === current.id ? "selected" : ""}>${escStudio(plate.name)}</option>
+    `).join("");
+
+    box.innerHTML = `
+      <h3>Druckplatte</h3>
+      <select data-beta6-buildplate>
+        ${options}
+      </select>
+      <div class="beta6-buildplate-preview beta6-plate-${escStudio(current.texture)}">
+        <div class="beta6-plate-grid"></div>
+        <b>${escStudio(current.short)}</b>
+      </div>
+    `;
+
+    const select = box.querySelector("[data-beta6-buildplate]");
+    select?.addEventListener("change", (event) => {
+      this.beta6SetBuildPlate(event.target?.value || "smooth_pei_high_temp");
+    });
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.beta6ApplyBuildPlateVisual = function beta6ApplyBuildPlateVisual() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const plate = this.beta6CurrentBuildPlate();
+    const buildplate = root.querySelector(".buildplate");
+    if (!buildplate) return;
+
+    buildplate.dataset.beta6Buildplate = plate.id;
+    buildplate.classList.remove(
+      "beta6-plate-smooth",
+      "beta6-plate-textured",
+      "beta6-plate-cool",
+      "beta6-plate-engineering",
+      "beta6-plate-supertack"
+    );
+    buildplate.classList.add(`beta6-plate-${plate.texture}`);
+
+    const label = root.querySelector(".plate-label");
+    if (label) label.textContent = `Buildplate – ${plate.name}`;
+
+    const modelProxy = root.querySelector(".model");
+    if (modelProxy) {
+      if (this._studioModelImageUrl) modelProxy.classList.add("beta6-proxy-muted");
+      else modelProxy.classList.remove("beta6-proxy-muted");
+    }
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.activeJobPreviewUrl = function activeJobPreviewUrl() {
+    const job = this._activeJob || this.buildDryRunJob?.() || {};
+
+    const handoff = (() => {
+      try {
+        return window.PCC_STUDIO_HANDOFF?.latest?.()?.job || null;
+      } catch (_error) {
+        return null;
+      }
+    })();
+
+    const jobs = Array.isArray(this._jobs) ? this._jobs : [];
+    const activePath = String(job?.file_path || job?.path || job?.model?.path || "").trim();
+
+    const matchingJob = jobs.find((candidate) => {
+      const candidatePath = String(candidate?.file_path || candidate?.path || candidate?.model?.path || "").trim();
+      return activePath && candidatePath === activePath;
+    }) || null;
+
+    const candidates = [
+      job.preview_data_url, job.previewDataUrl, job.preview_url, job.previewUrl,
+      job.thumbnail, job.thumb, job.image, job.image_url, job.imageUrl,
+      job.preview?.data_url, job.preview?.dataUrl, job.preview?.url,
+      job.model?.preview_data_url, job.model?.preview_url, job.model?.thumbnail, job.model?.image,
+
+      matchingJob?.preview_data_url, matchingJob?.preview_url, matchingJob?.thumbnail, matchingJob?.image,
+      matchingJob?.preview?.data_url, matchingJob?.preview?.url,
+      matchingJob?.model?.preview_data_url, matchingJob?.model?.preview_url, matchingJob?.model?.thumbnail, matchingJob?.model?.image,
+
+      handoff?.preview_data_url, handoff?.previewDataUrl, handoff?.preview_url, handoff?.thumbnail, handoff?.image,
+      handoff?.preview?.data_url, handoff?.preview?.url,
+      handoff?.model?.preview_data_url, handoff?.model?.preview_url, handoff?.model?.thumbnail, handoff?.model?.image
+    ];
+
+    for (const value of candidates) {
+      const url = pccBeta6NormalizeUrl(value);
+      if (url) return url;
+    }
+
+    return "";
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.updateStudioModelImage = function updateStudioModelImage() {
+    const url = this.activeJobPreviewUrl?.() || "";
+    this._studioModelImageUrl = url;
+    return url;
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.ensureBeta6PreviewForActiveJob = async function ensureBeta6PreviewForActiveJob() {
+    const job = this._activeJob || null;
+    if (!job || this.updateStudioModelImage?.()) return;
+
+    const path = String(job.file_path || job.path || job.model?.path || "").trim();
+    const source = String(job.source || job.origin || "archive").toLowerCase();
+    if (!path) return;
+
+    const key = `${source}:${path}`;
+    if (this._beta6PreviewLookupKey === key) return;
+    this._beta6PreviewLookupKey = key;
+
+    const folder = path.includes("/") ? path.split("/").slice(0, -1).join("/") : "";
+
+    try {
+      const data = source === "sd"
+        ? await this.ws({type:"printer_control_center/sd/list", serial:this.beta6Serial(), folder:folder || "/", force:false})
+        : await this.ws({type:"printer_control_center/archive/list", serial:this.beta6Serial(), folder});
+
+      const item = (data.items || []).find((candidate) => String(candidate.path || "") === path);
+      const preview = pccBeta6PreviewFromItem(item);
+      if (!preview) return;
+
+      pccBeta6InjectPreview(job, preview);
+      this._studioModelImageUrl = preview;
+
+      try {
+        await this.ws({
+          type:"printer_control_center/studio_jobs/update",
+          job_id:job.id || this._activeJobId || "",
+          patch:job
+        });
+      } catch (_error) {}
+
+      this.render();
+    } catch (_error) {}
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    this.beta6CleanTopNavigation?.();
+    this.beta6InstallBuildPlateSwitcher?.();
+    this.beta6ApplyBuildPlateVisual?.();
+    this.beta6CleanObjectObjectLabels?.();
+    this.updateStudioModelImage?.();
+
+    if (!this._studioModelImageUrl && !this._beta6PreviewLookupRunning) {
+      this._beta6PreviewLookupRunning = true;
+      this.ensureBeta6PreviewForActiveJob?.().finally?.(() => {
+        this._beta6PreviewLookupRunning = false;
+      });
+    }
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.beta6PlanFromItem = function beta6PlanFromItem(item, source="archive") {
+    const path = String(item?.path || "");
+    const name = String(item?.name || path.split("/").filter(Boolean).pop() || "3MF-Modell");
+    const now = new Date().toISOString();
+    const plate = this.beta6CurrentBuildPlate();
+
+    const plan = {
+      version: STUDIO_VERSION,
+      schema: "printer-control-center.v5.beta6.import",
+      source,
+      origin: source,
+      serial: this.beta6Serial(),
+      created_at: now,
+      updated_at: now,
+      modelName: name,
+      file_name: name,
+      filename: name,
+      file_path: path,
+      path,
+      modelKey: `${source}:${path}`,
+      model: {
+        name,
+        path,
+        source,
+        size: Number(item?.size || 0),
+        modified: item?.modified || null
+      },
+      build_plate: plate.name,
+      transform: defaultTransform(),
+      profile_context: {
+        ...(this.buildProfileContext?.() || this.defaultProfileContext?.() || {}),
+        build_plate: {
+          id: plate.id,
+          name: plate.name,
+          texture: plate.texture
+        }
+      },
+      real_slicing_enabled: false,
+      direct_print_enabled: false,
+      status: "prepared",
+      stage: "waiting",
+      message: "Aus dem Studio-Import-Popup übernommen. Echter Slicer-Lauf ist deaktiviert."
+    };
+
+    return pccBeta6InjectPreview(plan, item);
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.openBeta6ImportDialog = function openBeta6ImportDialog() {
+    this._beta6Import = {
+      open:true,
+      source:"archive",
+      folder:"",
+      parent:"",
+      loading:false,
+      progress:0,
+      items:[],
+      selected:null,
+      error:"",
+      notice:""
+    };
+
+    this.renderBeta6ImportDialog();
+    this.loadBeta6ImportFolder(true);
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.closeBeta6ImportDialog = function closeBeta6ImportDialog() {
+    this.shadowRoot?.querySelector?.(".beta6-import-backdrop")?.remove?.();
+    this._beta6Import = null;
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.loadBeta6ImportFolder = async function loadBeta6ImportFolder(force=false) {
+    const state = this._beta6Import;
+    if (!state || state.loading) return;
+
+    state.loading = true;
+    state.progress = 12;
+    state.error = "";
+    this.renderBeta6ImportDialog();
+
+    try {
+      const serial = this.beta6Serial();
+      const data = state.source === "sd"
+        ? await this.ws({type:"printer_control_center/sd/list", serial, folder:state.folder || "/", force:Boolean(force)})
+        : await this.ws({type:"printer_control_center/archive/list", serial, folder:state.folder || ""});
+
+      state.progress = 72;
+      state.items = (data.items || [])
+        .filter((item) => item.kind === "folder" || String(item.name || item.path || "").toLowerCase().endsWith(".3mf"));
+      state.folder = data.folder || "";
+      state.parent = data.parent || "";
+      state.selected = null;
+      state.notice = `${state.items.length} Einträge geladen.`;
+    } catch (error) {
+      state.error = `Galerie konnte nicht geladen werden: ${String(error?.message || error)}`;
+    } finally {
+      state.progress = 100;
+      state.loading = false;
+      this.renderBeta6ImportDialog();
+    }
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.renderBeta6ImportDialog = function renderBeta6ImportDialog() {
+    const root = this.shadowRoot;
+    const state = this._beta6Import;
+    if (!root || !state?.open) return;
+
+    let overlay = root.querySelector(".beta6-import-backdrop");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "beta6-import-backdrop";
+      root.appendChild(overlay);
+    }
+
+    const itemHtml = (state.items || []).map((item) => {
+      const folder = item.kind === "folder";
+      const selected = state.selected && String(state.selected.path || "") === String(item.path || "");
+      const preview = pccBeta6PreviewFromItem(item);
+
+      return `
+        <article class="beta6-import-item ${selected ? "selected" : ""}" data-beta6-import-path="${escStudio(item.path || "")}" data-beta6-import-kind="${escStudio(item.kind || "")}">
+          <div class="beta6-import-preview">
+            ${preview ? `<img src="${preview}" alt="">` : `<div class="beta6-import-placeholder">${folder ? "📁" : "3MF"}</div>`}
+          </div>
+          <div class="beta6-import-meta">
+            <b>${escStudio(item.name || item.path || "3MF-Modell")}</b>
+            <span>${escStudio(item.path || "")}</span>
+            <small>${folder ? "Ordner" : "3MF-Projekt"}${item.size ? ` · ${Math.round(Number(item.size)/1024)} KB` : ""}</small>
+          </div>
+          <button class="action" data-beta6-import-action="${folder ? "open-folder" : "select"}">${folder ? "Öffnen" : "Auswählen"}</button>
+        </article>
+      `;
+    }).join("");
+
+    overlay.innerHTML = `
+      <div class="beta6-import-dialog">
+        <header>
+          <div>
+            <h2>3MF ins Studio importieren</h2>
+            <p>Archiv oder SD-Karte auswählen, Modell anklicken, Import starten.</p>
+          </div>
+          <button class="action" data-beta6-import-action="close">Schließen</button>
+        </header>
+
+        <div class="beta6-import-toolbar">
+          <select data-beta6-import-source>
+            <option value="archive" ${state.source === "archive" ? "selected" : ""}>Archiv</option>
+            <option value="sd" ${state.source === "sd" ? "selected" : ""}>SD-Karte</option>
+          </select>
+          <button class="action" data-beta6-import-action="up" ${state.parent ? "" : "disabled"}>Eine Ebene hoch</button>
+          <button class="action" data-beta6-import-action="refresh">Aktualisieren</button>
+          <button class="action primary" data-beta6-import-action="import" ${state.selected ? "" : "disabled"}>Ins Studio importieren</button>
+        </div>
+
+        <div class="beta6-progress">
+          <div style="width:${Math.max(0, Math.min(100, Number(state.progress || 0)))}%"></div>
+        </div>
+
+        <div class="beta6-import-folder">
+          Quelle: <b>${state.source === "sd" ? "SD-Karte" : "Archiv"}</b>
+          <span>${escStudio(state.folder || "Hauptordner")}</span>
+        </div>
+
+        ${state.error ? `<div class="beta6-import-error">${escStudio(state.error)}</div>` : ""}
+        ${state.notice ? `<div class="beta6-import-notice">${escStudio(state.notice)}</div>` : ""}
+
+        <section class="beta6-import-grid">
+          ${state.loading ? `<div class="beta6-import-loading">Lade Galerie …</div>` : itemHtml || `<div class="beta6-import-loading">Keine 3MF-Modelle gefunden.</div>`}
+        </section>
+      </div>
+    `;
+
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) {
+        this.closeBeta6ImportDialog();
+      }
+    }, {once:true});
+
+    overlay.querySelector("[data-beta6-import-source]")?.addEventListener("change", (event) => {
+      state.source = event.target?.value || "archive";
+      state.folder = state.source === "sd" ? "/" : "";
+      state.parent = "";
+      state.items = [];
+      state.selected = null;
+      this.loadBeta6ImportFolder(true);
+    });
+
+    for (const button of [...overlay.querySelectorAll("[data-beta6-import-action]")]) {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const action = String(button.dataset.beta6ImportAction || "");
+        const article = button.closest(".beta6-import-item");
+        const path = article?.dataset?.beta6ImportPath || "";
+        const item = (state.items || []).find((candidate) => String(candidate.path || "") === path) || null;
+
+        if (action === "close") this.closeBeta6ImportDialog();
+        else if (action === "refresh") this.loadBeta6ImportFolder(true);
+        else if (action === "up") {
+          state.folder = state.parent || "";
+          state.selected = null;
+          this.loadBeta6ImportFolder(false);
+        } else if (action === "open-folder" && item) {
+          state.folder = item.path || "";
+          state.selected = null;
+          this.loadBeta6ImportFolder(false);
+        } else if (action === "select" && item) {
+          state.selected = item;
+          state.notice = `Ausgewählt: ${item.name || item.path}`;
+          this.renderBeta6ImportDialog();
+        } else if (action === "import") {
+          this.beta6ImportSelectedModel();
+        }
+      });
+    }
+
+    for (const article of [...overlay.querySelectorAll(".beta6-import-item")]) {
+      article.addEventListener("dblclick", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const path = article.dataset.beta6ImportPath || "";
+        const item = (state.items || []).find((candidate) => String(candidate.path || "") === path) || null;
+        if (!item) return;
+
+        if (item.kind === "folder") {
+          state.folder = item.path || "";
+          state.selected = null;
+          this.loadBeta6ImportFolder(false);
+        } else {
+          state.selected = item;
+          this.beta6ImportSelectedModel();
+        }
+      });
+    }
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.beta6ImportSelectedModel = async function beta6ImportSelectedModel() {
+    const state = this._beta6Import;
+    const item = state?.selected;
+    if (!state || !item) return;
+
+    state.loading = true;
+    state.progress = 18;
+    state.error = "";
+    state.notice = "Studio-Job wird vorbereitet …";
+    this.renderBeta6ImportDialog();
+
+    try {
+      const plan = this.beta6PlanFromItem(item, state.source);
+      state.progress = 46;
+      this.renderBeta6ImportDialog();
+
+      const response = await this.ws({
+        type:"printer_control_center/studio_jobs/create",
+        serial:this.beta6Serial(),
+        plan
+      });
+
+      state.progress = 82;
+      this.renderBeta6ImportDialog();
+
+      const job = response?.job || response || plan;
+      pccBeta6InjectPreview(job, item);
+
+      this._jobs = [...(Array.isArray(this._jobs) ? this._jobs : []), job].filter(Boolean);
+      this._jobsLoaded = true;
+      this.applyActiveJob?.(job, {status:false, render:false});
+      this._activeJob = job;
+      this._activeJobId = job.id || this._activeJobId || "";
+      this._studioModelImageUrl = pccBeta6PreviewFromItem(job) || pccBeta6PreviewFromItem(item) || "";
+      this._studioMesh = null;
+      this._studioMeshJobId = "";
+      this._studioMeshUrl = "";
+      this._studioMeshStatus = this._studioModelImageUrl
+        ? "3MF importiert. Modellbild aus Galerie geladen; STL-Mesh kann zusätzlich geladen werden."
+        : "3MF importiert. Kein Vorschaubild im Projekt gefunden; STL-Mesh kann zusätzlich geladen werden.";
+      this._status = `3MF ins Studio importiert: ${this.jobName(job)}.`;
+      state.progress = 100;
+
+      try {
+        window.PCC_STUDIO_HANDOFF?.broadcast?.(job);
+      } catch (_error) {}
+
+      this.closeBeta6ImportDialog();
+      this.render();
+    } catch (error) {
+      state.error = `Import fehlgeschlagen: ${String(error?.message || error)}`;
+      state.loading = false;
+      state.progress = 0;
+      this.renderBeta6ImportDialog();
+    }
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.bindBetaContextMenu = function bindBetaContextMenu() {
+    const root = this.shadowRoot;
+    if (!root || this._beta6ContextBound === true) return;
+
+    this._beta6ContextBound = true;
+
+    const openHandler = (event) => {
+      const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+      const target = event.target;
+
+      const hit =
+        target?.closest?.(".buildplate") ||
+        target?.closest?.(".buildplate-wrap") ||
+        target?.closest?.(".studio-mesh-canvas") ||
+        target?.closest?.(".studio-model-image") ||
+        target?.closest?.(".model") ||
+        target?.closest?.(".model-label") ||
+        path.find?.((node) => node?.classList?.contains?.("buildplate")) ||
+        path.find?.((node) => node?.classList?.contains?.("buildplate-wrap")) ||
+        path.find?.((node) => node?.classList?.contains?.("studio-mesh-canvas")) ||
+        path.find?.((node) => node?.classList?.contains?.("studio-model-image"));
+
+      if (!hit) return;
+      this.handleContextMenu(event);
+    };
+
+    const closeHandler = (event) => {
+      if (event.button !== 0) return;
+      if (event.target?.closest?.(".studio-context")) return;
+      if (event.target?.closest?.(".beta6-import-dialog")) return;
+
+      root.querySelectorAll(".studio-context.beta6-floating-context,.studio-context.beta5-floating-context,.studio-context.beta4-floating-context,.studio-context.beta3-floating-context").forEach((node) => node.remove());
+      this._beta6ContextPoint = null;
+      this._studioContextMenu = null;
+    };
+
+    root.addEventListener("contextmenu", openHandler, {capture:true});
+    root.addEventListener("pointerdown", (event) => {
+      if (event.button === 2) openHandler(event);
+      else closeHandler(event);
+    }, {capture:true});
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.handleContextMenu = function handleContextMenu(event) {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const plate =
+      event.target?.closest?.(".buildplate") ||
+      event.target?.closest?.(".buildplate-wrap") ||
+      root.querySelector(".buildplate");
+
+    if (!plate) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    this._studioKeyboardActive = true;
+    if (typeof this.focusStudioShell === "function") this.focusStudioShell();
+
+    const rect = plate.getBoundingClientRect();
+    const point = {
+      x: Math.round(event.clientX - rect.left - rect.width / 2),
+      y: Math.round(event.clientY - rect.top - rect.height / 2),
+      clientX: Math.round(event.clientX),
+      clientY: Math.round(event.clientY)
+    };
+
+    this._beta6ContextPoint = point;
+    this._studioContextMenu = point;
+    this._status = "Studio-Kontextmenü geöffnet.";
+    this.showBetaStudioContextMenu(point);
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.showBetaStudioContextMenu = function showBetaStudioContextMenu(point) {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".studio-context.beta6-floating-context,.studio-context.beta5-floating-context,.studio-context.beta4-floating-context,.studio-context.beta3-floating-context").forEach((node) => node.remove());
+
+    const menu = document.createElement("div");
+    menu.className = "studio-context beta6-floating-context";
+    menu.style.position = "fixed";
+    menu.style.left = `${Math.max(8, Number(point?.clientX || 8))}px`;
+    menu.style.top = `${Math.max(8, Number(point?.clientY || 8))}px`;
+    menu.style.zIndex = "2147483000";
+
+    menu.innerHTML = `
+      <div class="beta6-menu-title">3D-Studio</div>
+
+      <div class="beta6-menu-row" data-beta6-panel="position">Position ▸</div>
+      <div class="beta6-menu-row" data-beta6-panel="transform">Drehen / Skalieren ▸</div>
+      <div class="beta6-menu-row" data-beta6-panel="mirror">Spiegeln / Zerren ▸</div>
+      <div class="beta6-menu-row" data-beta6-panel="job">Job / Modell ▸</div>
+      <button class="action" data-beta6-action="close-context">Schließen</button>
+
+      <div class="beta6-side-panel" data-beta6-side-panel="position">
+        <button class="action" data-beta6-action="center">Zentrieren</button>
+        <button class="action" data-beta6-action="move-left">X -10</button>
+        <button class="action" data-beta6-action="move-right">X +10</button>
+        <button class="action" data-beta6-action="move-up">Y -10</button>
+        <button class="action" data-beta6-action="move-down">Y +10</button>
+        <button class="action" data-beta6-action="lay-flat">Flach legen</button>
+        <button class="action" data-beta6-action="snap-grid">Raster anwenden</button>
+      </div>
+
+      <div class="beta6-side-panel" data-beta6-side-panel="transform">
+        <button class="action" data-beta6-action="rot-left">Rot -45</button>
+        <button class="action" data-beta6-action="rot-right">Rot +45</button>
+        <button class="action" data-beta6-action="scale-down">Scale -</button>
+        <button class="action" data-beta6-action="scale-up">Scale +</button>
+        <button class="action" data-beta6-action="zoom-out">Zoom -</button>
+        <button class="action" data-beta6-action="zoom-in">Zoom +</button>
+      </div>
+
+      <div class="beta6-side-panel" data-beta6-side-panel="mirror">
+        <button class="action" data-beta6-action="mirror-x">Spiegel X</button>
+        <button class="action" data-beta6-action="mirror-y">Spiegel Y</button>
+        <button class="action" data-beta6-action="mirror-z">Spiegel Z</button>
+        <button class="action" data-beta6-action="skew-left">Zerr X -</button>
+        <button class="action" data-beta6-action="skew-right">Zerr X +</button>
+      </div>
+
+      <div class="beta6-side-panel" data-beta6-side-panel="job">
+        <button class="action" data-beta6-action="open-import">Importieren …</button>
+        <button class="action" data-beta6-action="reload-mesh">Echtes Modell neu laden</button>
+        <button class="action" data-beta6-action="duplicate">Duplizieren</button>
+        <button class="action danger" data-beta6-action="delete">Löschen</button>
+        <button class="action" data-beta6-action="reset">Reset</button>
+      </div>
+    `;
+
+    const rows = [...menu.querySelectorAll("[data-beta6-panel]")];
+    const panels = [...menu.querySelectorAll("[data-beta6-side-panel]")];
+
+    const showPanel = (name) => {
+      for (const panel of panels) {
+        panel.style.display = panel.dataset.beta6SidePanel === name ? "grid" : "none";
+      }
+    };
+
+    rows.forEach((row) => {
+      row.addEventListener("mouseenter", () => showPanel(row.dataset.beta6Panel));
+    });
+
+    menu.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+    });
+
+    menu.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+
+    menu.addEventListener("click", (event) => {
+      const button = event.target?.closest?.("button[data-beta6-action]");
+      if (!button) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const action = String(button.dataset.beta6Action || "");
+
+      if (action === "close-context") {
+        this._beta6ContextPoint = null;
+        this._studioContextMenu = null;
+        menu.remove();
+        return;
+      }
+
+      if (action === "center") this.centerActiveObject();
+      else if (action === "move-left") this.adjustTransform("x", -10, {status:"X -10 per Kontextmenü.", render:true});
+      else if (action === "move-right") this.adjustTransform("x", 10, {status:"X +10 per Kontextmenü.", render:true});
+      else if (action === "move-up") this.adjustTransform("y", -10, {status:"Y -10 per Kontextmenü.", render:true});
+      else if (action === "move-down") this.adjustTransform("y", 10, {status:"Y +10 per Kontextmenü.", render:true});
+      else if (action === "lay-flat") this.layFlatActiveObject();
+      else if (action === "snap-grid") this.snapTransformToGrid();
+      else if (action === "rot-left") this.adjustTransform("rz", -45, {status:"Rotation Z -45 per Kontextmenü.", render:true});
+      else if (action === "rot-right") this.adjustTransform("rz", 45, {status:"Rotation Z +45 per Kontextmenü.", render:true});
+      else if (action === "scale-down") this.adjustTransform("scale", -10, {status:"Scale -10 per Kontextmenü.", render:true});
+      else if (action === "scale-up") this.adjustTransform("scale", 10, {status:"Scale +10 per Kontextmenü.", render:true});
+      else if (action === "zoom-out") this.setViewZoom((this._viewZoom || 1) - 0.10);
+      else if (action === "zoom-in") this.setViewZoom((this._viewZoom || 1) + 0.10);
+      else if (action === "mirror-x") this.toggleMirror("x");
+      else if (action === "mirror-y") this.toggleMirror("y");
+      else if (action === "mirror-z") this.toggleMirror("z");
+      else if (action === "skew-left") this.adjustTransform("skewX", -5, {status:"Zerr X -5 per Kontextmenü.", render:true});
+      else if (action === "skew-right") this.adjustTransform("skewX", 5, {status:"Zerr X +5 per Kontextmenü.", render:true});
+      else if (action === "open-import") this.openBeta6ImportDialog();
+      else if (action === "reload-mesh") this.ensureStudioMeshLoaded(true);
+      else if (action === "duplicate") this.duplicateActiveJob();
+      else if (action === "delete") this.deleteActiveJob();
+      else if (action === "reset") this.resetTransform?.();
+
+      this._beta6ContextPoint = point;
+    });
+
+    root.appendChild(menu);
+    showPanel("position");
+  };
+
+  PCC_BETA6_STUDIO_CLASS.prototype.deleteActiveJob = async function deleteActiveJob() {
+    const active = this._activeJob || {};
+    const activeId = String(this._activeJobId || active.id || "");
+    const activePath = String(active.file_path || active.path || active.model?.path || "").trim();
+
+    if (!activeId && !activePath) {
+      this._status = "Kein aktiver Studio-Job zum Entfernen ausgewählt.";
+      this.render();
+      return;
+    }
+
+    const removedName = this.jobName(active);
+    const oldJobs = Array.isArray(this._jobs) ? this._jobs : [];
+
+    const remaining = oldJobs.filter((job) => {
+      const id = String(job?.id || "");
+      const path = String(job?.file_path || job?.path || job?.model?.path || "").trim();
+      if (activeId && id === activeId) return false;
+      if (activePath && path === activePath) return false;
+      return true;
+    });
+
+    try {
+      await this.ws({type:"printer_control_center/studio_jobs/clear"});
+
+      const recreated = [];
+      for (const job of remaining) {
+        const clone = JSON.parse(JSON.stringify(job || {}));
+        delete clone.id;
+        const response = await this.ws({
+          type:"printer_control_center/studio_jobs/create",
+          serial:clone.serial || this.beta6Serial(),
+          plan:clone
+        });
+        const created = response?.job || response || null;
+        if (created?.id) recreated.push(created);
+      }
+
+      this._jobs = recreated;
+      this._jobsLoaded = true;
+      this._activeJob = recreated[0] || null;
+      this._activeJobId = this._activeJob?.id || "";
+      this._studioMesh = null;
+      this._studioMeshJobId = "";
+      this._studioMeshUrl = "";
+      this._studioModelImageUrl = "";
+
+      if (this._activeJob) {
+        this.applyActiveJob?.(this._activeJob, {status:false, render:false});
+      } else {
+        this._transform = defaultTransform();
+        this._lastDryRun = null;
+        this._lastStudioPlan = null;
+        this._studioMeshStatus = "Kein Studio-Job aktiv. Importiere ein 3MF-Modell.";
+      }
+
+      this._status = `Studio-Job dauerhaft entfernt: ${removedName}.`;
+    } catch (error) {
+      this._status = `Studio-Job konnte nicht dauerhaft entfernt werden: ${String(error?.message || error)}`;
+    }
+
+    this.render();
+  };
+
+  if (!PCC_BETA6_STUDIO_CLASS.prototype._pccBeta6ClickWrapped) {
+    PCC_BETA6_STUDIO_CLASS.prototype.handleClick = function handleClickBeta6(event) {
+      const action = event.target?.closest?.("[data-action]")?.dataset?.action || "";
+      if (action === "import") {
+        event.preventDefault();
+        event.stopPropagation();
+        this.openBeta6ImportDialog();
+        return;
+      }
+      return PCC_BETA6_ORIGINAL_HANDLE_CLICK.call(this, event);
+    };
+    PCC_BETA6_STUDIO_CLASS.prototype._pccBeta6ClickWrapped = true;
+  }
+
+  if (!PCC_BETA6_STUDIO_CLASS.prototype._pccBeta6ChangeWrapped) {
+    PCC_BETA6_STUDIO_CLASS.prototype.handleChange = function handleChangeBeta6(event) {
+      const buildplate = event.target?.closest?.("[data-beta6-buildplate]");
+      if (buildplate) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta6SetBuildPlate(buildplate.value || "smooth_pei_high_temp");
+        return;
+      }
+      return PCC_BETA6_ORIGINAL_HANDLE_CHANGE.call(this, event);
+    };
+    PCC_BETA6_STUDIO_CLASS.prototype._pccBeta6ChangeWrapped = true;
+  }
+
   if (!customElements.get("printer-control-center-studio-card")) {
     customElements.define("printer-control-center-studio-card", PrinterControlCenterStudioCard);
   }
@@ -7559,7 +8518,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta5 Studio Navigation + Preview Handoff with cleaned workflow navigation, right-inspector-only editing, expanded right-click context submenus and gallery preview handoff."
+      description: "v5 beta6 Studio Import Buildplate Showcase with gallery import popup, buildplate switcher, real preview handoff, stable context menu and persistent delete."
     });
   }
 })();

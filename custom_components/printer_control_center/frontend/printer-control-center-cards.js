@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-alpha23*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-alpha24*/
 (() => {
-  const VERSION = "5.0.0-alpha23";
+  const VERSION = "5.0.0-alpha24";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -184,7 +184,7 @@
     ["Download-Link wurde fÃ¼r fÃ¼nf Minuten in die Zwischenablage kopiert.", "Download link was copied to the clipboard for five minutes."],
     ["Diese Funktion ist als sichere Erweiterungsstufe vorbereitet, aber noch nicht freigeschaltet.", "This function is prepared as a safe extension but is not enabled yet."],
     ["Kein Zusatzhelfer erforderlich. Bambu Studio prÃ¼ft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.", "No additional helper is required. Bambu Studio intentionally checks self-hosted URLs with an origin dialog."],
-    ["HA-only Â· Original-3MF an Bambu Studio", "HA-only Â· Original 3MF to Bambu Studio"],
+    ["HA-only - Original-3MF an Bambu Studio", "HA-only - Original 3MF to Bambu Studio"],
     ["geladen", "loaded"],
     ["Drucker offline", "Printer offline"],
     ["Live-Kamera", "Live camera"],
@@ -220,7 +220,7 @@
     ["Reihenfolge konnte nicht geÃ¤ndert werden", "Order could not be changed"],
     ["Bambu Studio konnte nicht geÃ¶ffnet werden", "Bambu Studio could not be opened"],
     ["Mehrere Modelle markieren und gemeinsam Ã¼bernehmen.", "Select multiple models and add them together."],
-    ["Galerie Â· Modelle zur Warteschlange hinzufÃ¼gen", "Gallery Â· Add models to queue"],
+    ["Galerie - Modelle zur Warteschlange hinzufÃ¼gen", "Gallery - Add models to queue"],
     ["Diese Karte benÃ¶tigt", "This card requires"],
     ["Restzeit", "Remaining time"],
     ["Aufnahme", "Recording"],
@@ -515,7 +515,7 @@
         #printer-control-center-background-upload .head,#printer-control-center-background-upload .line{display:flex;gap:6px;align-items:center;justify-content:space-between;padding:9px 11px}
         #printer-control-center-background-upload .line{padding-top:0;color:#b9d4df;font-size:12px}.track{height:5px;background:#263942}.fill{height:100%;background:#08b8e8}.details{padding:0 11px 10px;color:#bfd7df;font-size:11px;line-height:1.55;max-height:210px;overflow:auto}
         #printer-control-center-background-upload button{cursor:pointer;border:1px solid #167ca4;border-radius:7px;background:#102934;color:#eefaff;padding:5px 7px;font-size:11px}.danger{border-color:#a43d45!important;background:#51242a!important}
-      </style><div class="pcc-bg"><div class="head"><strong>â¬† ${tr("Hintergrund-Upload")} Â· ${esc(this.phaseLabel(task))}</strong><div><button data-pcc-upload-action="toggle">${tr(this.expanded?"Details ausblenden":"Details anzeigen")}</button>${done?` <button data-pcc-upload-action="dismiss">Ã—</button>`:` <button class="danger" data-pcc-upload-action="abort">${tr("Abbrechen")}</button>`}</div></div><div class="line"><span>${esc(task.filename||"")}</span><span>${esc(progress)} % Â· ${esc(this.speedLabel(task))}</span></div><div class="track"><div class="fill" style="width:${progress}%"></div></div>${this.expanded?`<div class="details">${this.taskDetailsHtml()}</div>`:""}</div>`;
+      </style><div class="pcc-bg"><div class="head"><strong>â¬† ${tr("Hintergrund-Upload")} - ${esc(this.phaseLabel(task))}</strong><div><button data-pcc-upload-action="toggle">${tr(this.expanded?"Details ausblenden":"Details anzeigen")}</button>${done?` <button data-pcc-upload-action="dismiss">Ã—</button>`:` <button class="danger" data-pcc-upload-action="abort">${tr("Abbrechen")}</button>`}</div></div><div class="line"><span>${esc(task.filename||"")}</span><span>${esc(progress)} % - ${esc(this.speedLabel(task))}</span></div><div class="track"><div class="fill" style="width:${progress}%"></div></div>${this.expanded?`<div class="details">${this.taskDetailsHtml()}</div>`:""}</div>`;
     }
     async abort(){
       const task=this.task;if(!task)return;
@@ -590,7 +590,7 @@
       try{
         const result=await this.sendFile({serial,source:"archive_zip",file,folder:"",overwrite,baseOffset:0,totalSize:file.size,started});
         task.progress=100;task.phase="verified";
-        task.details=[...(task.details||[]),`Entpacken: OK Â· ${Number(result.imported||0)} Modelle`, `Ordner: ${Number(result.folders||0)} Â· Ãœberschrieben: ${Number(result.overwritten||0)}`, `GegenprÃ¼fung: ${result.verification==="ok"?"OK":"unbekannt"} Â· ${Number(result.verified_files||0)} Modelle Â· ${bytesLabel(result.verified_bytes||0)}`];
+        task.details=[...(task.details||[]),`Entpacken: OK - ${Number(result.imported||0)} Modelle`, `Ordner: ${Number(result.folders||0)} - Ãœberschrieben: ${Number(result.overwritten||0)}`, `GegenprÃ¼fung: ${result.verification==="ok"?"OK":"unbekannt"} - ${Number(result.verified_files||0)} Modelle - ${bytesLabel(result.verified_bytes||0)}`];
         this.emit(true);return result;
       }catch(error){
         if(task.uploadId&&task.phase!=="cancelled"){try{await this.hass.callWS({type:"printer_control_center/upload/abort",upload_id:task.uploadId})}catch(_error){}}
@@ -2179,7 +2179,7 @@
     // Until a real inventory source is linked, loaded spools are intentionally
     // presented as 100% instead of misleading 0%.
     const remaining = loaded ? 100 : null;
-    const details = [brand, loaded ? `${remaining}%` : ""].filter(Boolean).join(" Â· ");
+    const details = [brand, loaded ? `${remaining}%` : ""].filter(Boolean).join(" - ");
 
     return `
       <div class="slot ${loaded ? "" : "muted"} ${active ? "active" : ""}">
@@ -2284,7 +2284,7 @@
 
     const streamHtml = esc(native.stream);
     const stillJson = JSON.stringify(still);
-    const title = esc(`3D-Printer Control Center Live-Kamera Â· ${stateValue(hass, map.serial, map.prefix)}`);
+    const title = esc(`3D-Printer Control Center Live-Kamera - ${stateValue(hass, map.serial, map.prefix)}`);
 
     popup.document.open();
     popup.document.write(`<!doctype html>
@@ -2387,7 +2387,7 @@
             </label>
           ` : `
             <label>Drucker
-              <select id="printer">${printers.map((printer) => `<option value="${esc(printer.prefix)}" ${printer.prefix === selected ? "selected" : ""}>${esc(printer.title)} Â· ${esc(printer.serial)}</option>`).join("")}</select>
+              <select id="printer">${printers.map((printer) => `<option value="${esc(printer.prefix)}" ${printer.prefix === selected ? "selected" : ""}>${esc(printer.title)} - ${esc(printer.serial)}</option>`).join("")}</select>
             </label>
             <label>Titel<input id="title" value="${esc(this._config?.title || "3D-Printer Control Center")}"></label>
           `}
@@ -2553,7 +2553,7 @@
             ${metric("Bett",formatTemp(stateValue(this._hass,map.bed)))}
           </div>
           ${basicButtons}
-          <div class="footer"><span>3D-Printer Control Center Â· ${VERSION}</span></div>
+          <div class="footer"><span>3D-Printer Control Center - ${VERSION}</span></div>
         `);
         this.bind(map); return;
       }
@@ -2573,7 +2573,7 @@
             </div>
           </div>
           ${basicButtons}
-          <div class="footer"><span>3D-Printer Control Center Â· ${VERSION}</span><a href="${DOCS}" target="_blank">${DOCS}</a></div>
+          <div class="footer"><span>3D-Printer Control Center - ${VERSION}</span><a href="${DOCS}" target="_blank">${DOCS}</a></div>
         `);
         this.bind(map); return;
       }
@@ -2933,7 +2933,7 @@
         const objectUrl=URL.createObjectURL(blob);
         this.triggerHomeAssistantDownload(objectUrl,filename);
         window.setTimeout(()=>URL.revokeObjectURL(objectUrl),60_000);
-        this._notice=`Galerie-ZIP exportiert: ${filename} Â· ${bytesLabel(blob.size)}`;
+        this._notice=`Galerie-ZIP exportiert: ${filename} - ${bytesLabel(blob.size)}`;
       }catch(error){this._error=`Galerie-ZIP-Export fehlgeschlagen: ${String(error?.message||error)}`}
       this.render();
     }
@@ -2955,7 +2955,7 @@
           if(!/existing files|overwrite/i.test(message)||!window.confirm(tr("Vorhandene Galerie-Dateien Ã¼berschreiben?")))throw error;
           result=await PCC_UPLOADS.startGalleryZip({hass:this._hass,serial:this.serial(map),file,overwrite:true});
         }
-        this._notice=`ZIP-Import erfolgreich: ${Number(result.imported||0)} Modelle Â· ${Number(result.folders||0)} Ordner Â· ${Number(result.overwritten||0)} Ã¼berschrieben Â· GegenprÃ¼fung ${result.verification==="ok"?"OK":"unbekannt"}`;
+        this._notice=`ZIP-Import erfolgreich: ${Number(result.imported||0)} Modelle - ${Number(result.folders||0)} Ordner - ${Number(result.overwritten||0)} Ã¼berschrieben - GegenprÃ¼fung ${result.verification==="ok"?"OK":"unbekannt"}`;
         await this.load(map,true);
       }catch(error){this._error=`Galerie-ZIP konnte nicht importiert werden: ${String(error?.message||error)}`;this.render()}
     }
@@ -3780,8 +3780,8 @@
               <span class="badge">${esc(bytesLabel(item.size||0))}</span>
 
               <div class="archive-preview-controls">
-                <button data-preview-transform="zoom-out">âˆ’</button>
-                <button data-preview-transform="zoom-in">Ã¯Â¼â€¹</button>
+                <button data-preview-transform="zoom-out">-</button>
+                <button data-preview-transform="zoom-in">+</button>
                 <button data-preview-transform="rotate">â†»</button>
                 <button data-preview-transform="reset">âŸ²</button>
               </div>
@@ -4020,13 +4020,13 @@
                   <span class="badge">${this._source==="sd"?"SD-Karte":"Archiv"}</span>
                 </div>
                 <span class="archive-library-summary">
-                  ${esc(stats.files||0)} Dateien Â· ${esc(stats.folders||0)} Ordner Â· ${esc(bytesLabel(stats.bytes||0))} belegt
+                  ${esc(stats.files||0)} Dateien - ${esc(stats.folders||0)} Ordner - ${esc(bytesLabel(stats.bytes||0))} belegt
                 </span>
               </div>
 
               <div class="archive-library-header-actions">
                 <button data-bulk-action="select-all" ${visibleSelectableCount?"":"disabled"}>â˜‘ Sichtbare auswÃ¤hlen</button>
-                <span class="badge" title="Kein Zusatzhelfer erforderlich. Bambu Studio prÃ¼ft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.">HA-only Â· Original-3MF an Bambu Studio</span>
+                <span class="badge" title="Kein Zusatzhelfer erforderlich. Bambu Studio prÃ¼ft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.">HA-only - Original-3MF an Bambu Studio</span>
                 <button class="primary" data-action="choose-upload">â¬† 3MF hochladen</button>
                 ${this._source==="archive"?`<button data-action="gallery-export">â‡© Galerie-ZIP exportieren</button><button data-action="choose-zip-import">â‡§ Galerie-ZIP importieren</button>`:""}
                 <button data-action="template-refresh" title="3D-Drucker-Dateimanager/Galerie aktualisieren">â†» Aktualisieren</button>
@@ -4072,8 +4072,8 @@
             ${this._backgroundUploadTask?`
               <div class="upload-progress">
                 <div class="row between">
-                  <strong>â¬† Hintergrund-Upload Â· ${esc(PCC_UPLOADS.phaseLabel(this._backgroundUploadTask))}</strong>
-                  <span>${esc(this._backgroundUploadTask.progress||0)} % Â· ${esc(PCC_UPLOADS.speedLabel(this._backgroundUploadTask))}</span>
+                  <strong>â¬† Hintergrund-Upload - ${esc(PCC_UPLOADS.phaseLabel(this._backgroundUploadTask))}</strong>
+                  <span>${esc(this._backgroundUploadTask.progress||0)} % - ${esc(PCC_UPLOADS.speedLabel(this._backgroundUploadTask))}</span>
                 </div>
                 <div class="upload-progress-track"><div class="upload-progress-fill" style="width:${esc(this._backgroundUploadTask.progress||0)}%"></div></div>
                 <small>${esc(this._backgroundUploadTask.filename||"")}</small>
@@ -4087,7 +4087,7 @@
                     : `Upload-Ziel: ${this._source==="sd"?"SD-Karte des Druckers":"Lokales Archiv"}`
                   }</strong>
                   <small>${selectedCountForUpload
-                    ? `${esc(bytesLabel(selectedBytes))} Â· ${esc(selectedNames.slice(0,3).join(", "))}${selectedNames.length>3?` Â· +${selectedNames.length-3} weitere`:""}`
+                    ? `${esc(bytesLabel(selectedBytes))} - ${esc(selectedNames.slice(0,3).join(", "))}${selectedNames.length>3?` - +${selectedNames.length-3} weitere`:""}`
                     : "Upload wird vorbereitet â€¦"
                   }</small>
                 </div>
@@ -4102,7 +4102,7 @@
                 <div class="upload-progress">
                   <div class="row between">
                     <strong>${esc(this._uploadLabel)}</strong>
-                    <span>${esc(this._uploadProgress)} % Â· ${esc(bytesLabel(this._uploadSpeed||0))}/s</span>
+                    <span>${esc(this._uploadProgress)} % - ${esc(bytesLabel(this._uploadSpeed||0))}/s</span>
                   </div>
                   <div class="upload-progress-track">
                     <div class="upload-progress-fill" style="width:${esc(this._uploadProgress)}%"></div>
@@ -4521,7 +4521,7 @@
           ${folder?"ðŸ“":item.preview_data_url?`<img src="${esc(item.preview_data_url)}" alt="${esc(item.name)}">`:"ðŸ“„"}
         </button>
         <strong class="queue-name" title="${esc(item.name)}">${esc(item.name)}</strong>
-        <small>${folder?"Ordner":`${esc(bytesLabel(item.size||0))} Â· ${esc(this._pickerSource==="sd"?"SD-Karte":"Archiv")}`}</small>
+        <small>${folder?"Ordner":`${esc(bytesLabel(item.size||0))} - ${esc(this._pickerSource==="sd"?"SD-Karte":"Archiv")}`}</small>
         ${folder?`<button data-queue-picker-folder="${esc(item.path)}">ðŸ“ Ã–ffnen</button>`:""}
       </article>`;
     }
@@ -4532,7 +4532,7 @@
       return `<div class="tc-overlay" data-queue-picker-backdrop>
         <section class="queue-picker-dialog">
           <div class="row between">
-            <div><h2>Galerie Â· Modelle zur Warteschlange hinzufÃ¼gen</h2><small>Mehrere Modelle markieren und gemeinsam Ã¼bernehmen.</small></div>
+            <div><h2>Galerie - Modelle zur Warteschlange hinzufÃ¼gen</h2><small>Mehrere Modelle markieren und gemeinsam Ã¼bernehmen.</small></div>
             <button data-queue-picker-close>âœ•</button>
           </div>
           <div class="toolbar">
@@ -4646,7 +4646,7 @@
         : `<span class="queue-preview-fallback">ðŸ“„</span>`;
       const draftQuantity=this._queueDraftQuantities.get(String(item.id));
       const shownQuantity=draftQuantity===undefined?item.quantity||1:draftQuantity;
-      return `<article class="queue-row" title="${esc(item.source==="sd"?"SD-Karte":"Lokales Archiv")} Â· ${esc(item.path)}">
+      return `<article class="queue-row" title="${esc(item.source==="sd"?"SD-Karte":"Lokales Archiv")} - ${esc(item.path)}">
         <span class="queue-position">${index+1}</span>
         <div class="queue-preview">${preview}</div>
         <div class="queue-meta">
@@ -4777,20 +4777,20 @@
   for(const [type,klass] of Object.entries(legacyCards)) if(!customElements.get(type)) definePccElement(type,klass);
 
   const picker = [
-    [TYPES.complete,"3D-Printer Control Center Â· Komplettkarte","Responsive Gesamtansicht mit Kamera, Steuerung und AMS"],
-    [TYPES.media,"3D-Printer Control Center Â· Kamera / Modellvorschau","Live-Kamera mit automatischem Vorschau- und Offline-Fallback"],
-    [TYPES.controls,"3D-Printer Control Center Â· Steuerung","Licht, Kamera und zustandsabhÃ¤ngige Drucksteuerung"],
-    [TYPES.ams,"3D-Printer Control Center Â· AMS","Geladene Materialien und Farben"],
-    [TYPES.progress,"3D-Printer Control Center Â· Druckfortschritt","Fortschritt, Layer und Restzeit"],
-    [TYPES.telemetry,"3D-Printer Control Center Â· Telemetrie","Temperaturen und Netzwerk"],
-    [TYPES.network,"3D-Printer Control Center Â· Netzwerkdiagnose","Transport, Scanner und IP"],
-    [TYPES.firmware,"3D-Printer Control Center Â· Firmware","Firmwarestatus ohne Auto-Update"],
-    [TYPES.header,"3D-Printer Control Center Â· Header und Status","Kompakter Druckerstatus"],
-    [TYPES.brand,"3D-Printer Control Center Â· Logo und Branding","Branding-Modul"],
-    [TYPES.templates,"3D-Printer Control Center Â· 3D-Drucker-Dateimanager/Galerie","HA-only Vollbreiten-Dateimanager mit Body-Overlay, direktem Bambu-Studio-Import und SD-Karten-Verwaltung"],
-    [TYPES.queue,"3D-Printer Control Center Â· 3D-Druck-Warteschlange","Persistente Druckplanung mit Galerie-Popup, Mehrfachauswahl, StÃ¼ckzahl und Bambu-Studio-DruckÃ¼bergabe"],
-    [TYPES.makerworld,"3D-Printer Control Center Â· MakerWorld Explorer","MakerWorld-Websuche"],
-    [TYPES.frame,"3D-Printer Control Center Â· Glow-Rahmen","Separater Glow-Rahmen"],
+    [TYPES.complete,"3D-Printer Control Center - Komplettkarte","Responsive Gesamtansicht mit Kamera, Steuerung und AMS"],
+    [TYPES.media,"3D-Printer Control Center - Kamera / Modellvorschau","Live-Kamera mit automatischem Vorschau- und Offline-Fallback"],
+    [TYPES.controls,"3D-Printer Control Center - Steuerung","Licht, Kamera und zustandsabhÃ¤ngige Drucksteuerung"],
+    [TYPES.ams,"3D-Printer Control Center - AMS","Geladene Materialien und Farben"],
+    [TYPES.progress,"3D-Printer Control Center - Druckfortschritt","Fortschritt, Layer und Restzeit"],
+    [TYPES.telemetry,"3D-Printer Control Center - Telemetrie","Temperaturen und Netzwerk"],
+    [TYPES.network,"3D-Printer Control Center - Netzwerkdiagnose","Transport, Scanner und IP"],
+    [TYPES.firmware,"3D-Printer Control Center - Firmware","Firmwarestatus ohne Auto-Update"],
+    [TYPES.header,"3D-Printer Control Center - Header und Status","Kompakter Druckerstatus"],
+    [TYPES.brand,"3D-Printer Control Center - Logo und Branding","Branding-Modul"],
+    [TYPES.templates,"3D-Printer Control Center - 3D-Drucker-Dateimanager/Galerie","HA-only Vollbreiten-Dateimanager mit Body-Overlay, direktem Bambu-Studio-Import und SD-Karten-Verwaltung"],
+    [TYPES.queue,"3D-Printer Control Center - 3D-Druck-Warteschlange","Persistente Druckplanung mit Galerie-Popup, Mehrfachauswahl, StÃ¼ckzahl und Bambu-Studio-DruckÃ¼bergabe"],
+    [TYPES.makerworld,"3D-Printer Control Center - MakerWorld Explorer","MakerWorld-Websuche"],
+    [TYPES.frame,"3D-Printer Control Center - Glow-Rahmen","Separater Glow-Rahmen"],
   ];
 
   window.customCards=window.customCards||[];
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-alpha23",
+        version: "5.0.0-alpha24",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-alpha23";
+  const STUDIO_VERSION = "5.0.0-alpha24";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   const escStudio = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -4869,9 +4869,11 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "alpha23 Transform Engine bereit. Zoom, Rotation, Spiegeln, Strecken/Zerren und persistente Live-Transforms sind aktiv. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+      this._status = "alpha24 Interactive Studio Control bereit. Zoom, Rotation, Spiegeln, Strecken/Zerren und persistente Live-Transforms sind aktiv. Echtes Slicen und Direktdruck bleiben deaktiviert.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
+      this._dragState = null;
+      this._keyboardStep = 5;
       this._saveTimer = null;
 
       this._handoffHandler = (event) => this.consumeStudioHandoff(event?.detail || null);
@@ -4882,6 +4884,13 @@
       this.shadowRoot.addEventListener("click", (event) => this.handleClick(event));
       this.shadowRoot.addEventListener("change", (event) => this.handleChange(event));
       this.shadowRoot.addEventListener("input", (event) => this.handleInput(event));
+      this.shadowRoot.addEventListener("pointerdown", (event) => this.handlePointerDown(event));
+      this.shadowRoot.addEventListener("pointermove", (event) => this.handlePointerMove(event));
+      this.shadowRoot.addEventListener("pointerup", (event) => this.handlePointerUp(event));
+      this.shadowRoot.addEventListener("pointercancel", (event) => this.handlePointerUp(event));
+      this.shadowRoot.addEventListener("wheel", (event) => this.handleWheel(event), {passive:false});
+      this.shadowRoot.addEventListener("dblclick", (event) => this.handleDoubleClick(event));
+      this.shadowRoot.addEventListener("keydown", (event) => this.handleKeyDown(event));
     }
 
     connectedCallback() {
@@ -4908,7 +4917,7 @@
       this.ensureStudioJobsLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Alpha23: Home Assistant pushes frequent hass updates.
+      // Alpha24: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -5459,7 +5468,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Alpha23: no full render on every keystroke.
+      // Alpha24: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -5474,7 +5483,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Alpha23: render is intentionally skipped while editing to avoid cursor jumps.
+      // Alpha24: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -5544,6 +5553,11 @@
         this.adjustTransform("skewX", 5, {status:"Zerren X +5 Grad angewendet.", render:true});
       }
 
+      if (action === "snap-grid") {
+        this.snapTransformToGrid();
+        return;
+      }
+
       if (action === "center") {
         this._transform.x = 0;
         this._transform.y = 0;
@@ -5578,6 +5592,16 @@
         this.scheduleActiveJobSave();
         this._status = "Transform, Spiegelung, Zerren und Zoom zurueckgesetzt.";
         this.render();
+      }
+
+      if (action === "duplicate") {
+        this.duplicateActiveJob();
+        return;
+      }
+
+      if (action === "delete") {
+        this.deleteActiveJob();
+        return;
       }
 
       if (action === "duplicate") {
@@ -5652,7 +5676,7 @@
         return `
           <button class="job-row ${active ? "active" : ""}" data-action="job-select" data-job-id="${escStudio(job?.id || "")}">
             <strong>${escStudio(this.jobName(job))}</strong>
-            <small>${escStudio(this.jobSource(job))} Â· ${escStudio(this.jobPath(job) || "kein Pfad")}</small>
+            <small>${escStudio(this.jobSource(job))} - ${escStudio(this.jobPath(job) || "kein Pfad")}</small>
           </button>
         `;
       }).join("");
@@ -5763,10 +5787,14 @@
             .badge.ok{border-color:rgba(60,180,90,.65)}
             .badge.warn{border-color:rgba(230,160,40,.75)}
             .health-note{color:var(--pcc-muted);font-size:12px;line-height:1.45;}
+            .buildplate{touch-action:none;cursor:crosshair;}
+            .model{cursor:grab;}
+            .model.dragging{cursor:grabbing;box-shadow:0 28px 60px rgba(0,0,0,.58),0 0 0 2px rgba(0,169,214,.65);}
+            .plate-help{position:absolute;right:14px;top:12px;font-size:11px;color:var(--pcc-muted);text-align:right;line-height:1.35;}
             @media(max-width:1100px){.studio-grid{grid-template-columns:1fr}.buildplate-wrap{min-height:520px}}
           </style>
 
-          <div class="studio-shell">
+          <div class="studio-shell" tabindex="0">
             <div class="studio-topbar">
               <h2>3D-Studio / CAD-Vorschau</h2>
               ${this.toolButton("Importieren","import")}
@@ -5784,6 +5812,7 @@
               <button class="action" data-action="mirror-z">Spiegel Z</button>
               <button class="action" data-action="skew-left">Zerr X -</button>
               <button class="action" data-action="skew-right">Zerr X +</button>
+              <button class="action" data-action="snap-grid">Raster</button>
               <button class="action" data-action="duplicate">Duplizieren</button>
               <button class="action" data-action="delete">Loeschen</button>
               <button class="action" data-action="center">Zentrieren</button>
@@ -5812,8 +5841,9 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate">
-                  <div class="plate-label">Buildplate Â· alpha22 Beta Foundation Â· persistent Studio job</div>
-                  <div class="model"></div>
+                  <div class="plate-label">Buildplate - alpha24 Interactive Studio Control</div>
+                  <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
+                  <div class="model" title="Modell ziehen"></div>
                   <div class="model-label">${escStudio(activeName)}</div>
                 </div>
                 <div class="status">${escStudio(this._status)}</div>
@@ -5877,7 +5907,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 alpha22 Beta Foundation Studio/CAD frontend with Gallery handoff, persistent jobs and profile-bank backed Dry-Run planning."
+      description: "v5 alpha24 Interactive Studio Control with drag, keyboard shortcuts, snap-to-grid, persistent jobs and profile-bank backed Dry-Run planning."
     });
   }
 })();

@@ -1,3 +1,28 @@
+## 5.0.0-alpha24 - Interactive Studio Control
+
+### English
+- Added an interactive Studio control step on top of the alpha23 transform engine.
+- Added mouse drag support for the active model on the buildplate.
+- Added Ctrl/Alt + mouse wheel zoom and double-click placement on the buildplate.
+- Added keyboard control for move, rotate, zoom, mirror, snap, center, lay-flat and delete shortcuts.
+- Added snap-to-grid for X/Y/Z and Z rotation.
+- Made duplicate create a new Studio job through the existing persistent Studio job WebSocket path, with a local fallback.
+- Added local removal of the active Studio job from the Studio selection.
+- Cleaned mojibake-prone separator characters and preview zoom button labels in the frontend.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Interaktive Studio-Bedienung auf Basis der alpha23 Transform Engine ergaenzt.
+- Aktives Modell kann direkt auf der Buildplate mit der Maus gezogen werden.
+- Ctrl/Alt + Mausrad zoomt die Buildplate; Doppelklick setzt die Modellposition.
+- Tastatursteuerung fuer Verschieben, Drehen, Zoom, Spiegeln, Raster, Zentrieren, Flach legen und Loeschen ergaenzt.
+- Snap-to-grid fuer X/Y/Z und Z-Rotation ergaenzt.
+- Duplizieren erzeugt einen neuen Studio-Job ueber den bestehenden persistenten Studio-Job-WebSocket-Pfad, mit lokalem Fallback.
+- Aktiver Studio-Job kann aus der Studio-Auswahl entfernt werden.
+- Mojibake-anfaellige Trenner und Preview-Zoom-Labels im Frontend bereinigt.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-alpha23 - Studio Transform Engine
 
 ### English

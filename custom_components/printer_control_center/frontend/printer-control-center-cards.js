@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 4.0.16 */
+/* 3D-Printer Control Center - HACS Release 4.0.17 */
 (() => {
-  const VERSION = "4.0.16";
+  const VERSION = "4.0.17";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4809,7 +4809,7 @@
         for (const node of nodes) sanitizeNode(node, depth + 1);
       }
     } catch (err) {
-      console.debug("PCC v4.0.16 UTF-8 sanitizer skipped node", err);
+      console.debug("PCC v4.0.17 UTF-8 sanitizer skipped node", err);
     }
   };
 
@@ -5015,11 +5015,14 @@
 
 
 ;(() => {
-  if (window.__pccV416StableInlineCameraPatch) return;
-  window.__pccV416StableInlineCameraPatch = true;
+  if (window.__pccV417ModelAwareLeftCameraOverlay) return;
+  window.__pccV417ModelAwareLeftCameraOverlay = true;
 
   const CAMERA_SUFFIXES = ["_native_live_camera", "_live_camera", "_camera"];
   let helperPromise = null;
+  let overlay = null;
+  let liveCard = null;
+  let liveEntity = null;
   let scheduled = false;
 
   function deepElements(root = document) {
@@ -5030,23 +5033,70 @@
       if (!node || seen.has(node)) return;
       seen.add(node);
 
-      if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.DOCUMENT_FRAGMENT_NODE || node === document) {
-        if (node.nodeType === Node.ELEMENT_NODE) out.push(node);
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        out.push(node);
         if (node.shadowRoot) visit(node.shadowRoot);
+      }
 
-        const children = node.children ? Array.from(node.children) : [];
-        for (const child of children) visit(child);
+      if (node.children) {
+        for (const child of Array.from(node.children)) visit(child);
+      }
 
-        if (node.querySelectorAll) {
-          for (const el of node.querySelectorAll("*")) {
-            if (!seen.has(el)) visit(el);
-          }
+      if (node.querySelectorAll) {
+        for (const el of node.querySelectorAll("*")) {
+          if (!seen.has(el)) visit(el);
         }
       }
     }
 
     visit(root);
     return out;
+  }
+
+  function modelTextFromHass(hass) {
+    if (!hass || !hass.states) return "";
+    const parts = [];
+
+    for (const [entityId, stateObj] of Object.entries(hass.states)) {
+      if (!stateObj) continue;
+      const id = String(entityId).toLowerCase();
+      const attrs = stateObj.attributes || {};
+      const friendly = String(attrs.friendly_name || "").toLowerCase();
+
+      if (
+        id.includes("printer_model") ||
+        id.includes("model") ||
+        id.includes("bambu") ||
+        friendly.includes("printer model") ||
+        friendly.includes("druckermodell") ||
+        friendly.includes("bambu")
+      ) {
+        parts.push(String(stateObj.state || ""));
+        for (const key of [
+          "printer_model",
+          "configured_printer_model",
+          "detected_printer_model",
+          "model",
+          "friendly_name",
+          "device_name",
+        ]) {
+          if (attrs[key]) parts.push(String(attrs[key]));
+        }
+      }
+    }
+
+    return parts.join(" ").toLowerCase();
+  }
+
+  function isA1Printer(hass, cardEl) {
+    const cardText = cardEl && cardEl.shadowRoot ? String(cardEl.shadowRoot.textContent || "").toLowerCase() : "";
+    const modelText = `${cardText} ${modelTextFromHass(hass)}`;
+
+    if (modelText.includes("x1") || modelText.includes("x1 carbon") || modelText.includes("p1p") || modelText.includes("p1s")) {
+      return false;
+    }
+
+    return /\ba1\b/.test(modelText) || modelText.includes("a1 mini");
   }
 
   function resolveCameraEntity(hass) {
@@ -5074,10 +5124,9 @@
     }) || null;
   }
 
-  function hideStandaloneCameraCards() {
+  function hideRightCameraCards() {
     for (const el of deepElements(document)) {
-      const tag = String(el.localName || "").toLowerCase();
-      if (tag === "printer-control-center-camera-card") {
+      if (String(el.localName || "").toLowerCase() === "printer-control-center-camera-card") {
         el.style.display = "none";
         el.hidden = true;
         if (el.parentElement) {
@@ -5103,35 +5152,45 @@
     if (!el || !el.shadowRoot) return false;
     const text = String(el.shadowRoot.textContent || "");
     return text.includes("3D-Printer Control Center")
-      && (text.includes("Kein aktiver Druckauftrag") || text.includes("No active print job"))
+      && text.includes("AMS")
       && (text.includes("Düse") || text.includes("Nozzle"))
-      && text.includes("AMS");
+      && (
+        text.includes("Kein aktiver Druckauftrag")
+        || text.includes("No active print job")
+        || text.includes("Firmware")
+      );
   }
 
-  function findExistingHost(root) {
-    return root.querySelector("[data-pcc-v416-camera-host]");
+  function findPrinterCard() {
+    return deepElements(document).find((el) => isPrinterCardElement(el)) || null;
   }
 
-  function findCameraPanel(root) {
-    const existingHost = findExistingHost(root);
-    if (existingHost && existingHost.parentElement) return existingHost.parentElement;
-
+  function findCameraRect(cardEl) {
+    const root = cardEl.shadowRoot;
     const elements = deepElements(root).filter((el) => el instanceof HTMLElement);
+    const cardRect = cardEl.getBoundingClientRect();
 
     const label = elements.find((el) => {
-      const text = String(el.textContent || "").trim();
-      return text === "Native Live-Kamera"
-        || text === "Native Live Camera"
-        || text.includes("Native Live-Kamera")
-        || text.includes("Native Live Camera");
+      const t = String(el.textContent || "").trim();
+      return t.includes("Native Live-Kamera")
+        || t.includes("Native Live Camera")
+        || t.includes("Livekamera")
+        || t.includes("Live camera");
     });
 
     if (label) {
       let current = label;
       while (current && current !== root) {
         const rect = current.getBoundingClientRect ? current.getBoundingClientRect() : null;
-        if (rect && rect.width >= 220 && rect.height >= 220 && rect.width <= 430 && rect.height <= 520) {
-          return current;
+        if (
+          rect &&
+          rect.width >= 220 &&
+          rect.height >= 180 &&
+          rect.left >= cardRect.left - 10 &&
+          rect.right <= cardRect.right + 10 &&
+          rect.top >= cardRect.top - 10
+        ) {
+          return rect;
         }
         current = current.parentElement;
       }
@@ -5145,15 +5204,19 @@
       if (!rect) continue;
 
       const text = String(el.textContent || "");
-      if (rect.width < 220 || rect.height < 220) continue;
-      if (rect.width > 440 || rect.height > 520) continue;
+      if (rect.width < 220 || rect.height < 180) continue;
+      if (rect.width > 470 || rect.height > 540) continue;
+      if (rect.left < cardRect.left - 10 || rect.right > cardRect.right + 10) continue;
+      if (rect.top < cardRect.top - 10) continue;
+      if (rect.bottom <= 0 || rect.top >= window.innerHeight) continue;
+
       if (text.includes("Düse") || text.includes("Bett") || text.includes("Firmware") || text.includes("WLAN")) continue;
       if (text.includes("AMS 2 Pro") || text.includes("Slot 1") || text.includes("PETG")) continue;
       if (text.includes("3D-Printer Control Center") && text.length > 80) continue;
 
       const score = rect.width * rect.height;
       if (score > bestScore) {
-        best = el;
+        best = rect;
         bestScore = score;
       }
     }
@@ -5186,96 +5249,95 @@
     throw new Error("picture-entity helper not available");
   }
 
-  async function ensureInlineCamera(cardEl) {
-    if (!isPrinterCardElement(cardEl)) return;
+  async function ensureOverlay(hass, entity) {
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.setAttribute("data-pcc-v417-left-camera-overlay", "1");
+      overlay.style.position = "fixed";
+      overlay.style.zIndex = "4";
+      overlay.style.overflow = "hidden";
+      overlay.style.borderRadius = "14px";
+      overlay.style.background = "transparent";
+      overlay.style.pointerEvents = "none";
+      overlay.style.display = "none";
+      document.body.appendChild(overlay);
+    }
 
-    const root = cardEl.shadowRoot;
-    const hass = getHassFromElement(cardEl);
-    if (!root || !hass) return;
+    if (!liveCard || liveEntity !== entity) {
+      overlay.innerHTML = "";
+      liveCard = await createLiveCard(entity);
+      liveEntity = entity;
+      liveCard.style.width = "100%";
+      liveCard.style.height = "100%";
+      overlay.appendChild(liveCard);
+    }
 
-    const entity = resolveCameraEntity(hass);
-    if (!entity) return;
+    liveCard.hass = hass;
+  }
 
-    const existingHost = findExistingHost(root);
-    if (existingHost) {
-      const liveCard = existingHost.firstElementChild;
-      if (liveCard) liveCard.hass = hass;
+  async function runPatch() {
+    scheduled = false;
+
+    hideRightCameraCards();
+
+    const cardEl = findPrinterCard();
+    if (!cardEl) {
+      if (overlay) overlay.style.display = "none";
       return;
     }
 
-    const panel = findCameraPanel(root);
-    if (!panel) return;
-
-    panel.dataset.pccV416InlineEntity = entity;
-    panel.innerHTML = "";
-    panel.style.position = "relative";
-    panel.style.overflow = "hidden";
-    panel.style.padding = "0";
-    panel.style.minHeight = "300px";
-    panel.style.background = "transparent";
-
-    const host = document.createElement("div");
-    host.setAttribute("data-pcc-v416-camera-host", "1");
-    host.style.width = "100%";
-    host.style.height = "100%";
-    host.style.minHeight = "300px";
-    host.style.display = "block";
-
-    panel.appendChild(host);
-
-    try {
-      const liveCard = await createLiveCard(entity);
-      liveCard.hass = hass;
-      liveCard.style.width = "100%";
-      liveCard.style.height = "100%";
-      host.appendChild(liveCard);
-    } catch (err) {
-      console.error("PCC v4.0.16 stable inline camera failed", err);
-      host.innerHTML = `
-        <div style="
-          min-height:300px;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          color:var(--primary-text-color);
-          opacity:.75;
-          padding:16px;
-          text-align:center;
-        ">
-          Livekamera konnte links nicht geladen werden.
-        </div>
-      `;
+    const hass = getHassFromElement(cardEl);
+    if (!hass) {
+      if (overlay) overlay.style.display = "none";
+      return;
     }
-  }
 
-  function runPatch() {
-    scheduled = false;
-    hideStandaloneCameraCards();
-
-    for (const el of deepElements(document)) {
-      if (el && el.shadowRoot) {
-        ensureInlineCamera(el).catch((err) => console.error("PCC v4.0.16 scan failed", err));
-      }
+    if (isA1Printer(hass, cardEl)) {
+      if (overlay) overlay.style.display = "none";
+      return;
     }
+
+    const entity = resolveCameraEntity(hass);
+    if (!entity) {
+      if (overlay) overlay.style.display = "none";
+      return;
+    }
+
+    const rect = findCameraRect(cardEl);
+    if (!rect || rect.width < 100 || rect.height < 100 || rect.bottom <= 0 || rect.top >= window.innerHeight) {
+      if (overlay) overlay.style.display = "none";
+      return;
+    }
+
+    await ensureOverlay(hass, entity);
+
+    overlay.style.left = `${Math.round(rect.left)}px`;
+    overlay.style.top = `${Math.round(rect.top)}px`;
+    overlay.style.width = `${Math.round(rect.width)}px`;
+    overlay.style.height = `${Math.round(rect.height)}px`;
+    overlay.style.display = "block";
   }
 
   function schedulePatch() {
     if (scheduled) return;
     scheduled = true;
     window.requestAnimationFrame(() => {
-      window.setTimeout(runPatch, 150);
+      window.setTimeout(() => {
+        runPatch().catch((err) => console.error("PCC v4.0.17 overlay failed", err));
+      }, 120);
     });
   }
 
   const start = () => {
     schedulePatch();
 
+    window.addEventListener("resize", schedulePatch, { passive: true });
+    window.addEventListener("scroll", schedulePatch, { passive: true, capture: true });
+
     const observer = new MutationObserver((mutations) => {
-      // Nur reagieren, wenn neue externe Lovelace-Struktur kommt.
-      // Änderungen innerhalb unseres eigenen Kamera-Hosts ignorieren, damit der Stream nicht neu aufgebaut wird.
       for (const mutation of mutations) {
         const target = mutation.target;
-        if (target && target.closest && target.closest("[data-pcc-v416-camera-host]")) {
+        if (target && target.closest && target.closest("[data-pcc-v417-left-camera-overlay]")) {
           continue;
         }
         schedulePatch();
@@ -5284,6 +5346,7 @@
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
+    window.setInterval(schedulePatch, 2000);
   };
 
   if (document.readyState === "loading") {

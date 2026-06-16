@@ -1,3 +1,13 @@
+## 4.0.17 - 2026-06-16
+
+- Instabile Inline-Kamera-Ersetzung durch stabiles linkes Kamera-Overlay ersetzt.
+- Konkurrierende Runtime-Kamerapatches aus v4.0.13, v4.0.14, v4.0.15 und dem früheren v4.0.16-Versuch entfernt.
+- A1-artige Drucker bleiben auf dem bestehenden nativen Kamera-Rendering-Pfad.
+- Für Nicht-A1-Bambu-Lab-Drucker wie X1-/P1-Serie wird die Home-Assistant-Entity `camera.*_native_live_camera` verwendet.
+- Eine einzige Home-Assistant-`picture-entity`-Livekamera bleibt bestehen, statt den Stream wiederholt neu zu erzeugen.
+- Die Livekamera wird visuell über dem linken Kamera-Bereich der Druckerkarte positioniert, ohne bei Karten-Neurenderings den Stream zu zerstören.
+- Verbliebene separate rechte Kamera-Karten werden ausgeblendet.
+
 ## 4.0.16 - 2026-06-16
 
 - Inline-Livekamera-Renderer in der Haupt-Druckerkarte stabilisiert.

@@ -1,3 +1,24 @@
+## 5.0.0-beta5 - Studio Navigation + Preview Handoff
+
+### English
+- Cleaned the Studio top navigation by removing duplicate edit actions: Move, Rotate, Scale, Rot -45, Rot +45, Scale - and Scale +.
+- Added Delete back to the top Studio workflow navigation while keeping edit controls in the right Transform inspector.
+- Reworked the right-click Studio context menu into a persistent floating menu with right-opening submenus for position, rotation/scale, mirror/skew and job/model actions.
+- Added Delete to the right-click context menu and kept persistent job deletion active.
+- Added gallery preview handoff enrichment so preview data is copied to root-level and model-level Studio job fields.
+- Continued to prefer STL/geometry mesh rendering while allowing a real gallery model-image fallback.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Obere Studio-Navigation bereinigt: doppelte Bearbeitungsaktionen Verschieben, Drehen, Skalieren, Rot -45, Rot +45, Scale - und Scale + entfernt.
+- Löschen wieder oben in der Studio-Workflow-Navigation ergänzt; Bearbeitung bleibt rechts im Transform-Inspector.
+- Rechtsklick-Kontextmenü als persistentes schwebendes Menü mit nach rechts öffnenden Untermenüs für Position, Drehen/Skalieren, Spiegeln/Zerren und Job/Modell überarbeitet.
+- Löschen im Rechtsklickmenü ergänzt; persistentes Job-Löschen bleibt aktiv.
+- Galerie-Preview-Handoff erweitert: Preview-Daten werden in Root- und Model-Felder des Studio-Jobs übernommen.
+- STL-/Geometrie-Mesh bleibt bevorzugt; echtes Galerie-Modellbild dient als sichtbarer Fallback.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta4 - Context Menu + Model Image Fix
 
 ### English

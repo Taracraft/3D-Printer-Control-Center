@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta4*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta5*/
 (() => {
-  const VERSION = "5.0.0-beta4";
+  const VERSION = "5.0.0-beta5";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta4",
+        version: "5.0.0-beta5",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta4";
+  const STUDIO_VERSION = "5.0.0-beta5";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -4881,7 +4881,7 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta4 Context Menu + Model Image Fix bereit. Rechtsklickmenü nutzt keine ShadowRoot-dataset-Zugriffe mehr, die obere Navigation bleibt bereinigt und das Studio zeigt STL-Mesh oder ein echtes Modellbild aus dem Galerie-Handoff. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+      this._status = "beta5 Studio Navigation + Preview Handoff bereit. Oben bleiben nur Workflow-Aktionen plus Löschen, Bearbeitung bleibt rechts, Rechtsklickmenü hat Untermenüs und Galerie-Previews werden in den Studio-Job übernommen. Echtes Slicen und Direktdruck bleiben deaktiviert.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -4944,7 +4944,7 @@
       this.ensureStudioMeshLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Beta4: Home Assistant pushes frequent hass updates.
+      // Beta5: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -6039,7 +6039,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta4: no full render on every keystroke.
+      // Beta5: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -6054,7 +6054,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta4: render is intentionally skipped while editing to avoid cursor jumps.
+      // Beta5: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -6443,7 +6443,7 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta4 Context Menu + Model Image Fix</div>
+                  <div class="plate-label">Buildplate - beta5 Studio Navigation + Preview Handoff</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   ${this._studioModelImageUrl ? html`
@@ -7108,6 +7108,448 @@
     return "";
   };
 
+
+  const PCC_BETA5_PREVIEW_KEYS = [
+    "preview_data_url", "previewDataUrl", "preview_url", "previewUrl",
+    "thumbnail", "thumb", "image", "image_url", "imageUrl",
+    "poster", "poster_url", "posterUrl"
+  ];
+
+  function pccBeta5PreviewFromItem(item) {
+    if (!item) return "";
+    const direct = [];
+
+    for (const key of PCC_BETA5_PREVIEW_KEYS) {
+      direct.push(item?.[key]);
+    }
+
+    direct.push(
+      item?.preview?.data_url,
+      item?.preview?.dataUrl,
+      item?.preview?.url,
+      item?.preview?.href,
+      item?.model?.preview_data_url,
+      item?.model?.preview_url,
+      item?.model?.thumbnail,
+      item?.model?.image
+    );
+
+    for (const value of direct) {
+      const text = String(value || "").trim();
+      if (!text) continue;
+      if (text.startsWith("data:image/")) return text;
+      if (text.startsWith("blob:")) return text;
+      if (text.startsWith("http://") || text.startsWith("https://")) return text;
+      if (text.startsWith("/")) return `${window.location.origin}${text}`;
+    }
+
+    return "";
+  }
+
+  function pccBeta5EnrichStudioPlan(plan, item) {
+    if (!plan || !item) return plan;
+
+    const preview = pccBeta5PreviewFromItem(item);
+    if (!preview) return plan;
+
+    plan.preview_data_url = plan.preview_data_url || preview;
+    plan.preview_url = plan.preview_url || preview;
+    plan.thumbnail = plan.thumbnail || preview;
+    plan.image = plan.image || preview;
+    plan.preview = plan.preview || {};
+    plan.preview.data_url = plan.preview.data_url || preview;
+    plan.preview.url = plan.preview.url || preview;
+
+    plan.model = plan.model || {};
+    plan.model.preview_data_url = plan.model.preview_data_url || preview;
+    plan.model.preview_url = plan.model.preview_url || preview;
+    plan.model.thumbnail = plan.model.thumbnail || preview;
+    plan.model.image = plan.model.image || preview;
+
+    return plan;
+  }
+
+  function pccBeta5PatchGalleryPreviewHandoff() {
+    const candidates = [
+      customElements.get("printer-control-center-gallery-card"),
+      customElements.get("printer-control-center-filemanager-card"),
+      customElements.get("printer-control-center-file-manager-card"),
+      customElements.get("printer-control-center-files-card")
+    ].filter(Boolean);
+
+    for (const cls of candidates) {
+      const proto = cls?.prototype;
+      if (!proto || proto._pccBeta5PreviewHandoffPatched) continue;
+
+      if (typeof proto.buildStudioPlanFromItem === "function") {
+        const originalBuild = proto.buildStudioPlanFromItem;
+        proto.buildStudioPlanFromItem = function buildStudioPlanFromItemBeta5(map, item) {
+          const plan = originalBuild.call(this, map, item);
+          return pccBeta5EnrichStudioPlan(plan, item);
+        };
+      }
+
+      if (typeof proto.openInStudio === "function") {
+        const originalOpen = proto.openInStudio;
+        proto.openInStudio = async function openInStudioBeta5(map, item) {
+          if (typeof this.buildStudioPlanFromItem === "function") {
+            try {
+              const preview = pccBeta5PreviewFromItem(item);
+              if (preview) {
+                item.preview_data_url = item.preview_data_url || preview;
+                item.preview_url = item.preview_url || preview;
+                item.thumbnail = item.thumbnail || preview;
+                item.image = item.image || preview;
+              }
+            } catch (_error) {}
+          }
+          return originalOpen.call(this, map, item);
+        };
+      }
+
+      proto._pccBeta5PreviewHandoffPatched = true;
+    }
+  }
+
+  pccBeta5PatchGalleryPreviewHandoff();
+
+  const PCC_BETA5_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+
+  PCC_BETA5_STUDIO_CLASS.prototype.beta5RemoveObjectObjectLabels = function beta5RemoveObjectObjectLabels() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    for (const node of nodes) {
+      if (String(node.nodeValue || "").includes("[object Object]")) {
+        node.nodeValue = String(node.nodeValue || "").replaceAll("[object Object]", "").trim();
+      }
+    }
+  };
+
+  PCC_BETA5_STUDIO_CLASS.prototype.beta5TopActionHost = function beta5TopActionHost() {
+    const root = this.shadowRoot;
+    if (!root) return null;
+
+    const buttons = [...root.querySelectorAll("button")];
+    const importButton = buttons.find((button) => button.textContent?.trim?.() === "Importieren");
+    if (importButton?.parentElement) return importButton.parentElement;
+
+    const planButton = buttons.find((button) => button.textContent?.includes?.("Plan prüfen"));
+    if (planButton?.parentElement) return planButton.parentElement;
+
+    return null;
+  };
+
+  PCC_BETA5_STUDIO_CLASS.prototype.beta5EnsureTopDeleteButton = function beta5EnsureTopDeleteButton() {
+    const host = this.beta5TopActionHost?.();
+    if (!host || host.querySelector("[data-beta5-top-delete]")) return;
+
+    const button = document.createElement("button");
+    button.className = "action";
+    button.dataset.beta5TopDelete = "1";
+    button.textContent = "Löschen";
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      this.deleteActiveJob();
+    });
+
+    host.appendChild(button);
+  };
+
+  PCC_BETA5_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const panels = [...root.querySelectorAll(".panel")];
+    const rightInspector = panels.length ? panels[panels.length - 1] : null;
+
+    const topRemoveByText = new Set([
+      "Verschieben", "Drehen", "Skalieren",
+      "Rot -45", "Rot +45",
+      "Scale -", "Scale +"
+    ]);
+
+    const topRemoveByAction = new Set([
+      "move", "rotate", "scale",
+      "rot-minus-45", "rot-plus-45",
+      "scale-minus", "scale-plus",
+      "rotate-left", "rotate-right",
+      "zoom-in", "zoom-out",
+      "mirror-x", "mirror-y", "mirror-z",
+      "skew-left", "skew-right",
+      "snap-grid", "duplicate",
+      "center", "lay-flat", "reset"
+    ]);
+
+    for (const button of [...root.querySelectorAll("button")]) {
+      if (button.closest(".studio-context")) continue;
+      if (rightInspector && rightInspector.contains(button)) continue;
+      if (button.dataset?.beta5TopDelete === "1") continue;
+
+      const text = String(button.textContent || "").trim();
+      const action = String(button.dataset?.action || "").trim();
+
+      if (topRemoveByText.has(text) || topRemoveByAction.has(action)) {
+        button.remove();
+      }
+    }
+
+    for (const empty of [...root.querySelectorAll(".action-grid")]) {
+      if (empty.closest(".studio-context")) continue;
+      if (!empty.querySelector("button")) empty.remove();
+    }
+
+    this.beta5EnsureTopDeleteButton?.();
+    this.beta5RemoveObjectObjectLabels?.();
+    this.updateStudioModelImage?.();
+    this.ensureBeta5ContextMenuVisible?.();
+  };
+
+  PCC_BETA5_STUDIO_CLASS.prototype.activeJobPreviewUrl = function activeJobPreviewUrl() {
+    const job = this._activeJob || this.buildDryRunJob?.() || {};
+    const handoff = (() => {
+      try {
+        return window.PCC_STUDIO_HANDOFF?.latest?.()?.job || null;
+      } catch (_error) {
+        return null;
+      }
+    })();
+
+    const jobs = Array.isArray(this._jobs) ? this._jobs : [];
+    const activePath = String(job?.file_path || job?.path || job?.model?.path || "").trim();
+
+    const matchingJob = jobs.find((candidate) => {
+      const candidatePath = String(candidate?.file_path || candidate?.path || candidate?.model?.path || "").trim();
+      return activePath && candidatePath === activePath;
+    }) || null;
+
+    const candidates = [
+      job.preview_data_url, job.previewDataUrl, job.preview_url, job.previewUrl,
+      job.thumbnail, job.thumb, job.image, job.image_url, job.imageUrl,
+      job.preview?.data_url, job.preview?.dataUrl, job.preview?.url,
+      job.model?.preview_data_url, job.model?.preview_url, job.model?.thumbnail, job.model?.image,
+
+      matchingJob?.preview_data_url, matchingJob?.preview_url, matchingJob?.thumbnail, matchingJob?.image,
+      matchingJob?.model?.preview_data_url, matchingJob?.model?.preview_url, matchingJob?.model?.thumbnail, matchingJob?.model?.image,
+
+      handoff?.preview_data_url, handoff?.previewDataUrl, handoff?.preview_url, handoff?.thumbnail, handoff?.image,
+      handoff?.preview?.data_url, handoff?.preview?.url,
+      handoff?.model?.preview_data_url, handoff?.model?.preview_url, handoff?.model?.thumbnail, handoff?.model?.image
+    ];
+
+    for (const value of candidates) {
+      const text = String(value || "").trim();
+      if (!text) continue;
+      if (text.startsWith("data:image/")) return text;
+      if (text.startsWith("blob:")) return text;
+      if (text.startsWith("http://") || text.startsWith("https://")) return text;
+      if (text.startsWith("/")) return `${window.location.origin}${text}`;
+    }
+
+    return "";
+  };
+
+  PCC_BETA5_STUDIO_CLASS.prototype.updateStudioModelImage = function updateStudioModelImage() {
+    const url = this.activeJobPreviewUrl?.() || "";
+    this._studioModelImageUrl = url;
+    return url;
+  };
+
+  PCC_BETA5_STUDIO_CLASS.prototype.bindBetaContextMenu = function bindBetaContextMenu() {
+    const root = this.shadowRoot;
+    if (!root || this._beta5ContextBound === true) return;
+
+    this._beta5ContextBound = true;
+
+    const handler = (event) => {
+      const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+      const target = event.target;
+
+      const hit =
+        target?.closest?.(".buildplate") ||
+        target?.closest?.(".buildplate-wrap") ||
+        target?.closest?.(".studio-mesh-canvas") ||
+        target?.closest?.(".studio-model-image") ||
+        target?.closest?.(".model") ||
+        target?.closest?.(".model-label") ||
+        path.find?.((node) => node?.classList?.contains?.("buildplate")) ||
+        path.find?.((node) => node?.classList?.contains?.("buildplate-wrap")) ||
+        path.find?.((node) => node?.classList?.contains?.("studio-mesh-canvas")) ||
+        path.find?.((node) => node?.classList?.contains?.("studio-model-image"));
+
+      if (!hit) return;
+      this.handleContextMenu(event);
+    };
+
+    root.addEventListener("contextmenu", handler, {capture:true});
+    root.addEventListener("pointerdown", (event) => {
+      if (event.button === 2) handler(event);
+    }, {capture:true});
+  };
+
+  PCC_BETA5_STUDIO_CLASS.prototype.handleContextMenu = function handleContextMenu(event) {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const plate =
+      event.target?.closest?.(".buildplate") ||
+      event.target?.closest?.(".buildplate-wrap") ||
+      root.querySelector(".buildplate");
+
+    if (!plate) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    this._studioKeyboardActive = true;
+    if (typeof this.focusStudioShell === "function") this.focusStudioShell();
+
+    const rect = plate.getBoundingClientRect();
+    const point = {
+      x: Math.round(event.clientX - rect.left - rect.width / 2),
+      y: Math.round(event.clientY - rect.top - rect.height / 2),
+      screenX: Math.round(event.clientX - rect.left),
+      screenY: Math.round(event.clientY - rect.top),
+      clientX: Math.round(event.clientX),
+      clientY: Math.round(event.clientY)
+    };
+
+    this._beta5ContextPoint = point;
+    this._studioContextMenu = point;
+    this._status = "Studio-Kontextmenü geöffnet.";
+    this.showBetaStudioContextMenu(point);
+  };
+
+  PCC_BETA5_STUDIO_CLASS.prototype.ensureBeta5ContextMenuVisible = function ensureBeta5ContextMenuVisible() {
+    if (!this._beta5ContextPoint) return;
+    if (this.shadowRoot?.querySelector?.(".studio-context.beta5-floating-context")) return;
+    this.showBetaStudioContextMenu(this._beta5ContextPoint);
+  };
+
+  PCC_BETA5_STUDIO_CLASS.prototype.showBetaStudioContextMenu = function showBetaStudioContextMenu(point) {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".studio-context.beta5-floating-context,.studio-context.beta4-floating-context,.studio-context.beta3-floating-context").forEach((node) => node.remove());
+
+    const menu = document.createElement("div");
+    menu.className = "studio-context beta5-floating-context";
+    menu.style.position = "fixed";
+    menu.style.left = `${Math.max(8, Number(point?.clientX || point?.screenX || 8))}px`;
+    menu.style.top = `${Math.max(8, Number(point?.clientY || point?.screenY || 8))}px`;
+    menu.style.zIndex = "2147483000";
+    menu.innerHTML = `
+      <div class="beta5-menu-title">3D-Studio</div>
+
+      <div class="beta5-submenu">
+        <button class="action beta5-submenu-button">Position ▸</button>
+        <div class="beta5-submenu-panel">
+          <button class="action" data-beta5-action="center">Zentrieren</button>
+          <button class="action" data-beta5-action="move-left">X -10</button>
+          <button class="action" data-beta5-action="move-right">X +10</button>
+          <button class="action" data-beta5-action="move-up">Y -10</button>
+          <button class="action" data-beta5-action="move-down">Y +10</button>
+          <button class="action" data-beta5-action="lay-flat">Flach legen</button>
+          <button class="action" data-beta5-action="snap-grid">Raster anwenden</button>
+        </div>
+      </div>
+
+      <div class="beta5-submenu">
+        <button class="action beta5-submenu-button">Drehen / Skalieren ▸</button>
+        <div class="beta5-submenu-panel">
+          <button class="action" data-beta5-action="rot-left">Rot -45</button>
+          <button class="action" data-beta5-action="rot-right">Rot +45</button>
+          <button class="action" data-beta5-action="scale-down">Scale -</button>
+          <button class="action" data-beta5-action="scale-up">Scale +</button>
+          <button class="action" data-beta5-action="zoom-out">Zoom -</button>
+          <button class="action" data-beta5-action="zoom-in">Zoom +</button>
+        </div>
+      </div>
+
+      <div class="beta5-submenu">
+        <button class="action beta5-submenu-button">Spiegeln / Zerren ▸</button>
+        <div class="beta5-submenu-panel">
+          <button class="action" data-beta5-action="mirror-x">Spiegel X</button>
+          <button class="action" data-beta5-action="mirror-y">Spiegel Y</button>
+          <button class="action" data-beta5-action="mirror-z">Spiegel Z</button>
+          <button class="action" data-beta5-action="skew-left">Zerr X -</button>
+          <button class="action" data-beta5-action="skew-right">Zerr X +</button>
+        </div>
+      </div>
+
+      <div class="beta5-submenu">
+        <button class="action beta5-submenu-button">Job / Modell ▸</button>
+        <div class="beta5-submenu-panel">
+          <button class="action" data-beta5-action="reload-mesh">Echtes Modell neu laden</button>
+          <button class="action" data-beta5-action="duplicate">Duplizieren</button>
+          <button class="action danger" data-beta5-action="delete">Löschen</button>
+          <button class="action" data-beta5-action="reset">Reset</button>
+        </div>
+      </div>
+
+      <button class="action" data-beta5-action="close-context">Schließen</button>
+    `;
+
+    menu.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+    });
+
+    menu.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+
+    menu.addEventListener("click", (event) => {
+      const button = event.target?.closest?.("button[data-beta5-action]");
+      if (!button) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const action = String(button.dataset.beta5Action || "");
+
+      if (action === "close-context") {
+        this._beta5ContextPoint = null;
+        this._studioContextMenu = null;
+        menu.remove();
+        return;
+      }
+
+      if (action === "center") this.centerActiveObject();
+      else if (action === "move-left") this.adjustTransform("x", -10, {status:"X -10 per Kontextmenü.", render:true});
+      else if (action === "move-right") this.adjustTransform("x", 10, {status:"X +10 per Kontextmenü.", render:true});
+      else if (action === "move-up") this.adjustTransform("y", -10, {status:"Y -10 per Kontextmenü.", render:true});
+      else if (action === "move-down") this.adjustTransform("y", 10, {status:"Y +10 per Kontextmenü.", render:true});
+      else if (action === "lay-flat") this.layFlatActiveObject();
+      else if (action === "snap-grid") this.snapTransformToGrid();
+      else if (action === "rot-left") this.adjustTransform("rz", -45, {status:"Rotation Z -45 per Kontextmenü.", render:true});
+      else if (action === "rot-right") this.adjustTransform("rz", 45, {status:"Rotation Z +45 per Kontextmenü.", render:true});
+      else if (action === "scale-down") this.adjustTransform("scale", -10, {status:"Scale -10 per Kontextmenü.", render:true});
+      else if (action === "scale-up") this.adjustTransform("scale", 10, {status:"Scale +10 per Kontextmenü.", render:true});
+      else if (action === "zoom-out") this.setViewZoom((this._viewZoom || 1) - 0.10);
+      else if (action === "zoom-in") this.setViewZoom((this._viewZoom || 1) + 0.10);
+      else if (action === "mirror-x") this.toggleMirror("x");
+      else if (action === "mirror-y") this.toggleMirror("y");
+      else if (action === "mirror-z") this.toggleMirror("z");
+      else if (action === "skew-left") this.adjustTransform("skewX", -5, {status:"Zerr X -5 per Kontextmenü.", render:true});
+      else if (action === "skew-right") this.adjustTransform("skewX", 5, {status:"Zerr X +5 per Kontextmenü.", render:true});
+      else if (action === "reload-mesh") this.ensureStudioMeshLoaded(true);
+      else if (action === "duplicate") this.duplicateActiveJob();
+      else if (action === "delete") this.deleteActiveJob();
+      else if (action === "reset") this.resetTransform?.();
+
+      this._beta5ContextPoint = point;
+      window.setTimeout(() => this.ensureBeta5ContextMenuVisible?.(), 0);
+    });
+
+    root.appendChild(menu);
+  };
+
   if (!customElements.get("printer-control-center-studio-card")) {
     customElements.define("printer-control-center-studio-card", PrinterControlCenterStudioCard);
   }
@@ -7117,7 +7559,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta4 Context Menu + Model Image Fix with robust right-click context menu binding, right-inspector-only editing and STL mesh/model-image fallback."
+      description: "v5 beta5 Studio Navigation + Preview Handoff with cleaned workflow navigation, right-inspector-only editing, expanded right-click context submenus and gallery preview handoff."
     });
   }
 })();

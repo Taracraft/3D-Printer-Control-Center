@@ -1,3 +1,26 @@
+## 5.0.0-beta22 - Studio top toolbar and object color editing
+
+### English
+- Keeps the confirmed beta9 buildplate selector, beta20 primitives/rulers and beta21 real mesh rendering as active base.
+- Removes the lower Studio status/Dry-Run message area from the visible UI.
+- Hides the right Transform inspector and moves object editing into a Bambu Studio inspired top toolbar.
+- Adds top toolbar controls for move, Z movement, rotation, scale, stretch, mirror, skew, center, zoom, lay-flat, reset and delete.
+- Adds object color editing with a color picker and quick swatches.
+- Applies selected object color to the filled shaded mesh renderer; later filament-color binding can reuse this color state.
+- No camera, dashboard or printer connection changes.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Behält die bestätigte beta9-Druckplattenauswahl sowie beta20-Primitive/Lineale und beta21-echtes Mesh-Rendering als aktive Basis.
+- Entfernt den unteren sichtbaren Studio-Status-/Dry-Run-Meldungsbereich.
+- Blendet den rechten Transform-Inspector aus und verschiebt die Objektbearbeitung in eine Bambu-Studio-ähnliche obere Werkzeugleiste.
+- Ergänzt obere Bearbeitungsbuttons für Verschieben, Z-Bewegung, Drehen, Skalieren, Strecken, Spiegeln, Zerren, Zentrieren, Zoom, Flachlegen, Reset und Löschen.
+- Ergänzt Objektfarbe/Einfärben über Farbwähler und Schnellfarben.
+- Die gewählte Objektfarbe wird auf das gefüllte schattierte Mesh-Rendering angewendet; spätere Filamentfarb-Zuordnung kann diesen Farbzustand übernehmen.
+- Keine Kamera-, Dashboard- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta21 - Real Studio rendering and phantom-state fix
 
 ### English

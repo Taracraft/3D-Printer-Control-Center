@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta21*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta22*/
 (() => {
-  const VERSION = "5.0.0-beta21";
+  const VERSION = "5.0.0-beta22";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta21",
+        version: "5.0.0-beta22",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta21";
+  const STUDIO_VERSION = "5.0.0-beta22";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -11155,6 +11155,538 @@ const PCC_BETA21_STUDIO_CLASS = customElements.get("printer-control-center-studi
       return;
     }
     return PCC_BETA21_PREV_HANDLE_CLICK.call(this, event);
+  };
+
+const PCC_BETA22_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA22_PREV_CLEANUP = PCC_BETA22_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+  const PCC_BETA22_PREV_HANDLE_CLICK = PCC_BETA22_STUDIO_CLASS.prototype.handleClick;
+  const PCC_BETA22_PREV_RENDER_MESH = PCC_BETA22_STUDIO_CLASS.prototype.renderMeshCanvas;
+
+  function pccBeta22Clamp(value, min, max) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return min;
+    return Math.max(min, Math.min(max, n));
+  }
+
+  function pccBeta22HexToRgb(hex) {
+    const clean = String(hex || "#00a9d6").trim().replace("#", "");
+    const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
+    const value = Number.parseInt(full, 16);
+    if (!Number.isFinite(value)) return {r:0, g:169, b:214};
+    return {r:(value >> 16) & 255, g:(value >> 8) & 255, b:value & 255};
+  }
+
+  function pccBeta22RgbToHex(rgb) {
+    const part = (v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
+    return `#${part(rgb.r)}${part(rgb.g)}${part(rgb.b)}`;
+  }
+
+  function pccBeta22ShadeColor(hex, normal, depth) {
+    const base = pccBeta22HexToRgb(hex);
+    const light = [0.28, -0.44, 0.85];
+    const dot = Math.max(0, normal[0] * light[0] + normal[1] * light[1] + normal[2] * light[2]);
+    const factor = Math.max(0.38, Math.min(1.28, 0.54 + dot * 0.62 - depth * 0.055));
+    const r = base.r * factor;
+    const g = base.g * factor;
+    const b = base.b * factor;
+    return {
+      fill: `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, 0.90)`,
+      stroke: `rgba(${Math.min(255, Math.round(r + 30))}, ${Math.min(255, Math.round(g + 30))}, ${Math.min(255, Math.round(b + 30))}, ${0.18 + dot * 0.28})`
+    };
+  }
+
+  function pccBeta22TriangleNormal(tri) {
+    const a = tri[0], b = tri[1], c = tri[2];
+    const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
+    const vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+    const nx = uy * vz - uz * vy;
+    const ny = uz * vx - ux * vz;
+    const nz = ux * vy - uy * vx;
+    const len = Math.hypot(nx, ny, nz) || 1;
+    return [nx / len, ny / len, nz / len];
+  }
+
+  PCC_BETA22_STUDIO_CLASS.prototype.beta22ObjectColor = function beta22ObjectColor() {
+    const fromJob = this._activeJob?.color || this._activeJob?.model?.color || this._activeJob?.filament_color || "";
+    const value = String(this._pccBeta22ObjectColor || fromJob || "#00a9d6").trim();
+    return /^#[0-9a-f]{6}$/i.test(value) ? value : "#00a9d6";
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.beta22SetObjectColor = function beta22SetObjectColor(color) {
+    const clean = String(color || "").trim();
+    if (!/^#[0-9a-f]{6}$/i.test(clean)) return;
+    this._pccBeta22ObjectColor = clean;
+    if (this._activeJob) {
+      this._activeJob.color = clean;
+      this._activeJob.model = {...(this._activeJob.model || {}), color: clean};
+    }
+    this.queueMeshRender?.();
+    this.beta22UpdateToolbarState?.();
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.beta22EnsureStyle = function beta22EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta22-top-toolbar-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta22-top-toolbar-style";
+    style.textContent = `
+      .studio-grid{
+        grid-template-columns:minmax(250px,280px) minmax(560px,1fr)!important;
+      }
+
+      @media(max-width:1100px){
+        .studio-grid{grid-template-columns:1fr!important;}
+      }
+
+      .pcc-beta22-hidden-right-inspector{
+        display:none!important;
+      }
+
+      .pcc-beta22-bottom-message,
+      .pcc-beta22-hidden-status{
+        display:none!important;
+      }
+
+      .pcc-beta22-top-toolbar{
+        position:sticky;
+        top:0;
+        z-index:80;
+        display:flex;
+        align-items:center;
+        gap:7px;
+        padding:7px 8px;
+        margin:0 0 8px;
+        border:1px solid rgba(0,169,214,.28);
+        border-radius:12px;
+        background:linear-gradient(180deg,rgba(28,31,35,.94),rgba(14,18,22,.94));
+        box-shadow:0 10px 28px rgba(0,0,0,.28);
+        overflow-x:auto;
+        scrollbar-width:thin;
+      }
+
+      .pcc-beta22-toolbar-group{
+        display:flex;
+        align-items:center;
+        gap:5px;
+        padding-right:7px;
+        border-right:1px solid rgba(255,255,255,.16);
+        flex:0 0 auto;
+      }
+
+      .pcc-beta22-toolbar-group:last-child{
+        border-right:0;
+      }
+
+      .pcc-beta22-tool{
+        width:34px;
+        height:34px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        border:1px solid rgba(255,255,255,.20);
+        border-radius:7px;
+        background:rgba(255,255,255,.055);
+        color:rgba(255,255,255,.88);
+        font-size:18px;
+        line-height:1;
+        cursor:pointer;
+        user-select:none;
+      }
+
+      .pcc-beta22-tool:hover{
+        border-color:rgba(0,195,255,.70);
+        background:rgba(0,169,214,.16);
+        color:#fff;
+      }
+
+      .pcc-beta22-tool.danger:hover{
+        border-color:rgba(255,80,80,.76);
+        background:rgba(255,80,80,.18);
+      }
+
+      .pcc-beta22-tool.active{
+        border-color:rgba(0,235,255,.82);
+        box-shadow:0 0 0 1px rgba(0,235,255,.32) inset;
+      }
+
+      .pcc-beta22-color{
+        width:34px;
+        height:34px;
+        border:1px solid rgba(255,255,255,.25);
+        border-radius:7px;
+        padding:0;
+        background:transparent;
+        cursor:pointer;
+      }
+
+      .pcc-beta22-swatch{
+        width:24px;
+        height:24px;
+        border-radius:6px;
+        border:1px solid rgba(255,255,255,.28);
+        cursor:pointer;
+      }
+
+      .pcc-beta22-swatch.active{
+        outline:2px solid rgba(0,235,255,.78);
+        outline-offset:1px;
+      }
+
+      .pcc-beta22-tool-label{
+        font-size:10px;
+        color:rgba(255,255,255,.58);
+        white-space:nowrap;
+        padding:0 2px;
+      }
+
+      .pcc-beta22-toolbar-spacer{
+        width:6px;
+        flex:0 0 auto;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.beta22ToolbarHtml = function beta22ToolbarHtml() {
+    const color = this.beta22ObjectColor();
+    const swatches = ["#00a9d6", "#f44336", "#ff9800", "#ffeb3b", "#4caf50", "#2196f3", "#9c27b0", "#ffffff", "#111111"];
+    const swatchHtml = swatches.map((value) => `
+      <button class="pcc-beta22-swatch ${value.toLowerCase() === color.toLowerCase() ? "active" : ""}" data-beta22-color="${value}" title="Farbe ${value}" style="background:${value}"></button>
+    `).join("");
+
+    return `
+      <div class="pcc-beta22-top-toolbar" aria-label="Studio Bearbeitungswerkzeuge">
+        <div class="pcc-beta22-toolbar-group">
+          <button class="pcc-beta22-tool" data-beta22-action="import" title="Importieren">▣</button>
+          <button class="pcc-beta22-tool danger" data-beta22-action="delete" title="Löschen">⌫</button>
+        </div>
+
+        <div class="pcc-beta22-toolbar-group">
+          <span class="pcc-beta22-tool-label">Position</span>
+          <button class="pcc-beta22-tool" data-beta22-action="move-left" title="Links">←</button>
+          <button class="pcc-beta22-tool" data-beta22-action="move-right" title="Rechts">→</button>
+          <button class="pcc-beta22-tool" data-beta22-action="move-up" title="Nach hinten">↑</button>
+          <button class="pcc-beta22-tool" data-beta22-action="move-down" title="Nach vorne">↓</button>
+          <button class="pcc-beta22-tool" data-beta22-action="z-up" title="Z höher">⇧</button>
+          <button class="pcc-beta22-tool" data-beta22-action="z-down" title="Z tiefer">⇩</button>
+        </div>
+
+        <div class="pcc-beta22-toolbar-group">
+          <span class="pcc-beta22-tool-label">Drehen</span>
+          <button class="pcc-beta22-tool" data-beta22-action="rot-x" title="Rot X +15°">⤸</button>
+          <button class="pcc-beta22-tool" data-beta22-action="rot-y" title="Rot Y +15°">⤹</button>
+          <button class="pcc-beta22-tool" data-beta22-action="rot-z" title="Rot Z +15°">↻</button>
+          <button class="pcc-beta22-tool" data-beta22-action="lay-flat" title="Flach legen">▰</button>
+        </div>
+
+        <div class="pcc-beta22-toolbar-group">
+          <span class="pcc-beta22-tool-label">Größe</span>
+          <button class="pcc-beta22-tool" data-beta22-action="scale-down" title="Kleiner">−</button>
+          <button class="pcc-beta22-tool" data-beta22-action="scale-up" title="Größer">＋</button>
+          <button class="pcc-beta22-tool" data-beta22-action="stretch-x-up" title="Breite +">⇔</button>
+          <button class="pcc-beta22-tool" data-beta22-action="stretch-y-up" title="Länge +">⇕</button>
+          <button class="pcc-beta22-tool" data-beta22-action="stretch-z-up" title="Höhe +">⬍</button>
+        </div>
+
+        <div class="pcc-beta22-toolbar-group">
+          <span class="pcc-beta22-tool-label">Spiegeln/Zerren</span>
+          <button class="pcc-beta22-tool" data-beta22-action="mirror-x" title="Spiegel X">X</button>
+          <button class="pcc-beta22-tool" data-beta22-action="mirror-y" title="Spiegel Y">Y</button>
+          <button class="pcc-beta22-tool" data-beta22-action="mirror-z" title="Spiegel Z">Z</button>
+          <button class="pcc-beta22-tool" data-beta22-action="skew-x" title="Zerr X +5°">▱</button>
+          <button class="pcc-beta22-tool" data-beta22-action="skew-y" title="Zerr Y +5°">▰</button>
+        </div>
+
+        <div class="pcc-beta22-toolbar-group">
+          <span class="pcc-beta22-tool-label">Ansicht</span>
+          <button class="pcc-beta22-tool" data-beta22-action="center" title="Zentrieren">◎</button>
+          <button class="pcc-beta22-tool" data-beta22-action="zoom-out" title="Zoom -">⌕−</button>
+          <button class="pcc-beta22-tool" data-beta22-action="zoom-in" title="Zoom +">⌕＋</button>
+          <button class="pcc-beta22-tool" data-beta22-action="reset" title="Reset">↺</button>
+        </div>
+
+        <div class="pcc-beta22-toolbar-group">
+          <span class="pcc-beta22-tool-label">Farbe</span>
+          <input class="pcc-beta22-color" type="color" value="${color}" title="Objekt einfärben">
+          ${swatchHtml}
+        </div>
+      </div>
+    `;
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.beta22InstallTopToolbar = function beta22InstallTopToolbar() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    let toolbar = root.querySelector(".pcc-beta22-top-toolbar");
+    const shell = root.querySelector(".studio-shell") || root.querySelector(".studio-grid")?.parentElement || root.querySelector(".buildplate")?.parentElement;
+    if (!shell) return;
+
+    if (!toolbar) {
+      const wrap = document.createElement("div");
+      wrap.innerHTML = this.beta22ToolbarHtml().trim();
+      toolbar = wrap.firstElementChild;
+      shell.insertBefore(toolbar, shell.firstElementChild);
+    } else {
+      const colorInput = toolbar.querySelector(".pcc-beta22-color");
+      if (colorInput) colorInput.value = this.beta22ObjectColor();
+      toolbar.querySelectorAll("[data-beta22-color]").forEach((button) => {
+        button.classList.toggle("active", String(button.dataset.beta22Color).toLowerCase() === this.beta22ObjectColor().toLowerCase());
+      });
+    }
+
+    if (toolbar.dataset.beta22Bound === "1") return;
+    toolbar.dataset.beta22Bound = "1";
+
+    toolbar.addEventListener("click", (event) => {
+      const colorButton = event.target?.closest?.("[data-beta22-color]");
+      if (colorButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta22SetObjectColor(colorButton.dataset.beta22Color);
+        return;
+      }
+
+      const button = event.target?.closest?.("[data-beta22-action]");
+      if (!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.beta22ApplyToolbarAction(button.dataset.beta22Action);
+    });
+
+    toolbar.addEventListener("input", (event) => {
+      const input = event.target?.closest?.(".pcc-beta22-color");
+      if (!input) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.beta22SetObjectColor(input.value);
+    });
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.beta22UpdateToolbarState = function beta22UpdateToolbarState() {
+    const root = this.shadowRoot;
+    const toolbar = root?.querySelector(".pcc-beta22-top-toolbar");
+    if (!toolbar) return;
+    const color = this.beta22ObjectColor();
+    const colorInput = toolbar.querySelector(".pcc-beta22-color");
+    if (colorInput && colorInput.value.toLowerCase() !== color.toLowerCase()) colorInput.value = color;
+    toolbar.querySelectorAll("[data-beta22-color]").forEach((button) => {
+      button.classList.toggle("active", String(button.dataset.beta22Color).toLowerCase() === color.toLowerCase());
+    });
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.beta22Transform = function beta22Transform() {
+    this._transform = {...defaultTransform(), ...(this._transform || {})};
+    return this._transform;
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.beta22ApplyToolbarAction = function beta22ApplyToolbarAction(action) {
+    const t = this.beta22Transform();
+    const step = 5;
+    const rot = 15;
+
+    switch (action) {
+      case "import":
+        this.handleClick?.({target:{dataset:{action:"import"}}, preventDefault(){}, stopPropagation(){}});
+        return;
+
+      case "delete":
+        this.deleteActiveJob?.();
+        return;
+
+      case "move-left": t.x = toNumber(t.x,0) - step; break;
+      case "move-right": t.x = toNumber(t.x,0) + step; break;
+      case "move-up": t.y = toNumber(t.y,0) - step; break;
+      case "move-down": t.y = toNumber(t.y,0) + step; break;
+      case "z-up": t.z = toNumber(t.z,0) + step; break;
+      case "z-down": t.z = toNumber(t.z,0) - step; break;
+
+      case "rot-x": t.rx = toNumber(t.rx,0) + rot; break;
+      case "rot-y": t.ry = toNumber(t.ry,0) + rot; break;
+      case "rot-z": t.rz = toNumber(t.rz,0) + rot; break;
+      case "lay-flat": t.rx = 0; t.ry = 0; t.rz = 0; t.z = 0; break;
+
+      case "scale-up": t.scale = pccBeta22Clamp(toNumber(t.scale,100) + 5, 5, 500); break;
+      case "scale-down": t.scale = pccBeta22Clamp(toNumber(t.scale,100) - 5, 5, 500); break;
+      case "stretch-x-up": t.sx = pccBeta22Clamp(toNumber(t.sx,100) + 5, 5, 500); break;
+      case "stretch-y-up": t.sy = pccBeta22Clamp(toNumber(t.sy,100) + 5, 5, 500); break;
+      case "stretch-z-up": t.sz = pccBeta22Clamp(toNumber(t.sz,100) + 5, 5, 500); break;
+
+      case "mirror-x": t.mx = Number(t.mx) === -1 ? 1 : -1; break;
+      case "mirror-y": t.my = Number(t.my) === -1 ? 1 : -1; break;
+      case "mirror-z": t.mz = Number(t.mz) === -1 ? 1 : -1; break;
+      case "skew-x": t.skewX = pccBeta22Clamp(toNumber(t.skewX,0) + 5, -80, 80); break;
+      case "skew-y": t.skewY = pccBeta22Clamp(toNumber(t.skewY,0) + 5, -80, 80); break;
+
+      case "center": t.x = 0; t.y = 0; t.z = 0; break;
+      case "zoom-in": this._viewZoom = pccBeta22Clamp(toNumber(this._viewZoom,1) + 0.1, 0.25, 4); break;
+      case "zoom-out": this._viewZoom = pccBeta22Clamp(toNumber(this._viewZoom,1) - 0.1, 0.25, 4); break;
+      case "reset":
+        this._transform = defaultTransform();
+        this._viewZoom = 1;
+        break;
+
+      default:
+        return;
+    }
+
+    if (this._activeJob) this._activeJob.transform = {...this._transform};
+    this.queueMeshRender?.();
+    this.beta22UpdateToolbarState?.();
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.beta22HideRightInspector = function beta22HideRightInspector() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const panels = [...root.querySelectorAll(".studio-grid > .panel, .studio-grid > section, .studio-grid > aside, .panel")];
+    for (const panel of panels) {
+      const text = String(panel.textContent || "");
+      const isRightInspector =
+        /\bTransform\b/.test(text) ||
+        /\bRot X\b/.test(text) ||
+        /\bStretch X\b/.test(text) ||
+        /\bZerr X\b/.test(text) ||
+        /\bStudio Health\b/.test(text);
+
+      if (isRightInspector && !panel.querySelector(".pcc-beta20-primitive-panel")) {
+        panel.classList.add("pcc-beta22-hidden-right-inspector");
+      }
+    }
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.beta22RemoveBottomMessages = function beta22RemoveBottomMessages() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const needles = [
+      "Studio-Job aus Galerie/Dateimanager geladen",
+      "Noch kein Dry-Run",
+      "Plan prüfen verwendet",
+      "Studio Health",
+      "No health result yet",
+      "Dry-Run",
+      "dry-run",
+      "Health prüfen"
+    ];
+
+    for (const node of [...root.querySelectorAll("p, .status, .muted, .alert, .studio-status, .health, .studio-health, .footer, .message, ha-alert")]) {
+      const text = String(node.textContent || "");
+      if (needles.some((needle) => text.includes(needle))) {
+        if (node.closest(".pcc-beta22-top-toolbar")) continue;
+        if (node.closest(".pcc-beta20-primitive-panel")) continue;
+        node.classList.add("pcc-beta22-bottom-message");
+      }
+    }
+
+    for (const node of [...root.querySelectorAll("div")]) {
+      const text = String(node.textContent || "").trim();
+      if (!text || text.length > 220) continue;
+      if (needles.some((needle) => text.includes(needle))) {
+        if (node.closest(".studio-grid")) continue;
+        if (node.closest(".pcc-beta22-top-toolbar")) continue;
+        node.classList.add("pcc-beta22-bottom-message");
+      }
+    }
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.beta22RenderMeshCanvas = function beta22RenderMeshCanvas() {
+    const canvas = this.shadowRoot?.querySelector(".studio-mesh-canvas");
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    const width = Math.max(320, Math.round(rect.width * dpr));
+    const height = Math.max(260, Math.round(rect.height * dpr));
+    if (canvas.width !== width) canvas.width = width;
+    if (canvas.height !== height) canvas.height = height;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0,0,width,height);
+
+    const mesh = this._studioMesh;
+    if (!mesh?.triangles?.length) return;
+
+    const project = this.beta21ProjectPointFactory?.(width, height, dpr);
+    if (typeof project !== "function") {
+      PCC_BETA22_PREV_RENDER_MESH.call(this);
+      return;
+    }
+
+    const triangles = [];
+    const maxDraw = Math.min(mesh.triangles.length, 16000);
+    const step = Math.max(1, Math.ceil(mesh.triangles.length / maxDraw));
+
+    for (let i = 0; i < mesh.triangles.length; i += step) {
+      const tri = mesh.triangles[i];
+      const p = tri.map(project);
+      const avgZ = (p[0].z + p[1].z + p[2].z) / 3;
+      const normal = pccBeta22TriangleNormal(tri);
+      triangles.push({p, tri, avgZ, normal});
+    }
+
+    triangles.sort((a,b) => a.avgZ - b.avgZ);
+
+    const color = this.beta22ObjectColor();
+
+    ctx.save();
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+
+    for (const item of triangles) {
+      const shade = pccBeta22ShadeColor(color, item.normal, item.avgZ);
+      ctx.beginPath();
+      ctx.moveTo(item.p[0].x, item.p[0].y);
+      ctx.lineTo(item.p[1].x, item.p[1].y);
+      ctx.lineTo(item.p[2].x, item.p[2].y);
+      ctx.closePath();
+      ctx.fillStyle = shade.fill;
+      ctx.fill();
+      ctx.strokeStyle = shade.stroke;
+      ctx.lineWidth = Math.max(0.55, 0.62 * dpr);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+
+    if (typeof this.beta20DrawRulers === "function") {
+      this.beta20DrawRulers(ctx, width, height, dpr);
+    }
+
+    const badge = this.shadowRoot?.querySelector(".pcc-beta20-render-badge");
+    if (badge && typeof pccBeta20Dimensions === "function" && typeof pccBeta20Mm === "function") {
+      const dims = pccBeta20Dimensions(mesh, this._transform || defaultTransform());
+      badge.textContent = `3D Mesh · ${mesh.triangles.length} Dreiecke · ${pccBeta20Mm(dims.width)} × ${pccBeta20Mm(dims.depth)} × ${pccBeta20Mm(dims.height)}`;
+      badge.style.borderColor = color;
+    }
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.renderMeshCanvas = function beta22RenderMeshCanvasProxy() {
+    return this.beta22RenderMeshCanvas();
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function beta22CleanupBetaStudioUi() {
+    try {
+      if (typeof PCC_BETA22_PREV_CLEANUP === "function") PCC_BETA22_PREV_CLEANUP.call(this);
+    } catch (_error) {}
+
+    this.beta22EnsureStyle();
+    this.beta22InstallTopToolbar();
+    this.beta22HideRightInspector();
+    this.beta22RemoveBottomMessages();
+    this.beta22UpdateToolbarState();
+    this.queueMeshRender?.();
+  };
+
+  PCC_BETA22_STUDIO_CLASS.prototype.handleClick = function beta22HandleClick(event) {
+    const action = event.target?.dataset?.action;
+    if (String(action || "").startsWith("primitive-")) {
+      return PCC_BETA22_PREV_HANDLE_CLICK.call(this, event);
+    }
+    return PCC_BETA22_PREV_HANDLE_CLICK.call(this, event);
   };
 
   if (!customElements.get("printer-control-center-studio-card")) {

@@ -1,3 +1,22 @@
+## 5.0.0-beta25 - Revert beta24 Studio cleanup regression
+
+### English
+- Reverts the beta24 Studio cleanup regression.
+- Restores the beta23 Studio base with grid, mouse controls, gallery import and icon toolbar.
+- Restores the normal workflow button row with Import, Delete, Plan check, Health check and Jobs reload.
+- Removes the beta24 single-render cleanup layer that hid the workflow row and continued touching the Studio DOM.
+- No camera, dashboard, backend-route or printer connection changes.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Macht die beta24-Studio-Cleanup-Regression rückgängig.
+- Stellt die beta23-Studio-Basis mit Raster, Maussteuerung, Galerie-Import und Icon-Toolbar wieder her.
+- Stellt die normale Workflow-Buttonzeile mit Importieren, Löschen, Plan prüfen, Health prüfen und Jobs neu laden wieder her.
+- Entfernt die beta24-Single-Render-Cleanup-Schicht, die die Workflow-Leiste versteckt und weiter am Studio-DOM gearbeitet hat.
+- Keine Kamera-, Dashboard-, Backend-Routen- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta24 - Studio single render state stabilization
 
 ### English

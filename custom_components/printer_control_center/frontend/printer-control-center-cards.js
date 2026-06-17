@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta18*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta19*/
 (() => {
-  const VERSION = "5.0.0-beta18";
+  const VERSION = "5.0.0-beta19";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -69,7 +69,7 @@
     ["Externe Spule anzeigen", "Show external spool"],
     ["Diagnose anzeigen", "Show diagnostics"],
     ["S bis XL kann zusätzlich direkt innerhalb der Karte umgeschaltet werden.", "S to XL can also be changed directly inside the card."],
-    ["Dateien und Ordner durchsuchen â€¦", "Search files and folders â€¦"],
+    ["Dateien und Ordner durchsuchen …", "Search files and folders …"],
     ["Suche zurücksetzen", "Reset search"],
     ["Sichtbare auswählen", "Select visible"],
     ["Auswahl verschieben", "Move selection"],
@@ -83,7 +83,7 @@
     ["SD-Karte", "SD card"],
     ["Hauptordner", "Root folder"],
     ["Neuer Ordner", "New folder"],
-    ["Name Aâ€“Z", "Name Aâ€“Z"],
+    ["Name A–Z", "Name A–Z"],
     ["Neueste zuerst", "Newest first"],
     ["Größte zuerst", "Largest first"],
     ["3MF hochladen", "Upload 3MF"],
@@ -137,8 +137,8 @@
     ["Umbenennen", "Rename"],
     ["Verschieben", "Move"],
     ["Löschen", "Delete"],
-    ["Drucken â€¦", "Print â€¦"],
-    ["Planen â€¦", "Schedule â€¦"],
+    ["Drucken …", "Print …"],
+    ["Planen …", "Schedule …"],
     ["In Bambu Studio öffnen (Original-3MF)", "Open in Bambu Studio (original 3MF)"],
     ["Modell-3MF herunterladen", "Download model 3MF"],
     ["Modell-STL herunterladen", "Download model STL"],
@@ -153,8 +153,8 @@
     ["Die unveränderte Original-3MF-Datei wird in Bambu Studio geöffnet. Dort kannst du den Druck kontrolliert starten.", "The unchanged original 3MF file is opened in Bambu Studio. You can start the print there after review."],
     ["In Bambu Studio öffnen", "Open in Bambu Studio"],
     ["Modell wurde zur 3D-Druck-Warteschlange hinzugefügt.", "Model was added to the 3D print queue."],
-    ["Warteschlange wird geladen â€¦", "Loading queue â€¦"],
-    ["Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen â€¦â€œ.", "No planned models yet. Open the gallery or use the existing â€œSchedule â€¦â€ item in the file manager."],
+    ["Warteschlange wird geladen …", "Loading queue …"],
+    ["Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen …â€œ.", "No planned models yet. Open the gallery or use the existing â€œSchedule …â€ item in the file manager."],
     ["Galerie öffnen", "Open gallery"],
     ["Persistente Planung für", "Persistent planning for"],
     ["Einträge", "items"],
@@ -171,7 +171,7 @@
     ["Stückzahl je Modell", "Quantity per model"],
     ["Zeitpunkt optional", "Optional time"],
     ["Markierte Modelle hinzufügen", "Add selected models"],
-    ["Galerie wird geladen â€¦", "Loading gallery â€¦"],
+    ["Galerie wird geladen …", "Loading gallery …"],
     ["Keine 3MF-Modelle in diesem Ordner gefunden.", "No 3MF models found in this folder."],
     ["Bambu Studio wird mit der unveränderten Original-3MF-Datei geöffnet.", "Bambu Studio opens the unchanged original 3MF file."],
     ["MakerWorld-Modell suchen oder einen Modell-Link öffnen. Die 3MF-Datei kann anschließend direkt in die Archivkarte hochgeladen werden.", "Search for a MakerWorld model or open a model link. The 3MF file can then be uploaded directly to the local archive card."],
@@ -208,7 +208,7 @@
     ["Upload-Ziel", "Upload target"],
     ["SD-Karte des Druckers", "Printer SD card"],
     ["Lokales Archiv", "local archive"],
-    ["Upload wird vorbereitet â€¦", "Preparing upload â€¦"],
+    ["Upload wird vorbereitet …", "Preparing upload …"],
     ["Dateien hochladen", "Upload files"],
     ["Diese Karte benötigt für die übersichtliche Dateimanager-Ansicht einen eigenen Abschnitt über die volle Dashboard-Breite.", "For a clear file-manager view, this card needs its own full-width dashboard section."],
     ["Warteschlange konnte nicht geladen werden", "Queue could not be loaded"],
@@ -227,9 +227,9 @@
     ["Zeitraffer", "Timelapse"],
     ["Hoch", "Up"],
     ["Nur .3mf-Dateien sind zulässig. Nicht verwendbar:", "Only .3mf files are allowed. Not usable:"],
-    ["wird vorbereitet â€¦", "is being prepared â€¦"],
-    ["wird auf die Drucker-SD-Karte geschrieben â€¦", "is being written to the printer SD card â€¦"],
-    ["wird im lokalen Archiv gespeichert â€¦", "is being saved to the local archive â€¦"],
+    ["wird vorbereitet …", "is being prepared …"],
+    ["wird auf die Drucker-SD-Karte geschrieben …", "is being written to the printer SD card …"],
+    ["wird im lokalen Archiv gespeichert …", "is being saved to the local archive …"],
     ["Datei", "File"],
     ["von", "of"],
     ["fehlgeschlagen", "failed"],
@@ -322,7 +322,7 @@
   const available = (item) =>
     Boolean(item) && !["unknown", "unavailable", ""].includes(String(item.state));
 
-  const stateValue = (hass, entityId, fallback = "â€”") => {
+  const stateValue = (hass, entityId, fallback = "—") => {
     const item = hass?.states?.[entityId];
     return available(item) ? item.state : fallback;
   };
@@ -337,7 +337,7 @@
 
   function formatTemp(value) {
     const parsed = Number.parseFloat(value);
-    return Number.isFinite(parsed) ? `${parsed.toFixed(1)} Â°C` : "â€”";
+    return Number.isFinite(parsed) ? `${parsed.toFixed(1)} °C` : "—";
   }
 
   function formatRemaining(value) {
@@ -395,7 +395,7 @@
   }
 
   function galleryDateLabel(value) {
-    if (value === null || value === undefined || value === "") return "â€”";
+    if (value === null || value === undefined || value === "") return "—";
     let date = null;
     if (typeof value === "number" || /^\d+(?:\.\d+)?$/.test(String(value))) {
       const numeric = Number(value);
@@ -473,7 +473,7 @@
       run();
     }
     snapshot(){return this.task?{...this.task,details:[...(this.task.details||[])]}:null}
-    speedLabel(task=this.task){return task?.speed?`${bytesLabel(task.speed)}/s`:"â€”"}
+    speedLabel(task=this.task){return task?.speed?`${bytesLabel(task.speed)}/s`:"—"}
     phaseLabel(task=this.task){
       const phase=task?.phase||"";
       return tr(({preparing:"Vorbereiten",uploading:"Hochladen",resuming:"Upload fortsetzen",processing:"Entpacken und gegenprüfen",verified:"Gegenprüfung erfolgreich",failed:"Fehler",cancelled:"Abgebrochen"})[phase]||phase);
@@ -577,7 +577,7 @@
         this.emit();
       }
       if(source==="archive_zip"){
-        task.phase="processing";task.progress=97;task.details=[...(task.details||[]),"Upload vollständig empfangen.","ZIP wird entpackt und gegen das Archiv geprüft â€¦"];this.emit(true);
+        task.phase="processing";task.progress=97;task.details=[...(task.details||[]),"Upload vollständig empfangen.","ZIP wird entpackt und gegen das Archiv geprüft …"];this.emit(true);
       }
       return await this.hass.callWS({type:"printer_control_center/upload/finish",upload_id:task.uploadId});
     }
@@ -806,7 +806,7 @@
 
   function displaySpeed(hass, map) {
     const selected = stateValue(hass, map.speed, "");
-    if (selected && selected !== "â€”") return selected;
+    if (selected && selected !== "—") return selected;
     return "standard";
   }
 
@@ -898,7 +898,7 @@
     if (/X1|X2|H2|P2/.test(family)) return "RTSPS / TCP 322";
     if (/A1|A2|P1/.test(family)) return "Chamber Image / TCP 6000";
 
-    return "â€”";
+    return "—";
   }
 
   function amsDisplayName(hass, map) {
@@ -2186,7 +2186,7 @@
         <span class="spool" style="--spool:${esc(color)}"></span>
         <small>${esc(label)}</small>
         <strong>${esc(loaded ? material : "Leer")}</strong>
-        <small>${esc(details || (loaded ? "geladen" : "â€”"))}</small>
+        <small>${esc(details || (loaded ? "geladen" : "—"))}</small>
         ${active ? `<span class="slot-active">â— Aktiv</span>` : ""}
       </div>
     `;
@@ -2391,11 +2391,10 @@ function pccV5CameraString(value) {
     return `${path}${sep}token=${encodeURIComponent(token)}`;
   }
 
-  function pccV5CameraCacheBuster(url) {
-    if (!url) return "";
-    const sep = url.includes("?") ? "&" : "?";
-    return `${url}${sep}pcc_cam=${Math.floor(Date.now() / 2500)}`;
+function pccV5CameraCacheBuster(url) {
+    return url || "";
   }
+
 
 function cameraProxy(hass, map, config) {
     const entityId = pccV5SelectBestCameraEntity(hass, map, config);
@@ -3151,7 +3150,7 @@ function openCameraPopup(hass, map, config) {
     async exportGalleryZip(map){
       if(this._source!=="archive")return;
       const serial=encodeURIComponent(this.serial(map));
-      this._notice="Galerie-ZIP wird erstellt. Der Download startet im Hintergrund â€¦";
+      this._notice="Galerie-ZIP wird erstellt. Der Download startet im Hintergrund …";
       this.render();
       try{
         const response=await fetch(`/api/printer_control_center/archive_export/${serial}`,{headers:authHeaders(this._hass),credentials:"same-origin"});
@@ -3535,9 +3534,9 @@ function openCameraPopup(hass, map, config) {
           ${folder
             ? action("open-folder","Öffnen","📁")
             : `
-              ${action("print","Drucken â€¦","ðŸ–¨",!project)}
-              ${action("plan","Planen â€¦","ðŸ—“",!project)}
-              ${action("model-open","In Bambu Studio öffnen (Original-3MF)","â†—",!project)}
+              ${action("print","Drucken …","🖨",!project)}
+              ${action("plan","Planen …","ðŸ—“",!project)}
+              ${action("model-open","In Bambu Studio öffnen (Original-3MF)","↗",!project)}
               ${action("studio-open","In 3D-Studio öffnen","[S]",!project)}
               ${action("model-download","Modell-3MF herunterladen","â¬‡",!project)}
               ${action("stl-download","Modell-STL herunterladen","â¬‡",!project)}
@@ -3762,7 +3761,7 @@ function openCameraPopup(hass, map, config) {
             <span class="folder-option-tree-icon">${root?"âŒ‚":"â†³"}</span>
             <span class="folder-option-name">${esc(folder.name||caption)}</span>
           </span>
-          ${folder.path===(selectedPath||"")?"<span>âœ“</span>":""}
+          ${folder.path===(selectedPath||"")?"<span>✓</span>":""}
         </button>
       `;
     }
@@ -3847,7 +3846,7 @@ function openCameraPopup(hass, map, config) {
         body=`
           <p><strong>${esc(dialog.item?.name||"")}</strong></p>
           <p class="muted">Die unveränderte Original-3MF-Datei wird in Bambu Studio geöffnet. Dort kannst du den Druck kontrolliert starten.</p>
-          <button class="primary" data-dialog-project-open>â†— In Bambu Studio öffnen</button>
+          <button class="primary" data-dialog-project-open>↗ In Bambu Studio öffnen</button>
         `;
       }
 
@@ -3868,7 +3867,7 @@ function openCameraPopup(hass, map, config) {
           <div class="tc-dialog" data-dialog-panel>
             <div class="row between">
               <h3>${esc(title)}</h3>
-              <button data-dialog-close>âœ•</button>
+              <button data-dialog-close>✕</button>
             </div>
             ${body}
             <div class="toolbar">
@@ -3924,7 +3923,7 @@ function openCameraPopup(hass, map, config) {
                  <button data-dialog-type="rename" data-dialog-path="${esc(item.path)}">âœŽ Umbenennen</button>
                  <button data-context-button="${esc(item.path)}">â‹®</button>`
               : `
-                ${project?`<button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">ðŸ–¨ Drucken</button>`:`<button data-context-direct="download" data-context-path="${esc(item.path)}">â¬‡ Download</button>`}
+                ${project?`<button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">🖨 Drucken</button>`:`<button data-context-direct="download" data-context-path="${esc(item.path)}">â¬‡ Download</button>`}
                 <button data-preview-path="${esc(item.path)}">â—ˆ 3D-Vorschau</button>
                 <button data-context-button="${esc(item.path)}" title="Weitere Aktionen">â‹®</button>
               `
@@ -4004,7 +4003,7 @@ function openCameraPopup(hass, map, config) {
             <aside class="archive-preview-toolbar">
               <div class="row between">
                 <h3>${esc(item.name)}</h3>
-                <button data-preview-close>âœ•</button>
+                <button data-preview-close>✕</button>
               </div>
               <small>${esc(item.path||"")}</small>
               <span class="badge">${esc(bytesLabel(item.size||0))}</span>
@@ -4017,9 +4016,9 @@ function openCameraPopup(hass, map, config) {
               </div>
 
               ${project?`
-                <button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">ðŸ–¨ Drucken â€¦</button>
-                <button data-context-direct="plan" data-context-path="${esc(item.path)}">ðŸ—“ Planen â€¦</button>
-                <button class="primary" data-context-direct="model-open" data-context-path="${esc(item.path)}">â†— In Bambu Studio öffnen (Original-3MF)</button>
+                <button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">🖨 Drucken …</button>
+                <button data-context-direct="plan" data-context-path="${esc(item.path)}">ðŸ—“ Planen …</button>
+                <button class="primary" data-context-direct="model-open" data-context-path="${esc(item.path)}">↗ In Bambu Studio öffnen (Original-3MF)</button>
                 <button data-context-direct="studio-open" data-context-path="${esc(item.path)}">[S] In 3D-Studio öffnen</button>
                 <button data-context-direct="model-download" data-context-path="${esc(item.path)}">â¬‡ Modell-3MF herunterladen</button>
                 <button data-context-direct="stl-download" data-context-path="${esc(item.path)}">â¬‡ Modell-STL herunterladen</button>
@@ -4029,7 +4028,7 @@ function openCameraPopup(hass, map, config) {
               <button data-dialog-type="rename" data-dialog-path="${esc(item.path)}">âœŽ Umbenennen</button>
               <button data-dialog-type="move" data-dialog-path="${esc(item.path)}">â‡¢ Verschieben</button>
               <button class="danger" data-dialog-type="delete" data-dialog-path="${esc(item.path)}">🗑 Löschen</button>
-              <button data-preview-close>âœ• Vorschau schließen</button>
+              <button data-preview-close>✕ Vorschau schließen</button>
             </aside>
           </div>
         </div>
@@ -4269,17 +4268,17 @@ function openCameraPopup(hass, map, config) {
                   <button data-source="archive" class="${this._source==="archive"?"active":""}">â–£ Archiv</button>
                   <button data-source="sd" class="${this._source==="sd"?"active":""}">â–¤ SD-Karte</button>
                   <button data-folder="${this._source==="archive"?"":"/"}">âŒ‚ Hauptordner</button>
-                  ${this._folder&&this._folder!=="/"?`<button data-folder="${esc(this._parent)}">â†‘ Hoch</button>`:""}
+                  ${this._folder&&this._folder!=="/"?`<button data-folder="${esc(this._parent)}">↑ Hoch</button>`:""}
                   <button data-dialog-type="create">Ã¯Â¼â€¹ Neuer Ordner</button>
                 </div>
 
                 <div class="archive-search-wrap">
-                  <input class="archive-search" data-archive-filter placeholder="Dateien und Ordner durchsuchen â€¦" value="${esc(this._filter)}">
-                  <button class="archive-search-reset" data-action="search-reset" title="Suche zurücksetzen" ${this._filter?"":"disabled"}>âœ•</button>
+                  <input class="archive-search" data-archive-filter placeholder="Dateien und Ordner durchsuchen …" value="${esc(this._filter)}">
+                  <button class="archive-search-reset" data-action="search-reset" title="Suche zurücksetzen" ${this._filter?"":"disabled"}>✕</button>
                 </div>
 
                 <select data-sort-mode title="Sortierung">
-                  <option value="name" ${this._sortMode==="name"?"selected":""}>Name Aâ€“Z</option>
+                  <option value="name" ${this._sortMode==="name"?"selected":""}>Name A–Z</option>
                   <option value="newest" ${this._sortMode==="newest"?"selected":""}>Neueste zuerst</option>
                   <option value="size" ${this._sortMode==="size"?"selected":""}>Größte zuerst</option>
                 </select>
@@ -4318,7 +4317,7 @@ function openCameraPopup(hass, map, config) {
                   }</strong>
                   <small>${selectedCountForUpload
                     ? `${esc(bytesLabel(selectedBytes))} - ${esc(selectedNames.slice(0,3).join(", "))}${selectedNames.length>3?` - +${selectedNames.length-3} weitere`:""}`
-                    : "Upload wird vorbereitet â€¦"
+                    : "Upload wird vorbereitet …"
                   }</small>
                 </div>
                 <button class="primary" data-action="upload-selected" ${selectedCountForUpload&&!this._uploadActive?"":"disabled"}>
@@ -4355,7 +4354,7 @@ function openCameraPopup(hass, map, config) {
               <section class="archive-library-content">
                 ${this._error?`<p class="notice">${esc(this._error)}</p>`:""}
                 ${this._notice?`<p class="notice">${esc(this._notice)}</p>`:""}
-                ${this._loading?`<p class="muted">Lade Daten â€¦</p>`:""}
+                ${this._loading?`<p class="muted">Lade Daten …</p>`:""}
 
                 <div class="archive-grid">
                   ${items.map((item)=>this.itemHtml(item)).join("")||`<div class="archive-library-empty">Keine passenden Dateien oder Ordner vorhanden.</div>`}
@@ -4763,16 +4762,16 @@ function openCameraPopup(hass, map, config) {
         <section class="queue-picker-dialog">
           <div class="row between">
             <div><h2>Galerie - Modelle zur Warteschlange hinzufügen</h2><small>Mehrere Modelle markieren und gemeinsam übernehmen.</small></div>
-            <button data-queue-picker-close>âœ•</button>
+            <button data-queue-picker-close>✕</button>
           </div>
           <div class="toolbar">
             <button class="${this._pickerSource==="archive"?"primary":""}" data-queue-picker-source="archive">Lokales Archiv</button>
             <button class="${this._pickerSource==="sd"?"primary":""}" data-queue-picker-source="sd">SD-Karte</button>
-            <button data-queue-picker-up ${canGoUp?"":"disabled"}>â†‘ Eine Ebene höher</button>
+            <button data-queue-picker-up ${canGoUp?"":"disabled"}>↑ Eine Ebene höher</button>
             <button data-queue-picker-refresh>â†» Aktualisieren</button>
             <span class="badge">${esc(this._pickerFolder||(this._pickerSource==="sd"?"/":"Hauptordner"))}</span>
           </div>
-          ${this._pickerLoading?`<p class="muted">Galerie wird geladen â€¦</p>`:""}
+          ${this._pickerLoading?`<p class="muted">Galerie wird geladen …</p>`:""}
           <div class="queue-picker-grid">
             ${this._pickerItems.map((item)=>this.pickerItemHtml(item)).join("")||`<p class="muted">Keine 3MF-Modelle in diesem Ordner gefunden.</p>`}
           </div>
@@ -4885,11 +4884,11 @@ function openCameraPopup(hass, map, config) {
         </div>
         <div class="queue-actions">
           <label>Stückzahl <select data-queue-quantity="${esc(item.id)}">${this.quantityOptions(shownQuantity)}</select></label>
-          <button class="queue-apply" data-queue-apply="${esc(item.id)}">âœ“ Auswahl übernehmen</button>
-          <button data-queue-move="up" data-queue-id="${esc(item.id)}" title="Nach oben">â†‘ Nach oben</button>
-          <button data-queue-move="down" data-queue-id="${esc(item.id)}" title="Nach unten">â†“ Nach unten</button>
-          <button class="primary queue-print" data-queue-studio="${esc(item.id)}">ðŸ–¨ Drucken â€¦</button>
-          <button data-queue-complete="${esc(item.id)}">âœ“ 1 erledigt</button>
+          <button class="queue-apply" data-queue-apply="${esc(item.id)}">✓ Auswahl übernehmen</button>
+          <button data-queue-move="up" data-queue-id="${esc(item.id)}" title="Nach oben">↑ Nach oben</button>
+          <button data-queue-move="down" data-queue-id="${esc(item.id)}" title="Nach unten">↓ Nach unten</button>
+          <button class="primary queue-print" data-queue-studio="${esc(item.id)}">🖨 Drucken …</button>
+          <button data-queue-complete="${esc(item.id)}">✓ 1 erledigt</button>
           <button class="danger" data-queue-delete="${esc(item.id)}">🗑 Entfernen</button>
         </div>
       </article>`;
@@ -4910,9 +4909,9 @@ function openCameraPopup(hass, map, config) {
         <div class="row"><span class="badge">${this._queue.length} Einträge</span><span class="badge">${total} Druckdurchläufe</span></div>
         ${this._queueError?`<p class="notice">${esc(this._queueError)}</p>`:""}
         ${this._queueNotice?`<p class="notice">${esc(this._queueNotice)}</p>`:""}
-        ${this._queueLoading?`<p class="muted">Warteschlange wird geladen â€¦</p>`:""}
+        ${this._queueLoading?`<p class="muted">Warteschlange wird geladen …</p>`:""}
         ${this._queueToast?`<div class="queue-mini-toast" style="left:${Number(this._queueToastPosition?.left||18)}px;top:${Number(this._queueToastPosition?.top||92)}px">${esc(this._queueToast)}</div>`:""}
-        <div class="queue-list">${this._queue.map((item,index)=>this.rowHtml(item,index)).join("")||`<p class="muted">Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen â€¦â€œ.</p>`}</div>
+        <div class="queue-list">${this._queue.map((item,index)=>this.rowHtml(item,index)).join("")||`<p class="muted">Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen …â€œ.</p>`}</div>
       `,"archive-library-card");
       this.shadowRoot.querySelector("[data-queue-open-gallery]")?.addEventListener("click",()=>this.openPicker(map));
       this.shadowRoot.querySelector("[data-queue-refresh]")?.addEventListener("click",()=>this.loadQueue(map));
@@ -5041,7 +5040,7 @@ function openCameraPopup(hass, map, config) {
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta18",
+        version: "5.0.0-beta19",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -5065,7 +5064,7 @@ function openCameraPopup(hass, map, config) {
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta18";
+  const STUDIO_VERSION = "5.0.0-beta19";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -8749,10 +8748,10 @@ function openCameraPopup(hass, map, config) {
   ];
 
   const PCC_BETA7_TEXT_FIXES = [
-    ["Ãƒ"+"Â¤","ä"],["Ãƒ"+"Â¶","ö"],["Ãƒ"+"Â¼","ü"],["Ãƒ"+"Å“","Ü"],["Ãƒ"+"â€“","Ö"],["Ãƒ"+"Â„","Ä"],["Ãƒ"+"Å¸","ß"],
+    ["Ãƒ"+"Â¤","ä"],["Ãƒ"+"Â¶","ö"],["Ãƒ"+"Â¼","ü"],["Ãƒ"+"Å“","Ü"],["Ãƒ"+"–","Ö"],["Ãƒ"+"Â„","Ä"],["Ãƒ"+"Å¸","ß"],
     ["Ã"+"¼","ü"],["Ã"+"¶","ö"],["Ã"+"¤","ä"],["Ã"+"œ","Ü"],["Ã"+"–","Ö"],["Ã"+"„","Ä"],["Ã"+"Ÿ","ß"],
     ["Ã¢"+"â‚¬Å¾","„"],["Ã¢"+"â‚¬Å“","“"],["Ã¢"+"â‚¬Â","”"],["Ã¢"+"â‚¬Â¦","…"],["Ã¢"+"â‚¬â€œ","–"],["Ã¢"+"â‚¬â€�","—"],
-    ["Ã¢"+"â€”Â","●"],["Ã¢"+"â€ â€”","↗"],["Ã¢"+"â€ Â»","↻"],["Ã¢"+"â€ â€”","↗"],["Ã¢"+"â€ Â»","↻"],
+    ["Ã¢"+"—Â","●"],["Ã¢"+"â€ —","↗"],["Ã¢"+"â€ Â»","↻"],["Ã¢"+"â€ —","↗"],["Ã¢"+"â€ Â»","↻"],
     ["ðŸ"+"—‘","🗑"],["ðŸ"+"“","📁"],["ðŸ"+"“„","📄"],["ðŸ"+"“·","📷"],["ðŸ"+"’¡","💡"],
     ["Loe"+"schen","Löschen"],["Öffnen","Öffnen"],["öffnen","öffnen"],["Prüfen","Prüfen"],["prüfen","prüfen"],
     ["Zurück","Zurück"],["zurück","zurück"],["ausgewählt","ausgewählt"],["gewählt","gewählt"],

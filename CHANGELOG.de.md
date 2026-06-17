@@ -1,3 +1,22 @@
+## 5.0.0-beta19 - Stable camera snapshot and UTF-8 cleanup
+
+### English
+- Reverts the beta17 backend camera route experiment when present.
+- Keeps the working native Home Assistant camera/proxy path.
+- Stops changing the camera image URL on every render to avoid continuous snapshot refresh.
+- Cleans remaining UTF-8/mojibake labels in the Printer Control Center source and dashboard definitions.
+- Keeps the good beta9 Studio buildplate selector/runtime unchanged.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Macht das beta17-Backend-Kamera-Routenexperiment rückgängig, falls es im aktiven Code vorhanden war.
+- Behält den funktionierenden nativen Home-Assistant-Kamera-/Proxy-Pfad.
+- Ändert die Kamera-Bild-URL nicht mehr bei jedem Rendern, damit das Snapshot-Bild nicht dauerhaft neu lädt.
+- Bereinigt verbleibende UTF-8-/Mojibake-Labels in den Printer-Control-Center-Quellen und Dashboard-Definitionen.
+- Behält die gute beta9-Studio-Buildplate-/Selector-Laufzeit unverändert.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta18 - Revert beta17 backend camera route
 
 ### English

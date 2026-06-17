@@ -1,3 +1,24 @@
+## 5.0.0-beta16 - Camera Snapshot Authority
+
+### English
+- Keeps the good beta9 Studio buildplate selector/runtime as active base.
+- Fixes the blank camera box by preferring the Home Assistant camera snapshot path first.
+- Uses `entity_picture` or `/api/camera_proxy/...` as the primary camera source and only falls back to `/api/camera_proxy_stream/...` when no snapshot source is available.
+- Adds cache busting for snapshot camera URLs so the printer dashboard refreshes the image reliably.
+- Keeps generic camera entity scoring for `camera.*_native_live_camera`.
+- No model-specific X1 workplace logic, no overlay camera injection and no Studio/Bett runtime changes.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Behält die gute beta9-Studio-Buildplate-/Selector-Laufzeit als aktive Basis.
+- Behebt das leere Kamerafeld, indem der Home-Assistant-Kamera-Snapshot-Pfad zuerst verwendet wird.
+- Nutzt `entity_picture` oder `/api/camera_proxy/...` als primäre Kameraquelle und fällt nur auf `/api/camera_proxy_stream/...` zurück, wenn keine Snapshot-Quelle vorhanden ist.
+- Ergänzt Cache-Busting für Snapshot-Kamera-URLs, damit das Drucker-Dashboard das Bild zuverlässig aktualisiert.
+- Robuste generische Kamera-Entity-Bewertung für `camera.*_native_live_camera` bleibt erhalten.
+- Keine X1-Arbeitsplatz-Sonderlogik, keine Overlay-Kamera-Injection und keine Studio-/Bett-Laufzeitänderung.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta15 - Camera Source Authority
 
 ### English

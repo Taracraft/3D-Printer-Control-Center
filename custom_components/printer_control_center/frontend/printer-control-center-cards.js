@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta15*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta16*/
 (() => {
-  const VERSION = "5.0.0-beta15";
+  const VERSION = "5.0.0-beta16";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -2205,16 +2205,26 @@
     ) || "";
   }
 
-function pccV5CameraDecisionText(hass, map, config, entityId) {
+
+
+
+
+
+
+
+  function pccV5CameraDecisionText(hass, map, config, entityId) {
     const at = attrs(hass, entityId);
-    const values = [
+    const state = hass?.states?.[entityId];
+
+    return [
       config?.camera_entity,
       config?.camera_url,
       config?.camera_mode,
       config?.camera_transport,
-      stateValue(hass, map.cameraMode),
-      stateValue(hass, map.cameraTransport),
-      stateValue(hass, map.cameraPort),
+      stateValue(hass, map?.cameraMode),
+      stateValue(hass, map?.cameraTransport),
+      stateValue(hass, map?.cameraPort),
+      pccV5CameraAttrText(state),
       at.camera_mode,
       at.camera_transport,
       at.camera_label,
@@ -2224,22 +2234,19 @@ function pccV5CameraDecisionText(hass, map, config, entityId) {
       at.transport,
       at.entity_picture,
       entityId
-    ];
-
-    return values
-      .filter((value) => value !== undefined && value !== null)
-      .map((value) => String(value).toLowerCase())
-      .join(" ");
+    ].map((value) => pccV5CameraString(value).toLowerCase()).join(" ");
   }
 
   function pccV5CameraIsSnapshotOnly(hass, map, config, entityId) {
     const text = pccV5CameraDecisionText(hass, map, config, entityId);
 
     if (text.includes("rtsps")) return true;
-    if (text.includes("rtsp_port 322")) return true;
+    if (text.includes("rtsp")) return true;
     if (text.includes("camera_port 322")) return true;
+    if (text.includes("rtsp_port 322")) return true;
     if (text.includes("tcp 322")) return true;
     if (text.includes(":322")) return true;
+    if (text.includes("requires_lan_liveview true")) return true;
 
     return false;
   }
@@ -2305,8 +2312,8 @@ function pccV5CameraString(value) {
 
     if (prefix && id.includes(prefix)) score += 180;
 
-    if (state?.attributes?.entity_picture) score += 180;
-    if (state?.attributes?.access_token) score += 120;
+    if (state?.attributes?.entity_picture) score += 300;
+    if (state?.attributes?.access_token) score += 80;
 
     if (status === "streaming") score += 140;
     if (status === "idle") score += 50;
@@ -2384,32 +2391,43 @@ function pccV5CameraString(value) {
     return `${path}${sep}token=${encodeURIComponent(token)}`;
   }
 
+  function pccV5CameraCacheBuster(url) {
+    if (!url) return "";
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}pcc_cam=${Math.floor(Date.now() / 2500)}`;
+  }
+
 function cameraProxy(hass, map, config) {
     const entityId = pccV5SelectBestCameraEntity(hass, map, config);
     const state = entityId ? hass?.states?.[entityId] : null;
     const at = state?.attributes || attrs(hass, entityId);
+
     const token = pccV5CameraString(at.access_token);
     const entityPicture = pccV5CameraString(at.entity_picture);
+    const proxy = entityId ? pccV5CameraUrlWithToken(`/api/camera_proxy/${entityId}`, token) : "";
 
-    const still = entityPicture
-      || (entityId ? pccV5CameraUrlWithToken(`/api/camera_proxy/${entityId}`, token) : "");
-
+    const still = entityPicture || proxy;
     const snapshotOnly = pccV5CameraIsSnapshotOnly(hass, map, config, entityId);
 
     const stream = entityId && token && !snapshotOnly
       ? `/api/camera_proxy_stream/${entityId}?token=${encodeURIComponent(token)}&interval=0.8`
       : "";
 
+    const primary = still || stream;
+
     return {
       entityId,
       token,
       still,
       stream,
-      snapshotOnly,
-      available: Boolean(entityId && (still || stream)),
+      primary,
+      primaryType: still ? "snapshot" : "stream",
+      snapshotOnly: Boolean(snapshotOnly || still),
+      available: Boolean(entityId && primary),
       state: pccV5CameraString(state?.state)
     };
   }
+
 
 
 
@@ -2418,15 +2436,17 @@ function mediaSource(hass, map, config, cameraVisible, online, status) {
     const overrideUrl = pccV5CameraString(config?.camera_url);
     const previewEntity = config?.preview_entity || autoEntity(hass, "image", map.prefix, ["cover_image", "titelbild", "model_preview", "bild_wahlen"]);
 
-    const nativeCameraSource = overrideUrl || native.stream || native.still;
+    const cameraSource = overrideUrl || native.primary;
 
-    if (nativeCameraSource) {
+    if (cameraSource) {
+      const sourceType = overrideUrl ? "override" : native.primaryType;
       return {
-        src: nativeCameraSource,
-        label: native.snapshotOnly ? "Native Kamera-Snapshot" : "Native Live-Kamera",
+        src: sourceType === "snapshot" ? pccV5CameraCacheBuster(cameraSource) : cameraSource,
+        rawSrc: cameraSource,
+        label: sourceType === "stream" ? "Native Live-Kamera" : "Native Kamera-Snapshot",
         mode: "live",
         entityId: native.entityId,
-        snapshotOnly: native.snapshotOnly
+        sourceType
       };
     }
 
@@ -2449,6 +2469,7 @@ function mediaSource(hass, map, config, cameraVisible, online, status) {
 
 
 
+
 function mediaHtml(hass, map, config, cameraVisible, online, status) {
     const source = mediaSource(hass, map, config, cameraVisible, online, status);
     const task = stateValue(hass, map.task, "Kein aktiver Druckauftrag");
@@ -2456,7 +2477,7 @@ function mediaHtml(hass, map, config, cameraVisible, online, status) {
 
     if (source.mode === "live" && source.src) {
       return `
-        <div class="media media-live" data-pcc-camera-entity="${esc(native.entityId || "")}" data-pcc-camera-mode="${esc(native.snapshotOnly ? "snapshot" : "live")}">
+        <div class="media media-live" data-pcc-camera-entity="${esc(native.entityId || "")}" data-pcc-camera-mode="${esc(source.sourceType || "")}" data-pcc-camera-src="${esc(source.rawSrc || source.src || "")}">
           <img src="${esc(source.src)}" alt="${esc(source.label)}">
           <span class="media-label">${esc(source.label)}${native.entityId ? ` · ${esc(native.entityId)}` : ""}</span>
           <button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">↗</button>
@@ -2480,20 +2501,21 @@ function mediaHtml(hass, map, config, cameraVisible, online, status) {
         <img src="${esc(source.src)}" alt="${esc(source.label)}">
         <span class="media-label">${esc(source.label)}</span>
         ${source.mode === "preview" ? `<span class="media-task">${esc(task)}</span>` : ""}
-        ${(native.stream || native.still) ? `<button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">↗</button>` : ""}
+        ${(native.still || native.stream) ? `<button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">↗</button>` : ""}
       </div>
     `;
   }
 
 
 
+
 function openCameraPopup(hass, map, config) {
     const native = cameraProxy(hass, map, config);
-    const source = native.stream || native.still;
+    const source = native.primary || native.still || native.stream;
     if (!source) return;
 
     const title = esc(`3D-Printer Control Center Kamera · ${native.entityId || stateValue(hass, map.serial, map.prefix)}`);
-    const sourceHtml = esc(source);
+    const sourceHtml = esc(native.primaryType === "snapshot" ? pccV5CameraCacheBuster(source) : source);
     const popup = window.open("", `printer-control-center-camera-${map.prefix}`, "width=1280,height=820,resizable=yes,scrollbars=no");
     if (!popup) return;
 
@@ -2517,7 +2539,7 @@ function openCameraPopup(hass, map, config) {
 <body>
 <header>
   <strong>${title}</strong>
-  <span class="badge">${esc(native.snapshotOnly ? "Snapshot" : "Live")}</span>
+  <span class="badge">${esc(native.primaryType === "snapshot" ? "Snapshot" : "Live")}</span>
   <button onclick="window.location.reload()">Aktualisieren</button>
 </header>
 <img src="${sourceHtml}" alt="${title}">
@@ -2525,6 +2547,7 @@ function openCameraPopup(hass, map, config) {
 </html>`);
     popup.document.close();
   }
+
 
 
 
@@ -5018,7 +5041,7 @@ function openCameraPopup(hass, map, config) {
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta15",
+        version: "5.0.0-beta16",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -5042,7 +5065,7 @@ function openCameraPopup(hass, map, config) {
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta15";
+  const STUDIO_VERSION = "5.0.0-beta16";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -5088,7 +5111,7 @@ function openCameraPopup(hass, map, config) {
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta15 Camera Source Authority bereit. Die Druckplattenauswahl wird jetzt im ShadowRoot als Bambu-Studio-Kachel mit stabilem Dropdown gerendert; die Buildplate übernimmt sichtbar Oberfläche, Kontur, Grid, Logo und Frontleiste.";
+      this._status = "beta16 Camera Snapshot Authority bereit. Die Druckplattenauswahl wird jetzt im ShadowRoot als Bambu-Studio-Kachel mit stabilem Dropdown gerendert; die Buildplate übernimmt sichtbar Oberfläche, Kontur, Grid, Logo und Frontleiste.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -6650,7 +6673,7 @@ function openCameraPopup(hass, map, config) {
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta15 Camera Source Authority</div>
+                  <div class="plate-label">Buildplate - beta16 Camera Snapshot Authority</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   ${this._studioModelImageUrl ? html`
@@ -10599,7 +10622,7 @@ function openCameraPopup(hass, map, config) {
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta15 Camera Source Authority with stable Bambu-style plate dropdown and visible textured buildplate rendering."
+      description: "v5 beta16 Camera Snapshot Authority with stable Bambu-style plate dropdown and visible textured buildplate rendering."
     });
   }
 })();

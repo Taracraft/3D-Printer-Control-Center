@@ -1,3 +1,30 @@
+## 5.0.0-beta31 - Studio final UI cleanup and import object button
+
+### Deutsch
+- Behält die aktuelle Studio-Basis ohne Rollback.
+- Entfernt die wieder sichtbaren zusätzlichen Text-Navigationsbuttons nach jedem Render.
+- Oben bleiben nur Workflow-Aktionen sowie die kompakte Icon-/Import-Toolbar sichtbar.
+- Entfernt Studio-Fußzeilen wie Dry-Run-, STL-Mesh- und Plan-Hinweise aus der Arbeitsfläche.
+- Entfernt das CAD-Studio-Rechtsklickmenü erneut und hart.
+- Poliert den Import-Dialog kompakt und scrollbar im Studio-Frame.
+- Benennt den finalen Import-Button klar in „Objekt importieren“ um und ergänzt ihn bei gewähltem Importobjekt.
+- Importierte Jobs bleiben in der Studio-Jobliste erhalten; der aktive Job wird nach Import erneut geladen und gerendert.
+- Keine Kamera-, Dashboard-, Backend- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Keeps the current Studio base without rollback.
+- Removes the reappearing extra text navigation buttons after each render.
+- Keeps only workflow actions and the compact icon/import toolbar visible at the top.
+- Removes Studio footer/status rows such as Dry-Run, STL mesh and plan messages from the work area.
+- Removes the CAD Studio right-click context menu again and aggressively.
+- Polishes the import dialog as a compact scrollable in-frame popup.
+- Renames the final import action to “Objekt importieren” and adds it when an import item is selected.
+- Imported jobs remain in the Studio job list; the active job is reloaded and rendered after import.
+- No camera, dashboard, backend or connection changes.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta30 - Studio UI squash
 
 ### Deutsch

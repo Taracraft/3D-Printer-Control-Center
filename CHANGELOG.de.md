@@ -1,3 +1,28 @@
+## 5.0.0-beta24 - Studio single render state stabilization
+
+### English
+- Keeps the beta9 plate selector, beta20 primitives/rulers, beta21 filled mesh rendering, beta22 top toolbar/color editing and beta23 grid/mouse/icon base.
+- Stabilizes Studio to one active render state and one active mesh canvas render loop.
+- Rehydrates primitive meshes from the active primitive job before rendering so First Layer/cube/cuboid/cylinder no longer disappear after reload.
+- Keeps First Layer at 256 x 256 mm for the Bambu A1 footprint.
+- Hides old lower status/Dry-Run/STL fallback message bars and removes duplicate legacy toolbar rows.
+- Stabilizes beta9 plate selector application after plate changes.
+- Keeps right-click blocking limited to the buildplate interaction area.
+- No camera, dashboard, backend-route or printer connection changes.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Behält beta9-Druckplattenauswahl, beta20-Primitive/Lineale, beta21-gefülltes Mesh-Rendering, beta22-Top-Toolbar/Farbsteuerung und beta23-Raster/Maus/Icon-Basis.
+- Stabilisiert das Studio auf einen aktiven Renderzustand und einen aktiven Mesh-Canvas-Renderlauf.
+- Rehydriert Primitive-Meshes vor jedem Render aus dem aktiven Primitive-Job, damit First Layer/Würfel/Quader/Zylinder nicht nach Reload verschwinden.
+- Hält First Layer auf 256 x 256 mm für die Bambu-A1-Bettfläche.
+- Blendet alte untere Status-/Dry-Run-/STL-Fallback-Leisten aus und entfernt doppelte Legacy-Toolbar-Zeilen.
+- Stabilisiert die beta9-Druckplattenauswahl nach Plattenwechseln.
+- Beschränkt Rechtsklick-Blocking auf den Buildplate-Interaktionsbereich.
+- Keine Kamera-, Dashboard-, Backend-Routen- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta23 - Studio grid, mouse controls, gallery import and SVG toolbar icons
 
 ### English

@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta23*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta24*/
 (() => {
-  const VERSION = "5.0.0-beta23";
+  const VERSION = "5.0.0-beta24";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta23",
+        version: "5.0.0-beta24",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta23";
+  const STUDIO_VERSION = "5.0.0-beta24";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -12394,6 +12394,346 @@ const PCC_BETA23_STUDIO_CLASS = customElements.get("printer-control-center-studi
       if (!this._studioMesh?.triangles?.length) node.textContent = "";
     });
 
+    this.queueMeshRender?.();
+  };
+
+const PCC_BETA24_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA24_PREV_CLEANUP = PCC_BETA24_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+  const PCC_BETA24_PREV_APPLY_JOB = PCC_BETA24_STUDIO_CLASS.prototype.applyActiveJob;
+  const PCC_BETA24_PREV_LOAD_JOBS = PCC_BETA24_STUDIO_CLASS.prototype.loadStudioJobs;
+  const PCC_BETA24_PREV_ENSURE_MESH = PCC_BETA24_STUDIO_CLASS.prototype.ensureStudioMeshLoaded;
+  const PCC_BETA24_PREV_RENDER_MESH = PCC_BETA24_STUDIO_CLASS.prototype.renderMeshCanvas;
+  const PCC_BETA24_PREV_QUEUE_RENDER = PCC_BETA24_STUDIO_CLASS.prototype.queueMeshRender;
+  const PCC_BETA24_PREV_BETA9_SET_PLATE = PCC_BETA24_STUDIO_CLASS.prototype.beta9SetPlate;
+
+  if (typeof PCC_BETA20_PRIMITIVES === "object" && PCC_BETA20_PRIMITIVES.first_layer) {
+    Object.assign(PCC_BETA20_PRIMITIVES.first_layer, {
+      label: "First Layer",
+      width: 256,
+      depth: 256,
+      height: 0.28,
+      visualHeight: 0.75,
+      type: "box"
+    });
+  }
+
+  function pccBeta24PrimitiveKind(job) {
+    return String(
+      job?.primitive?.kind ||
+      job?.primitive_kind ||
+      job?.model?.primitive_kind ||
+      job?.model?.primitive ||
+      ""
+    ).trim().replace(/^primitive-/, "").replace(/-/g, "_");
+  }
+
+  function pccBeta24IsPrimitive(job) {
+    const source = String(job?.source || job?.origin || job?.model?.source || "").trim();
+    return source === "primitive" || Boolean(pccBeta24PrimitiveKind(job));
+  }
+
+  function pccBeta24IsRenderable(job) {
+    if (!job) return false;
+    if (pccBeta24IsPrimitive(job)) return true;
+    const values = [
+      job.archive_model_stl,
+      job.sd_model_stl,
+      job.model_stl,
+      job.stl_url,
+      job.mesh_url,
+      job.geometry_url,
+      job.preview_mesh_url,
+      job.model?.archive_model_stl,
+      job.model?.sd_model_stl,
+      job.model?.stl_url,
+      job.model?.mesh_url,
+      job.model?.geometry_url,
+      job.file_path,
+      job.path,
+      job.model?.path,
+    ];
+    return values.some((value) => /\.(stl|obj)(\?|#|$)/i.test(String(value || "").trim()));
+  }
+
+  PCC_BETA24_STUDIO_CLASS.prototype.beta24EnsureStyle = function beta24EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta24-single-render-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta24-single-render-style";
+    style.textContent = `
+      .pcc-beta22-top-toolbar{
+        display:none!important;
+      }
+
+      .studio-shell > .toolbar,
+      .studio-shell > .row.between,
+      .studio-shell > .actions,
+      .studio-shell > .studio-actions,
+      .studio-shell > .studio-toolbar:not(.pcc-beta23-top-toolbar),
+      .studio-shell > div:has(> button[data-action="plan"]),
+      .studio-shell > div:has(> button[data-action="health"]),
+      .studio-shell > div:has(> button[data-action="reload-jobs"]){
+        display:none!important;
+      }
+
+      .pcc-beta24-bottom-hidden,
+      .studio-status,
+      .studio-health,
+      .studio-dry-run,
+      .dry-run-result,
+      .health-result,
+      .studio-footer,
+      .studio-log,
+      .status-line{
+        display:none!important;
+      }
+
+      .buildplate.pcc-beta24-single-render .model,
+      .buildplate.pcc-beta24-single-render .model-label,
+      .buildplate.pcc-beta24-single-render .studio-model-image{
+        display:none!important;
+        opacity:0!important;
+      }
+
+      .buildplate.pcc-beta24-single-render .studio-mesh-canvas{
+        display:block!important;
+        opacity:1!important;
+        z-index:30!important;
+      }
+
+      .pcc-beta9-plate-dropdown{
+        z-index:160!important;
+      }
+
+      .pcc-beta9-plate-selector,
+      .pcc-beta9-plate-selector *{
+        pointer-events:auto!important;
+      }
+
+      .buildplate.pcc-beta9-buildplate .pcc-beta9-buildplate-skin::before{
+        background-image:
+          linear-gradient(rgba(255,255,255,.075) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,.075) 1px, transparent 1px),
+          linear-gradient(rgba(0,169,214,.12) 2px, transparent 2px),
+          linear-gradient(90deg, rgba(0,169,214,.12) 2px, transparent 2px)!important;
+        background-size:20px 20px,20px 20px,100px 100px,100px 100px!important;
+        background-position:center center!important;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA24_STUDIO_CLASS.prototype.beta24RehydratePrimitiveMesh = function beta24RehydratePrimitiveMesh() {
+    const job = this._activeJob;
+    if (!pccBeta24IsPrimitive(job)) return false;
+
+    const kind = pccBeta24PrimitiveKind(job) || "cube";
+    const mesh = typeof pccBeta20PrimitiveMesh === "function" ? pccBeta20PrimitiveMesh(kind) : null;
+
+    if (!mesh?.triangles?.length) return false;
+
+    this._studioMesh = mesh;
+    this._studioMeshJobId = String(job?.id || `primitive://${kind}`);
+    this._studioMeshUrl = "";
+    this._studioMeshError = "";
+    this._studioModelImageUrl = "";
+    this._pccBeta21PrimitiveLocked = true;
+    this._pccBeta21LockedJobId = String(job?.id || `primitive://${kind}`);
+    this._jobs = [job];
+    this._jobsLoaded = true;
+
+    if (this._activeJob) {
+      this._activeJob.source = "primitive";
+      this._activeJob.origin = "primitive";
+      this._activeJob.primitive_kind = kind;
+      this._activeJob.file_path = this._activeJob.file_path || `primitive://${kind}`;
+      this._activeJob.path = this._activeJob.path || `primitive://${kind}`;
+      this._activeJob.primitive = {
+        ...(this._activeJob.primitive || {}),
+        kind,
+        label: this._activeJob.primitive?.label || this._activeJob.name || kind,
+        width_mm: mesh.meta?.width_mm || 0,
+        depth_mm: mesh.meta?.depth_mm || 0,
+        height_mm: mesh.meta?.height_mm || 0
+      };
+      this._activeJob.model = {
+        ...(this._activeJob.model || {}),
+        source: "primitive",
+        primitive_kind: kind,
+        path: this._activeJob.path,
+      };
+    }
+
+    return true;
+  };
+
+  PCC_BETA24_STUDIO_CLASS.prototype.beta24HardCleanDom = function beta24HardCleanDom() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".pcc-beta22-top-toolbar").forEach((node) => node.remove());
+
+    const bottomNeedles = [
+      "Studio-Job aus Galerie/Dateimanager geladen",
+      "Noch kein Dry-Run",
+      "Plan prüfen",
+      "Health prüfen",
+      "Dry-Run",
+      "No health result",
+      "STL-Mesh nicht geladen",
+      "Modellbild-Fallback",
+    ];
+
+    root.querySelectorAll("ha-alert,.alert,.message,.status,.muted,.studio-status,.studio-health,.studio-dry-run,.dry-run-result,.health-result,.studio-footer,.studio-log,.footer,.status-line").forEach((node) => {
+      const text = String(node.textContent || "");
+      if (bottomNeedles.some((needle) => text.includes(needle))) {
+        node.classList.add("pcc-beta24-bottom-hidden");
+      }
+    });
+
+    root.querySelectorAll("div").forEach((node) => {
+      const text = String(node.textContent || "").trim();
+      if (!text || text.length > 260) return;
+      if (bottomNeedles.some((needle) => text.includes(needle))) {
+        if (node.closest(".pcc-beta23-top-toolbar")) return;
+        if (node.closest(".pcc-beta20-primitive-panel")) return;
+        if (node.closest(".pcc-beta9-plate-selector")) return;
+        node.classList.add("pcc-beta24-bottom-hidden");
+      }
+    });
+
+    const buildplate = root.querySelector(".buildplate");
+    if (buildplate) {
+      buildplate.classList.add("pcc-beta24-single-render");
+      buildplate.querySelectorAll(".model-label,.studio-model-image").forEach((node) => node.remove());
+    }
+  };
+
+  PCC_BETA24_STUDIO_CLASS.prototype.beta9SetPlate = function beta24Beta9SetPlate(id) {
+    if (typeof PCC_BETA24_PREV_BETA9_SET_PLATE === "function") {
+      PCC_BETA24_PREV_BETA9_SET_PLATE.call(this, id);
+    } else {
+      this._beta9Plate = id;
+    }
+
+    try { this.beta9RenderPlateSelector?.(); } catch (_error) {}
+    try { this.beta9ApplyBuildplateVisual?.(); } catch (_error) {}
+    try { this.queueMeshRender?.(); } catch (_error) {}
+  };
+
+  PCC_BETA24_STUDIO_CLASS.prototype.applyActiveJob = function beta24ApplyActiveJob(job, options={}) {
+    if (!pccBeta24IsRenderable(job)) {
+      this._activeJob = null;
+      this._activeJobId = "";
+      this._jobs = [];
+      this._studioMesh = null;
+      this._studioMeshJobId = "";
+      this._studioMeshUrl = "";
+      this._studioMeshError = "";
+      this._studioModelImageUrl = "";
+      if (options?.render !== false) this.render();
+      return;
+    }
+
+    const result = PCC_BETA24_PREV_APPLY_JOB.call(this, job, options);
+
+    if (pccBeta24IsPrimitive(this._activeJob || job)) {
+      this.beta24RehydratePrimitiveMesh();
+    }
+
+    return result;
+  };
+
+  PCC_BETA24_STUDIO_CLASS.prototype.loadStudioJobs = async function beta24LoadStudioJobs(...args) {
+    if (pccBeta24IsPrimitive(this._activeJob)) {
+      this.beta24RehydratePrimitiveMesh();
+      this._jobs = [this._activeJob];
+      return this._jobs;
+    }
+
+    const result = await PCC_BETA24_PREV_LOAD_JOBS.apply(this, args);
+
+    if (Array.isArray(this._jobs)) {
+      this._jobs = this._jobs.filter((job) => pccBeta24IsRenderable(job));
+    }
+
+    if (this._activeJob && !pccBeta24IsRenderable(this._activeJob)) {
+      this._activeJob = null;
+      this._activeJobId = "";
+      this._studioMesh = null;
+      this._studioMeshJobId = "";
+      this._studioMeshUrl = "";
+      this._studioMeshError = "";
+      this._studioModelImageUrl = "";
+      this.render();
+    }
+
+    return result;
+  };
+
+  PCC_BETA24_STUDIO_CLASS.prototype.ensureStudioMeshLoaded = async function beta24EnsureStudioMeshLoaded(force=false) {
+    if (pccBeta24IsPrimitive(this._activeJob)) {
+      this.beta24RehydratePrimitiveMesh();
+      this.queueMeshRender?.();
+      return;
+    }
+
+    if (!this._activeJob || !pccBeta24IsRenderable(this._activeJob)) {
+      this._studioMesh = null;
+      this._studioMeshJobId = "";
+      this._studioMeshUrl = "";
+      this._studioMeshError = "";
+      this._studioModelImageUrl = "";
+      this.queueMeshRender?.();
+      return;
+    }
+
+    return PCC_BETA24_PREV_ENSURE_MESH.call(this, force);
+  };
+
+  PCC_BETA24_STUDIO_CLASS.prototype.queueMeshRender = function beta24QueueMeshRender() {
+    if (this._pccBeta24RenderFrame) return;
+    this._pccBeta24RenderFrame = requestAnimationFrame(() => {
+      this._pccBeta24RenderFrame = 0;
+      this.renderMeshCanvas?.();
+    });
+  };
+
+  PCC_BETA24_STUDIO_CLASS.prototype.renderMeshCanvas = function beta24RenderMeshCanvas() {
+    if (this._pccBeta24Rendering) return;
+    this._pccBeta24Rendering = true;
+
+    try {
+      if (pccBeta24IsPrimitive(this._activeJob)) {
+        this.beta24RehydratePrimitiveMesh();
+      }
+
+      if (typeof PCC_BETA24_PREV_RENDER_MESH === "function") {
+        PCC_BETA24_PREV_RENDER_MESH.call(this);
+      }
+
+      this.beta24HardCleanDom();
+    } finally {
+      this._pccBeta24Rendering = false;
+    }
+  };
+
+  PCC_BETA24_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function beta24CleanupBetaStudioUi() {
+    try {
+      if (typeof PCC_BETA24_PREV_CLEANUP === "function") PCC_BETA24_PREV_CLEANUP.call(this);
+    } catch (_error) {}
+
+    this.beta24EnsureStyle();
+
+    if (pccBeta24IsPrimitive(this._activeJob)) {
+      this.beta24RehydratePrimitiveMesh();
+    }
+
+    try { this.beta9InstallSelector?.(); } catch (_error) {}
+    try { this.beta9ApplyBuildplateVisual?.(); } catch (_error) {}
+
+    this.beta24HardCleanDom();
     this.queueMeshRender?.();
   };
 

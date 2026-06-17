@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta26*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta27*/
 (() => {
-  const VERSION = "5.0.0-beta26";
+  const VERSION = "5.0.0-beta27";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta26",
+        version: "5.0.0-beta27",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta26";
+  const STUDIO_VERSION = "5.0.0-beta27";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -12852,6 +12852,292 @@ const PCC_BETA26_STUDIO_CLASS = customElements.get("printer-control-center-studi
 
     const buildplate = root?.querySelector(".buildplate");
     if (buildplate) buildplate.classList.add("pcc-beta26-single-frame");
+  };
+
+const PCC_BETA27_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA27_PREV_CLEANUP = PCC_BETA27_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+  const PCC_BETA27_PREV_OPEN_IMPORT = PCC_BETA27_STUDIO_CLASS.prototype.openBeta7ImportAssistant;
+  const PCC_BETA27_PREV_BETA26_INSTALL_TOOLBAR = PCC_BETA27_STUDIO_CLASS.prototype.beta26InstallToolbar;
+  const PCC_BETA27_PREV_BETA26_CLOSE_MENUS = PCC_BETA27_STUDIO_CLASS.prototype.beta26CloseToolbarMenus;
+
+  PCC_BETA27_STUDIO_CLASS.prototype.beta27EnsureStyle = function beta27EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta27-import-popup-menu-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta27-import-popup-menu-style";
+    style.textContent = `
+      .studio-shell{
+        position:relative!important;
+      }
+
+      .pcc-beta26-toolbar{
+        overflow:visible!important;
+      }
+
+      .pcc-beta26-menu[open] > summary{
+        background:rgba(0,169,214,.26)!important;
+        color:#fff!important;
+      }
+
+      .pcc-beta26-menu-body{
+        z-index:520!important;
+      }
+
+      .pcc-beta27-import-modal{
+        position:absolute;
+        inset:48px 10px 10px 10px;
+        z-index:500;
+        display:flex;
+        align-items:flex-start;
+        justify-content:center;
+        padding:18px;
+        background:rgba(0,0,0,.54);
+        border:1px solid rgba(0,169,214,.28);
+        backdrop-filter:blur(2px);
+      }
+
+      .pcc-beta27-import-dialog{
+        position:relative;
+        width:min(980px,96%);
+        max-height:calc(100% - 8px);
+        overflow:auto;
+        border:1px solid rgba(0,169,214,.62);
+        background:linear-gradient(180deg,rgba(16,22,27,.98),rgba(7,12,16,.98));
+        box-shadow:0 24px 58px rgba(0,0,0,.58);
+        padding:14px;
+      }
+
+      .pcc-beta27-import-close{
+        position:sticky;
+        top:0;
+        float:right;
+        z-index:2;
+        width:34px;
+        height:30px;
+        border:1px solid rgba(0,169,214,.55);
+        border-radius:0;
+        background:rgba(0,48,64,.88);
+        color:#fff;
+        cursor:pointer;
+        font-weight:800;
+      }
+
+      .pcc-beta27-import-close:hover{
+        background:rgba(0,119,158,.92);
+      }
+
+      .pcc-beta27-import-dialog h1,
+      .pcc-beta27-import-dialog h2,
+      .pcc-beta27-import-dialog h3{
+        margin-top:0!important;
+      }
+
+      .pcc-beta27-import-dialog button,
+      .pcc-beta27-import-dialog select,
+      .pcc-beta27-import-dialog input{
+        max-width:100%;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA27_STUDIO_CLASS.prototype.beta27ToolbarMenuKey = function beta27ToolbarMenuKey(details, index) {
+    const title = details?.querySelector?.("summary")?.getAttribute?.("title") || "";
+    return title || `menu-${index}`;
+  };
+
+  PCC_BETA27_STUDIO_CLASS.prototype.beta27StoreOpenMenus = function beta27StoreOpenMenus() {
+    const root = this.shadowRoot;
+    if (!root) return;
+    this._pccBeta27OpenMenus = [...root.querySelectorAll(".pcc-beta26-menu")]
+      .map((details, index) => ({details, key:this.beta27ToolbarMenuKey(details,index)}))
+      .filter((entry) => entry.details.open)
+      .map((entry) => entry.key);
+  };
+
+  PCC_BETA27_STUDIO_CLASS.prototype.beta27RestoreOpenMenus = function beta27RestoreOpenMenus() {
+    const root = this.shadowRoot;
+    const open = new Set(this._pccBeta27OpenMenus || []);
+    if (!root || !open.size) return;
+
+    [...root.querySelectorAll(".pcc-beta26-menu")].forEach((details, index) => {
+      const key = this.beta27ToolbarMenuKey(details, index);
+      if (open.has(key)) details.setAttribute("open", "");
+    });
+  };
+
+  PCC_BETA27_STUDIO_CLASS.prototype.beta27BindToolbarMenus = function beta27BindToolbarMenus() {
+    const root = this.shadowRoot;
+    const toolbar = root?.querySelector(".pcc-beta26-toolbar");
+    if (!toolbar || toolbar.dataset.beta27MenuStable === "1") return;
+
+    toolbar.dataset.beta27MenuStable = "1";
+
+    toolbar.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+    }, {capture:true});
+
+    toolbar.addEventListener("click", (event) => {
+      event.stopPropagation();
+      window.setTimeout(() => this.beta27StoreOpenMenus(), 0);
+    }, {capture:true});
+
+    toolbar.querySelectorAll(".pcc-beta26-menu").forEach((details, index) => {
+      details.dataset.beta27MenuKey = this.beta27ToolbarMenuKey(details, index);
+      details.addEventListener("toggle", () => {
+        window.setTimeout(() => this.beta27StoreOpenMenus(), 0);
+      });
+    });
+
+    root.addEventListener("click", (event) => {
+      if (event.target?.closest?.(".pcc-beta26-toolbar")) return;
+      if (event.target?.closest?.(".pcc-beta27-import-modal")) return;
+      this._pccBeta27OpenMenus = [];
+      root.querySelectorAll(".pcc-beta26-menu[open]").forEach((details) => details.removeAttribute("open"));
+    }, {capture:true});
+  };
+
+  PCC_BETA27_STUDIO_CLASS.prototype.beta26CloseToolbarMenus = function beta27CloseToolbarMenus(keep=null) {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".pcc-beta26-menu[open]").forEach((details) => {
+      if (keep && details === keep) return;
+      details.removeAttribute("open");
+    });
+
+    window.setTimeout(() => this.beta27StoreOpenMenus(), 0);
+
+    if (!keep && typeof PCC_BETA27_PREV_BETA26_CLOSE_MENUS === "function") {
+      try { PCC_BETA27_PREV_BETA26_CLOSE_MENUS.call(this, keep); } catch (_error) {}
+    }
+  };
+
+  PCC_BETA27_STUDIO_CLASS.prototype.beta27FindImportAssistantNode = function beta27FindImportAssistantNode() {
+    const root = this.shadowRoot;
+    if (!root) return null;
+
+    const existing = root.querySelector(".pcc-beta27-import-dialog > *:not(.pcc-beta27-import-close)");
+    if (existing) return existing;
+
+    const titleNode = [...root.querySelectorAll("h1,h2,h3,strong,b,div,section")]
+      .find((node) => String(node.textContent || "").trim().startsWith("Studio-Import-Assistent"));
+
+    if (!titleNode) return null;
+
+    let panel = titleNode;
+    for (let i = 0; i < 5; i++) {
+      const parent = panel.parentElement;
+      if (!parent) break;
+      const text = String(parent.textContent || "");
+      if (!text.includes("Studio-Import-Assistent")) break;
+      if (parent.classList?.contains?.("studio-shell")) break;
+      if (parent.classList?.contains?.("studio-grid")) break;
+      if (parent.classList?.contains?.("buildplate")) break;
+      if (parent.classList?.contains?.("pcc-beta27-import-dialog")) break;
+      panel = parent;
+      if (text.includes("Galerie/Archiv") || text.includes("Galerie / Archiv") || text.includes("3MF hochladen") || text.includes("Verknüpfen")) break;
+    }
+
+    return panel;
+  };
+
+  PCC_BETA27_STUDIO_CLASS.prototype.beta27PromoteImportAssistant = function beta27PromoteImportAssistant() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const panel = this.beta27FindImportAssistantNode();
+    if (!panel) return;
+
+    if (panel.closest?.(".pcc-beta27-import-dialog")) return;
+
+    const shell = root.querySelector(".studio-shell") || root.querySelector(".studio-grid")?.parentElement || root.host;
+    if (!shell) return;
+
+    let overlay = root.querySelector(".pcc-beta27-import-modal");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "pcc-beta27-import-modal";
+      overlay.innerHTML = `
+        <div class="pcc-beta27-import-dialog" role="dialog" aria-modal="true">
+          <button class="pcc-beta27-import-close" type="button" title="Schließen">×</button>
+        </div>
+      `;
+      shell.appendChild(overlay);
+
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay || event.target?.closest?.(".pcc-beta27-import-close")) {
+          event.preventDefault();
+          event.stopPropagation();
+          this.beta27CloseImportPopup();
+        }
+      }, {capture:true});
+    }
+
+    const dialog = overlay.querySelector(".pcc-beta27-import-dialog");
+    if (!dialog) return;
+
+    dialog.appendChild(panel);
+    this._pccBeta27ImportOpen = true;
+
+    dialog.addEventListener("click", (event) => {
+      const button = event.target?.closest?.("button");
+      if (!button) return;
+      const label = String(button.textContent || "").trim();
+      if (label === "Schließen") {
+        window.setTimeout(() => this.beta27CloseImportPopup(), 0);
+      }
+    }, {capture:true, once:false});
+  };
+
+  PCC_BETA27_STUDIO_CLASS.prototype.beta27CloseImportPopup = function beta27CloseImportPopup() {
+    const root = this.shadowRoot;
+    this._pccBeta27ImportOpen = false;
+
+    for (const key of ["_beta7ImportOpen", "_studioImportOpen", "_importAssistantOpen", "_showImportAssistant"]) {
+      try { this[key] = false; } catch (_error) {}
+    }
+
+    root?.querySelectorAll(".pcc-beta27-import-modal").forEach((node) => node.remove());
+  };
+
+  PCC_BETA27_STUDIO_CLASS.prototype.openBeta7ImportAssistant = function beta27OpenImportAssistant(...args) {
+    this._pccBeta27ImportOpen = true;
+
+    let result;
+    if (typeof PCC_BETA27_PREV_OPEN_IMPORT === "function") {
+      result = PCC_BETA27_PREV_OPEN_IMPORT.apply(this, args);
+    }
+
+    const promote = () => this.beta27PromoteImportAssistant();
+    window.requestAnimationFrame(promote);
+    window.setTimeout(promote, 50);
+    window.setTimeout(promote, 250);
+
+    return result;
+  };
+
+  PCC_BETA27_STUDIO_CLASS.prototype.beta26InstallToolbar = function beta27InstallToolbar(...args) {
+    if (typeof PCC_BETA27_PREV_BETA26_INSTALL_TOOLBAR === "function") {
+      PCC_BETA27_PREV_BETA26_INSTALL_TOOLBAR.apply(this, args);
+    }
+    this.beta27BindToolbarMenus();
+    this.beta27RestoreOpenMenus();
+  };
+
+  PCC_BETA27_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function beta27CleanupBetaStudioUi(...args) {
+    if (typeof PCC_BETA27_PREV_CLEANUP === "function") {
+      PCC_BETA27_PREV_CLEANUP.apply(this, args);
+    }
+
+    this.beta27EnsureStyle();
+    this.beta27BindToolbarMenus();
+    this.beta27RestoreOpenMenus();
+
+    if (this._pccBeta27ImportOpen) {
+      window.requestAnimationFrame(() => this.beta27PromoteImportAssistant());
+    }
   };
 
   if (!customElements.get("printer-control-center-studio-card")) {

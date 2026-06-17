@@ -1,3 +1,22 @@
+## 5.0.0-beta27 - Studio import popup and stable dropdown menus
+
+### Deutsch
+- Behält die aktuelle Studio-Basis ohne beta24-Rückschritt.
+- Stabilisiert die kompakten Studio-Dropdown-Menüs, damit sie nicht direkt wieder unbeabsichtigt schließen.
+- Zeigt den Studio-Import-Assistenten als Popup im Studio-Frame an, analog zur Galerie-/Warteschlangen-Bedienung.
+- Entfernt keinen Workflow-Button und ändert keinen Renderpfad.
+- Keine Kamera-, Dashboard-, Backend-Routen- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Keeps the current Studio base without reverting to beta24.
+- Stabilizes the compact Studio dropdown menus so they do not close unintentionally.
+- Shows the Studio import assistant as an in-frame popup, aligned with the gallery/queue interaction model.
+- Does not remove workflow buttons and does not change the render path.
+- No camera, dashboard, backend-route or printer connection changes.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta26 - Compact Studio toolbar, import handoff and single-frame rendering
 
 ### Deutsch

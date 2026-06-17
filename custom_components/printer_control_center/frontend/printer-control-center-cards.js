@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta16*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta17*/
 (() => {
-  const VERSION = "5.0.0-beta16";
+  const VERSION = "5.0.0-beta17";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -189,7 +189,7 @@
     ["Drucker offline", "Printer offline"],
     ["Live-Kamera", "Live camera"],
     ["Native Live-Kamera", "Native live camera"],
-    ["Native Kamera-Snapshot", "Native camera snapshot"],
+    ["Native Kamera", "Native camera snapshot"],
     ["Modellvorschau", "Model preview"],
     ["Native Live-Kamera startet …", "Starting native live camera …"],
     ["Das 3D-Printer Control Center verbindet Home Assistant direkt mit TCP 6000. Keine externen Dienste erforderlich.", "3D-Printer Control Center connects Home Assistant directly to TCP 6000. No external services are required."],
@@ -2397,6 +2397,16 @@ function pccV5CameraString(value) {
     return `${url}${sep}pcc_cam=${Math.floor(Date.now() / 2500)}`;
   }
 
+
+function pccV5CameraDirectRoute(map, config, token = "") {
+    const serial = String(config?.serial || map?.serial || map?.prefix || "").trim();
+    const clean = encodeURIComponent(serial || "default");
+    const query = [`ts=${Math.floor(Date.now() / 2500)}`];
+    if (token) query.push(`token=${encodeURIComponent(token)}`);
+    return `/api/printer_control_center/camera/${clean}.jpg?${query.join("&")}`;
+  }
+
+
 function cameraProxy(hass, map, config) {
     const entityId = pccV5SelectBestCameraEntity(hass, map, config);
     const state = entityId ? hass?.states?.[entityId] : null;
@@ -2432,30 +2442,39 @@ function cameraProxy(hass, map, config) {
 
 
 function mediaSource(hass, map, config, cameraVisible, online, status) {
-    const native = cameraProxy(hass, map, config);
-    const overrideUrl = pccV5CameraString(config?.camera_url);
+    const native = typeof cameraProxy === "function" ? cameraProxy(hass, map, config) : {};
+    const overrideUrl = String(config?.camera_url || "").trim();
+    const directRoute = pccV5CameraDirectRoute(map, config, native?.token || "");
     const previewEntity = config?.preview_entity || autoEntity(hass, "image", map.prefix, ["cover_image", "titelbild", "model_preview", "bild_wahlen"]);
 
-    const cameraSource = overrideUrl || native.primary;
-
-    if (cameraSource) {
-      const sourceType = overrideUrl ? "override" : native.primaryType;
+    if (overrideUrl) {
       return {
-        src: sourceType === "snapshot" ? pccV5CameraCacheBuster(cameraSource) : cameraSource,
-        rawSrc: cameraSource,
-        label: sourceType === "stream" ? "Native Live-Kamera" : "Native Kamera-Snapshot",
+        src: overrideUrl,
+        rawSrc: overrideUrl,
+        label: "Live-Kamera",
         mode: "live",
-        entityId: native.entityId,
-        sourceType
+        entityId: native.entityId || "",
+        sourceType: "override"
+      };
+    }
+
+    if (directRoute) {
+      return {
+        src: directRoute,
+        rawSrc: directRoute,
+        label: "Native Kamera",
+        mode: "live",
+        entityId: native.entityId || "pcc-direct-camera",
+        sourceType: "pcc-direct"
       };
     }
 
     if (!online) {
-      return { src: DEFAULT_OFFLINE, label: "Drucker offline", mode: "offline", entityId: native.entityId };
+      return { src: DEFAULT_OFFLINE, label: "Drucker offline", mode: "offline", entityId: native.entityId || "" };
     }
 
     if (previewEntity && attrs(hass, previewEntity).entity_picture) {
-      return { src: attrs(hass, previewEntity).entity_picture, label: "Modellvorschau", mode: "preview", entityId: native.entityId };
+      return { src: attrs(hass, previewEntity).entity_picture, label: "Modellvorschau", mode: "preview", entityId: native.entityId || "" };
     }
 
     const printing = ["running", "pause", "printing", "prepare"].includes(String(status).toLowerCase());
@@ -2463,9 +2482,10 @@ function mediaSource(hass, map, config, cameraVisible, online, status) {
       src: printing ? DEFAULT_PREVIEW : DEFAULT_IDLE,
       label: printing ? "Modellvorschau" : "Kein aktiver Druckauftrag",
       mode: printing ? "preview" : "idle",
-      entityId: native.entityId
+      entityId: native.entityId || ""
     };
   }
+
 
 
 
@@ -5041,7 +5061,7 @@ function openCameraPopup(hass, map, config) {
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta16",
+        version: "5.0.0-beta17",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -5065,7 +5085,7 @@ function openCameraPopup(hass, map, config) {
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta16";
+  const STUDIO_VERSION = "5.0.0-beta17";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -5111,7 +5131,7 @@ function openCameraPopup(hass, map, config) {
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta16 Camera Snapshot Authority bereit. Die Druckplattenauswahl wird jetzt im ShadowRoot als Bambu-Studio-Kachel mit stabilem Dropdown gerendert; die Buildplate übernimmt sichtbar Oberfläche, Kontur, Grid, Logo und Frontleiste.";
+      this._status = "beta17 Backend Camera Route Fix bereit. Die Druckplattenauswahl wird jetzt im ShadowRoot als Bambu-Studio-Kachel mit stabilem Dropdown gerendert; die Buildplate übernimmt sichtbar Oberfläche, Kontur, Grid, Logo und Frontleiste.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -6673,7 +6693,7 @@ function openCameraPopup(hass, map, config) {
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta16 Camera Snapshot Authority</div>
+                  <div class="plate-label">Buildplate - beta17 Backend Camera Route Fix</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   ${this._studioModelImageUrl ? html`
@@ -10622,7 +10642,7 @@ function openCameraPopup(hass, map, config) {
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta16 Camera Snapshot Authority with stable Bambu-style plate dropdown and visible textured buildplate rendering."
+      description: "v5 beta17 Backend Camera Route Fix with stable Bambu-style plate dropdown and visible textured buildplate rendering."
     });
   }
 })();

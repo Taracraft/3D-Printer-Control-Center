@@ -60,6 +60,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    # PCC beta17 camera route registration
+    try:
+        from .http_api import async_register_pcc_beta17_camera_view
+        async_register_pcc_beta17_camera_view(hass)
+    except Exception:
+        pass
     """Set up one printer entry."""
     async_register_studio_websocket(hass)
     await async_register_frontend(hass)

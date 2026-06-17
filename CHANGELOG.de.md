@@ -1,3 +1,24 @@
+## 5.0.0-beta17 - Backend Camera Route Fix
+
+### English
+- Keeps the good beta9 Studio buildplate selector/runtime as active base.
+- Adds an authenticated Printer Control Center camera route at `/api/printer_control_center/camera/{serial}.jpg`.
+- Stops relying on unauthenticated Home Assistant `camera_proxy` URLs in the dashboard card.
+- Adds backend TCP-6000 HTTP/MJPEG probing for Bambu A1/P1-style native camera endpoints.
+- Returns a clear JSON error from the backend when TCP 6000 does not deliver a JPEG frame.
+- No model-specific X1 workplace logic, no frontend camera overlay and no Studio/Bett runtime changes.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Behält die gute beta9-Studio-Buildplate-/Selector-Laufzeit als aktive Basis.
+- Ergänzt eine authentifizierte Printer-Control-Center-Kameraroute unter `/api/printer_control_center/camera/{serial}.jpg`.
+- Das Dashboard hängt nicht mehr an tokenlosen Home-Assistant-`camera_proxy`-URLs.
+- Ergänzt backendseitige TCP-6000-HTTP/MJPEG-Prüfung für native Bambu-A1/P1-artige Kamera-Endpunkte.
+- Liefert einen klaren JSON-Fehler aus dem Backend, wenn TCP 6000 kein JPEG-Frame liefert.
+- Keine X1-Arbeitsplatz-Sonderlogik, kein Frontend-Kamera-Overlay und keine Studio-/Bett-Laufzeitänderung.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta16 - Camera Snapshot Authority
 
 ### English

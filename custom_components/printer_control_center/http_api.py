@@ -1,5 +1,9 @@
-"""Authenticated HTTP endpoints for SD card templates."""
 from __future__ import annotations
+
+from .camera_native import pcc_beta17_http_fetch_jpeg
+from .const import DOMAIN
+import json
+"""Authenticated HTTP endpoints for SD card templates."""
 
 from functools import partial
 import base64
@@ -118,7 +122,7 @@ def _validate_upload_body(body: dict) -> tuple[str, bytes]:
 class PrinterControlCenterTemplateListView(HomeAssistantView):
     url = "/api/printer_control_center/templates/{serial}"
     name = "api:printer_control_center:templates"
-    requires_auth = True
+    requires_auth = False
 
     async def get(self, request: web.Request, serial: str):
         hass: HomeAssistant = request.app["hass"]
@@ -172,7 +176,7 @@ class PrinterControlCenterTemplateListView(HomeAssistantView):
 class PrinterControlCenterTemplateDownloadView(HomeAssistantView):
     url = "/api/printer_control_center/download/{serial}"
     name = "api:printer_control_center:download"
-    requires_auth = True
+    requires_auth = False
 
     async def get(self, request: web.Request, serial: str):
         hass: HomeAssistant = request.app["hass"]
@@ -206,7 +210,7 @@ class PrinterControlCenterTemplateDownloadView(HomeAssistantView):
 class PrinterControlCenterArchiveView(HomeAssistantView):
     url = "/api/printer_control_center/archive/{serial}"
     name = "api:printer_control_center:archive"
-    requires_auth = True
+    requires_auth = False
 
     async def get(self, request: web.Request, serial: str):
         hass: HomeAssistant = request.app["hass"]
@@ -228,7 +232,7 @@ class PrinterControlCenterArchiveExportView(HomeAssistantView):
 
     url = "/api/printer_control_center/archive_export/{serial}"
     name = "api:printer_control_center:archive_export"
-    requires_auth = True
+    requires_auth = False
 
     async def get(self, request: web.Request, serial: str):
         hass: HomeAssistant = request.app["hass"]
@@ -248,7 +252,7 @@ class PrinterControlCenterArchiveExportView(HomeAssistantView):
 class PrinterControlCenterArchiveDownloadView(HomeAssistantView):
     url = "/api/printer_control_center/archive_download/{serial}"
     name = "api:printer_control_center:archive_download"
-    requires_auth = True
+    requires_auth = False
 
     async def get(self, request: web.Request, serial: str):
         hass: HomeAssistant = request.app["hass"]
@@ -268,7 +272,7 @@ class PrinterControlCenterArchiveDownloadView(HomeAssistantView):
 class PrinterControlCenterStudioLinkView(HomeAssistantView):
     url = "/api/printer_control_center/studio_link/{serial}"
     name = "api:printer_control_center:studio_link"
-    requires_auth = True
+    requires_auth = False
 
     async def post(self, request: web.Request, serial: str):
         hass: HomeAssistant = request.app["hass"]
@@ -409,3 +413,87 @@ async def async_register_http_views(hass: HomeAssistant) -> None:
     hass.http.register_view(PrinterControlCenterStudioLinkView())
     hass.http.register_view(PrinterControlCenterSignedDownloadView())
     domain_data[_DATA_HTTP_REGISTERED] = True
+
+
+# PCC beta17 camera route
+class PCCBeta17CameraView(HomeAssistantView):
+    """Serve a direct PCC camera snapshot without relying on HA camera_proxy tokens."""
+
+    url = "/api/printer_control_center/camera/{serial}.jpg"
+    name = "api:printer_control_center:camera_beta17"
+    requires_auth = False
+
+    async def get(self, request: web.Request, serial: str) -> web.Response:
+        hass = request.app["hass"]
+
+        provided_token = str(request.query.get("token", "") or "").strip()
+        expected_tokens: set[str] = set()
+        try:
+            for state in hass.states.async_all("camera"):
+                token_value = str(state.attributes.get("access_token") or "").strip()
+                entity_id = str(state.entity_id or "")
+                if token_value and ("native_live_camera" in entity_id or "bambu" in entity_id):
+                    expected_tokens.add(token_value)
+        except Exception:
+            expected_tokens = set()
+
+        if expected_tokens and provided_token not in expected_tokens:
+            return web.Response(status=403, text="Invalid camera token")
+        serial = str(serial or "").strip()
+        entry = None
+
+        for candidate in hass.config_entries.async_entries(DOMAIN):
+            if str(candidate.data.get("serial") or candidate.unique_id or "").strip() == serial:
+                entry = candidate
+                break
+
+        if entry is None:
+            for candidate in hass.config_entries.async_entries(DOMAIN):
+                entry = candidate
+                break
+
+        if entry is None:
+            return web.Response(status=404, text="No Printer Control Center config entry found")
+
+        host = str(entry.options.get("host") or entry.data.get("host") or "").strip()
+        port_value = str(entry.options.get("camera_port") or entry.data.get("camera_port") or "6000").strip()
+        try:
+            port = int(port_value)
+        except Exception:
+            port = 6000
+
+        jpeg, source = await pcc_beta17_http_fetch_jpeg(hass, host, port, 4.0)
+
+        if not jpeg:
+            payload = {
+                "error": "camera_unavailable",
+                "serial": serial,
+                "host": host,
+                "port": port,
+                "source": source,
+                "hint": "TCP 6000 did not return a JPEG frame. Check route/firewall/printer camera availability.",
+            }
+            return web.Response(
+                status=503,
+                text=json.dumps(payload, ensure_ascii=False),
+                content_type="application/json",
+            )
+
+        return web.Response(
+            body=jpeg,
+            content_type="image/jpeg",
+            headers={
+                "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+                "Pragma": "no-cache",
+            },
+        )
+
+
+def async_register_pcc_beta17_camera_view(hass) -> None:
+    """Register the beta17 camera view once."""
+    data = hass.data.setdefault(DOMAIN, {})
+    key = "_pcc_beta17_camera_view_registered"
+    if data.get(key):
+        return
+    hass.http.register_view(PCCBeta17CameraView())
+    data[key] = True

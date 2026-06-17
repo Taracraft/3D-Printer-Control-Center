@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta12*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta13*/
 (() => {
-  const VERSION = "5.0.0-beta12";
+  const VERSION = "5.0.0-beta13";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta12",
+        version: "5.0.0-beta13",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta12";
+  const STUDIO_VERSION = "5.0.0-beta13";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -4881,7 +4881,7 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta12 Studio Flicker Guard bereit. Studio-DOM wird bei Home-Assistant-Refreshes nicht mehr zyklisch neu aufgebaut; Selector, Buildplate und Objektanzeige werden nur bei echten Änderungen aktualisiert.";
+      this._status = "beta13 Recovery Stable Studio UI bereit. beta12 Overlay-Guard wurde entfernt; Studio-Selector und Buildplate werden nicht mehr übereinander neu aufgebaut.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -4944,7 +4944,7 @@
       this.ensureStudioMeshLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Beta12: Home Assistant pushes frequent hass updates.
+      // Beta13: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -6039,7 +6039,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta12: no full render on every keystroke.
+      // Beta13: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -6054,7 +6054,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta12: render is intentionally skipped while editing to avoid cursor jumps.
+      // Beta13: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -6443,7 +6443,7 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta12 Studio Flicker Guard</div>
+                  <div class="plate-label">Buildplate - beta13 Recovery Stable Studio UI</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   ${this._studioModelImageUrl ? html`
@@ -11906,10 +11906,33 @@
   };
 
 
-  const PCC_BETA12_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
-  const PCC_BETA12_PREV_CLEANUP = PCC_BETA12_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+  const PCC_BETA13_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
 
-  PCC_BETA12_STUDIO_CLASS.prototype.beta12JobSignature = function beta12JobSignature() {
+  PCC_BETA13_STUDIO_CLASS.prototype.beta13EnsureStyle = function beta13EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta13-recovery-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta13-recovery-style";
+    style.textContent = `
+      .pcc-beta13-stable .pcc-beta10-selector,
+      .pcc-beta13-stable .pcc-beta9-plate-selector,
+      .pcc-beta13-stable .pcc-beta8-plate-selector{
+        contain:layout style;
+      }
+      .pcc-beta13-stable .buildplate{
+        contain:layout paint style;
+        transform:translateZ(0);
+      }
+      .pcc-beta13-hidden-duplicate,
+      .pcc-beta13-hidden-stale{
+        display:none!important;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA13_STUDIO_CLASS.prototype.beta13JobSignature = function beta13JobSignature() {
     const job = this._activeJob || {};
     const transform = this._transform || job.transform || {};
     const plate =
@@ -11929,78 +11952,127 @@
       x: Number(transform.x || 0),
       y: Number(transform.y || 0),
       z: Number(transform.z || 0),
-      rx: Number(transform.rotX || transform.rotateX || 0),
-      ry: Number(transform.rotY || transform.rotateY || 0),
       rz: Number(transform.rotZ || transform.rotateZ || 0),
       s: Number(transform.scale || 100)
     });
   };
 
-  PCC_BETA12_STUDIO_CLASS.prototype.beta12IsUserInteracting = function beta12IsUserInteracting() {
+  PCC_BETA13_STUDIO_CLASS.prototype.beta13RemoveDuplicateSelectors = function beta13RemoveDuplicateSelectors() {
     const root = this.shadowRoot;
-    if (!root) return false;
+    if (!root) return;
 
-    const active = root.activeElement;
-    if (active && (
-      active.matches?.("input,textarea,select,button") ||
-      active.closest?.(".pcc-beta10-selector,.pcc-beta9-plate-selector,.pcc-beta8-plate-selector,.studio-context")
-    )) return true;
+    const selectors = [
+      ...root.querySelectorAll(".pcc-beta10-selector,.pcc-beta9-plate-selector,.pcc-beta8-plate-selector,.beta7-buildplate-deck,.beta6-buildplate-switcher,.beta5-buildplate-switcher")
+    ];
 
-    if (this._isDragging || this._dragging || this._studioPointerDown) return true;
-    if (this._beta10PlateDropdownOpen || this._beta10ObjectDropdownOpen) return true;
-    if (root.querySelector(".pcc-beta10-plate-dropdown:not([hidden]),.pcc-beta10-object-dropdown:not([hidden]),.pcc-beta9-plate-dropdown:not([hidden])")) return true;
+    if (!selectors.length) return;
 
-    return false;
+    const preferred =
+      selectors.find((node) => node.classList.contains("pcc-beta10-selector")) ||
+      selectors.find((node) => node.classList.contains("pcc-beta9-plate-selector")) ||
+      selectors[0];
+
+    for (const node of selectors) {
+      if (node !== preferred) node.remove();
+    }
   };
 
-  PCC_BETA12_STUDIO_CLASS.prototype.beta12EnsureStyle = function beta12EnsureStyle() {
+  PCC_BETA13_STUDIO_CLASS.prototype.beta13RenderSelectorOnce = function beta13RenderSelectorOnce(force=false) {
     const root = this.shadowRoot;
-    if (!root || root.querySelector("#pcc-beta12-flicker-style")) return;
+    if (!root) return;
 
-    const style = document.createElement("style");
-    style.id = "pcc-beta12-flicker-style";
-    style.textContent = `
-      .pcc-beta12-stable *{
-        backface-visibility:hidden;
-      }
-      .pcc-beta12-stable .pcc-beta10-selector,
-      .pcc-beta12-stable .pcc-beta9-plate-selector,
-      .pcc-beta12-stable .pcc-beta8-plate-selector{
-        contain:layout style;
-      }
-      .pcc-beta12-stable .buildplate{
-        contain:layout paint style;
-        transform:translateZ(0);
-        will-change:auto!important;
-      }
-      .pcc-beta12-stable .pcc-beta10-buildplate-skin,
-      .pcc-beta12-stable .pcc-beta9-buildplate-skin,
-      .pcc-beta12-stable .pcc-beta8-buildplate-skin{
-        transform:translateZ(0);
-      }
-      .pcc-beta12-hidden-stale{
-        display:none!important;
-      }
-    `;
-    root.appendChild(style);
+    this.beta13RemoveDuplicateSelectors();
+
+    const hasSelector = Boolean(root.querySelector(".pcc-beta10-selector,.pcc-beta9-plate-selector,.pcc-beta8-plate-selector"));
+    const plate =
+      this._studioBuildPlate ||
+      this._activeJob?.profile_context?.build_plate?.id ||
+      this._activeJob?.profile_context?.build_plate_id ||
+      this._activeJob?.build_plate_id ||
+      "";
+
+    const key = JSON.stringify({
+      hasSelector,
+      plate,
+      plateOpen: Boolean(this._beta10PlateDropdownOpen),
+      objectOpen: Boolean(this._beta10ObjectDropdownOpen)
+    });
+
+    if (!force && hasSelector && this._beta13SelectorKey === key) return;
+    this._beta13SelectorKey = key;
+
+    if (typeof this.beta10RenderSelector === "function") {
+      this.beta10RenderSelector();
+    } else if (typeof this.beta9InstallSelector === "function") {
+      this.beta9InstallSelector();
+    }
+
+    this.beta13RemoveDuplicateSelectors();
   };
 
-  PCC_BETA12_STUDIO_CLASS.prototype.beta12CleanupStaleJobs = function beta12CleanupStaleJobs() {
-    if (!Array.isArray(this._jobs)) return;
+  PCC_BETA13_STUDIO_CLASS.prototype.beta13ApplyBuildplateOnce = function(force=false) {
+    const root = this.shadowRoot;
+    const buildplate = root?.querySelector?.(".buildplate");
+    if (!root || !buildplate) return;
 
-    const active = this._activeJob || null;
-    const activeId = String(this._activeJobId || active?.id || "");
+    const plate =
+      this._studioBuildPlate ||
+      this._activeJob?.profile_context?.build_plate?.id ||
+      this._activeJob?.profile_context?.build_plate_id ||
+      this._activeJob?.build_plate_id ||
+      "smooth_pei_high_temp";
 
-    if (!active && this._jobs.length) {
-      const primitive = this._jobs.find((job) => String(job.source || job.origin || job?.model?.source || "") === "primitive" || job.primitive_kind || job?.model?.primitive_kind);
-      if (primitive) {
-        this._jobs = [primitive];
-        this._activeJob = primitive;
-        this._activeJobId = primitive.id || "";
-      }
+    const key = `${plate}|${Boolean(this._activeJob?.id)}|${this._activeJob?.primitive_kind || this._activeJob?.model?.primitive_kind || ""}`;
+
+    if (!force && buildplate.dataset.beta13BuildplateKey === key && buildplate.querySelector(".pcc-beta10-buildplate-skin,.pcc-beta9-buildplate-skin")) {
       return;
     }
 
+    buildplate.dataset.beta13BuildplateKey = key;
+
+    if (typeof this.beta10ApplyBuildplateVisual === "function") {
+      this.beta10ApplyBuildplateVisual();
+    } else if (typeof this.beta9ApplyBuildplateVisual === "function") {
+      this.beta9ApplyBuildplateVisual();
+    }
+  };
+
+  PCC_BETA13_STUDIO_CLASS.prototype.beta13CleanTopNavigation = function beta13CleanTopNavigation() {
+    if (typeof this.beta11CleanTopNavigation === "function") {
+      this.beta11CleanTopNavigation();
+    }
+  };
+
+  PCC_BETA13_STUDIO_CLASS.prototype.beta13CleanTextArtefacts = function beta13CleanTextArtefacts() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    if (typeof this.beta11CleanObjectObjectText === "function") {
+      this.beta11CleanObjectObjectText();
+    }
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      const text = String(node.nodeValue || "");
+      if (text.includes("[object Object]")) nodes.push(node);
+    }
+    for (const node of nodes) {
+      node.nodeValue = String(node.nodeValue || "").replaceAll("[object Object]", "").trim();
+    }
+  };
+
+  PCC_BETA13_STUDIO_CLASS.prototype.beta13SyncEmptyAndPrimitive = function beta13SyncEmptyAndPrimitive() {
+    if (typeof this.beta11SyncEmptyState === "function") {
+      this.beta11SyncEmptyState();
+    }
+  };
+
+  PCC_BETA13_STUDIO_CLASS.prototype.beta13ExclusivePrimitiveJobs = function beta13ExclusivePrimitiveJobs() {
+    if (!Array.isArray(this._jobs)) return;
+
+    const active = this._activeJob || null;
     const activeIsPrimitive =
       String(active?.source || active?.origin || active?.model?.source || "") === "primitive" ||
       Boolean(active?.primitive_kind || active?.model?.primitive_kind);
@@ -12010,167 +12082,57 @@
       return;
     }
 
-    if (activeId) {
-      this._jobs = this._jobs.filter((job) => String(job.id || "") === activeId);
+    const primitive = this._jobs.find((job) =>
+      String(job.source || job.origin || job?.model?.source || "") === "primitive" ||
+      Boolean(job.primitive_kind || job?.model?.primitive_kind)
+    );
+
+    if (primitive && (!active || String(active.source || active.origin || active?.model?.source || "") !== "archive")) {
+      this._jobs = [primitive];
+      this._activeJob = primitive;
+      this._activeJobId = primitive.id || "";
     }
   };
 
-  PCC_BETA12_STUDIO_CLASS.prototype.beta12HideStaleModelIfEmpty = function beta12HideStaleModelIfEmpty() {
-    const root = this.shadowRoot;
-    const buildplate = root?.querySelector?.(".buildplate");
-    if (!root || !buildplate) return;
-
-    const hasModel =
-      (typeof this.beta11HasActiveModel === "function" && this.beta11HasActiveModel()) ||
-      (typeof this.beta10HasActiveModel === "function" && this.beta10HasActiveModel());
-
-    buildplate.classList.toggle("pcc-beta11-empty", !hasModel);
-    buildplate.classList.toggle("pcc-beta10-empty", !hasModel);
-
-    if (!hasModel) {
-      for (const node of [
-        root.querySelector(".model"),
-        root.querySelector(".model-label"),
-        root.querySelector(".studio-mesh-canvas"),
-        root.querySelector(".studio-model-image"),
-        root.querySelector(".pcc-beta11-primitive-canvas")
-      ]) {
-        if (!node) continue;
-        node.classList.add("pcc-beta12-hidden-stale");
-        if (node.classList?.contains?.("model-label")) node.textContent = "";
-      }
-    }
-  };
-
-  PCC_BETA12_STUDIO_CLASS.prototype.beta12UpdateBuildplateSkinInPlace = function beta12UpdateBuildplateSkinInPlace() {
-    const root = this.shadowRoot;
-    const buildplate = root?.querySelector?.(".buildplate");
-    if (!root || !buildplate) return;
-
-    const plate =
-      (typeof this.beta10CurrentPlate === "function" && this.beta10CurrentPlate()) ||
-      (typeof this.beta9CurrentPlate === "function" && this.beta9CurrentPlate()) ||
-      {id:"smooth_pei_high_temp", name:"Smooth PEI Plate / High Temp Plate", surface:"smooth", logo:"Bambu Smooth PEI Plate / High Temp Plate", footer:"PLA / PETG / ABS / TPU / PC", badge:"HOT SURFACE"};
-
-    const currentKey = `${plate.id}|${plate.surface}|${plate.name}`;
-    if (buildplate.dataset.beta12SkinKey === currentKey && buildplate.querySelector(".pcc-beta10-buildplate-skin,.pcc-beta9-buildplate-skin")) {
-      return;
-    }
-
-    buildplate.dataset.beta12SkinKey = currentKey;
-
-    if (typeof this.beta10ApplyBuildplateVisual === "function") {
-      this.beta10ApplyBuildplateVisual();
-    } else if (typeof this.beta9ApplyBuildplateVisual === "function") {
-      this.beta9ApplyBuildplateVisual();
-    }
-  };
-
-  PCC_BETA12_STUDIO_CLASS.prototype.beta12RenderStableSelector = function beta12RenderStableSelector(force=false) {
+  PCC_BETA13_STUDIO_CLASS.prototype.beta13StableCleanup = function beta13StableCleanup(force=false) {
     const root = this.shadowRoot;
     if (!root) return;
 
-    const plate =
-      (typeof this.beta10CurrentPlate === "function" && this.beta10CurrentPlate()) ||
-      (typeof this.beta9CurrentPlate === "function" && this.beta9CurrentPlate()) ||
-      {id:"smooth_pei_high_temp"};
+    root.host?.classList?.add?.("pcc-beta13-stable");
 
-    const key = JSON.stringify({
-      plate: plate.id || "",
-      plateOpen: Boolean(this._beta10PlateDropdownOpen),
-      objectOpen: Boolean(this._beta10ObjectDropdownOpen),
-      hasSelector: Boolean(root.querySelector(".pcc-beta10-selector,.pcc-beta9-plate-selector,.pcc-beta8-plate-selector"))
-    });
+    this.beta13EnsureStyle();
+    this.beta13ExclusivePrimitiveJobs();
 
-    if (!force && this._beta12SelectorKey === key) return;
-    this._beta12SelectorKey = key;
-
-    if (typeof this.beta10RenderSelector === "function") {
-      this.beta10RenderSelector();
-    } else if (typeof this.beta9InstallSelector === "function") {
-      this.beta9InstallSelector();
-    } else if (typeof this.beta8InstallBambuPlateSelector === "function") {
-      this.beta8InstallBambuPlateSelector();
-    }
-  };
-
-  PCC_BETA12_STUDIO_CLASS.prototype.beta12StableCleanup = function beta12StableCleanup(force=false) {
-    const root = this.shadowRoot;
-    if (!root) return;
-
-    root.host?.classList?.add?.("pcc-beta12-stable");
-    this.beta12EnsureStyle();
-    this.beta12CleanupStaleJobs();
-
-    const sig = this.beta12JobSignature();
-    const interacting = this.beta12IsUserInteracting();
-
-    if (!force && interacting && this._beta12LastCleanupSig === sig) {
-      this.beta12HideStaleModelIfEmpty();
+    const sig = this.beta13JobSignature();
+    if (!force && this._beta13LastSig === sig && this._beta13CleanupDone) {
+      this.beta13CleanTopNavigation();
+      this.beta13CleanTextArtefacts();
       return;
     }
 
-    const changed = force || this._beta12LastCleanupSig !== sig;
-    this._beta12LastCleanupSig = sig;
+    this._beta13LastSig = sig;
+    this._beta13CleanupDone = true;
 
-    if (changed) {
-      this.beta12RenderStableSelector(force);
-      this.beta12UpdateBuildplateSkinInPlace();
-    }
-
-    try { this.beta11CleanTopNavigation?.(); } catch (_error) {}
-    try { this.beta11CleanObjectObjectText?.(); } catch (_error) {}
-    try { this.beta11SyncEmptyState?.(); } catch (_error) {}
-    try { this.beta12HideStaleModelIfEmpty(); } catch (_error) {}
+    this.beta13RenderSelectorOnce(force);
+    this.beta13ApplyBuildplateOnce(force);
+    this.beta13CleanTopNavigation();
+    this.beta13CleanTextArtefacts();
+    this.beta13SyncEmptyAndPrimitive();
 
     try {
       if (typeof pccBeta7SanitizeRoot === "function") pccBeta7SanitizeRoot(this.shadowRoot);
     } catch (_error) {}
   };
 
-  PCC_BETA12_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
-    if (this._beta12CleanupQueued) return;
-    this._beta12CleanupQueued = true;
+  PCC_BETA13_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
+    if (this._beta13CleanupQueued) return;
+    this._beta13CleanupQueued = true;
 
     window.requestAnimationFrame(() => {
-      this._beta12CleanupQueued = false;
-
-      try {
-        if (!this._beta12InitialCleanupDone && typeof PCC_BETA12_PREV_CLEANUP === "function") {
-          this._beta12InitialCleanupDone = true;
-          PCC_BETA12_PREV_CLEANUP.call(this);
-        }
-      } catch (_error) {}
-
-      this.beta12StableCleanup(false);
+      this._beta13CleanupQueued = false;
+      this.beta13StableCleanup(false);
     });
   };
-
-  const PCC_BETA12_PREV_SET_HASS = Object.getOwnPropertyDescriptor(PCC_BETA12_STUDIO_CLASS.prototype, "hass")?.set;
-  if (PCC_BETA12_PREV_SET_HASS && !PCC_BETA12_STUDIO_CLASS.prototype.__pccBeta12HassGuarded) {
-    Object.defineProperty(PCC_BETA12_STUDIO_CLASS.prototype, "hass", {
-      set(value) {
-        const previousSig = this._beta12LastHassSig || "";
-        this._hass = value;
-
-        const entityCount = value?.states ? Object.keys(value.states).length : 0;
-        const activeJobId = String(this._activeJobId || this._activeJob?.id || "");
-        const sig = `${entityCount}|${activeJobId}|${this.beta12JobSignature?.() || ""}`;
-
-        if (this.beta12IsUserInteracting?.() && previousSig === sig) {
-          return;
-        }
-
-        this._beta12LastHassSig = sig;
-        PCC_BETA12_PREV_SET_HASS.call(this, value);
-      },
-      get() {
-        return this._hass;
-      },
-      configurable: true
-    });
-    PCC_BETA12_STUDIO_CLASS.prototype.__pccBeta12HassGuarded = true;
-  }
 
   if (!customElements.get("printer-control-center-studio-card")) {
     customElements.define("printer-control-center-studio-card", PrinterControlCenterStudioCard);
@@ -12181,7 +12143,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta12 Studio Flicker Guard with debounced Studio cleanup, stable selector/buildplate DOM, HA refresh guard and stale-job suppression."
+      description: "v5 beta13 Recovery Stable Studio UI removes the beta12 overlay regression, restores beta11 runtime base and stabilizes selector/buildplate cleanup without hass setter overrides."
     });
   }
 })();

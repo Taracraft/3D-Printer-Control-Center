@@ -1,3 +1,26 @@
+## 5.0.0-beta13 - Recovery Stable Studio UI
+
+### English
+- Recovered the active Studio runtime from the beta12 overlay regression.
+- Removed the beta12 hass setter / flicker guard from active frontend code.
+- Restored the beta11 runtime base and added a non-invasive stable cleanup layer.
+- Prevented old and new Studio selector/buildplate DOM blocks from being displayed on top of each other.
+- Kept only one printer/plate/object selector instance active.
+- Kept only one buildplate skin active and refreshed it only when necessary.
+- Preserved beta11 top-navigation cleanup and primitive mesh rendering.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Aktive Studio-Laufzeit von der beta12-Overlay-Regression erholt.
+- beta12-Hass-Setter/Flicker-Guard aus dem aktiven Frontend-Code entfernt.
+- beta11-Laufzeitbasis wiederhergestellt und eine nicht-invasive stabile Cleanup-Schicht ergänzt.
+- Alte und neue Studio-Selector-/Buildplate-DOM-Blöcke werden nicht mehr übereinander angezeigt.
+- Es bleibt genau ein Drucker-/Platten-/Objektselector aktiv.
+- Es bleibt genau ein Buildplate-Skin aktiv und wird nur bei Bedarf aktualisiert.
+- beta11-Bereinigung der oberen Navigation und Primitive-Mesh-Rendering bleiben erhalten.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta12 - Studio Flicker Guard
 
 ### English

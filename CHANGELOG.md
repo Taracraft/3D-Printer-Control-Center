@@ -1,3 +1,26 @@
+## 5.0.0-beta26 - Compact Studio toolbar, import handoff and single-frame rendering
+
+### Deutsch
+- Behält die beta25-Rollback-Basis und lässt beta24 entfernt.
+- Ersetzt die lange beta23-Icon-Leiste durch eine kompakte eckige Bambu-Studio-artige Werkzeugleiste mit Dropdown-Gruppen.
+- Lässt die Workflow-Leiste mit Importieren, Löschen, Plan prüfen, Health prüfen und Jobs neu laden sichtbar.
+- Repariert den Workflow-Import-Button, sodass der vorhandene beta7-Galerie-/Archiv-/SD-Import-Assistent öffnet.
+- Akzeptiert 3MF-Studio-Jobs als renderbar und lässt die bestehende Mesh-Link-Pipeline STL/Geometrie vom Backend anfordern.
+- Stabilisiert das Rendering auf einen requestAnimationFrame-basierten Mesh-Canvas-Render pro Frame.
+- Keine Kamera-, Dashboard-, Backend-Routen- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Keeps the beta25 rollback base and keeps beta24 removed.
+- Replaces the long beta23 icon row with a compact square Bambu Studio inspired toolbar using dropdown groups.
+- Keeps the workflow row with Import, Delete, Plan check, Health check and Jobs reload visible.
+- Fixes the workflow Import button so it opens the existing beta7 gallery/archive/SD import assistant.
+- Accepts 3MF Studio jobs as renderable and lets the existing mesh-link pipeline request STL/geometry from the backend.
+- Stabilizes rendering to one requestAnimationFrame-based mesh canvas render per frame.
+- No camera, dashboard, backend-route or printer connection changes.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta25 - Revert beta24 Studio cleanup regression
 
 ### English

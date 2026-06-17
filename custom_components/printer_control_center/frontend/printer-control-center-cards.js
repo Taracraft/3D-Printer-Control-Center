@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta25*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta26*/
 (() => {
-  const VERSION = "5.0.0-beta25";
+  const VERSION = "5.0.0-beta26";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -129,7 +129,7 @@
     ["Vorhandene Einträge überschreiben?", "Overwrite existing items?"],
     ["Im Zielordner existieren bereits gleichnamige Einträge.", "Items with the same name already exist in the target folder."],
     ["Konflikt(e)", "conflict(s)"],
-    ["Mit â€žÜberschreibenâ€œ werden die vorhandenen Zieldateien oder Zielordner ersetzt.", "Choosing â€œOverwriteâ€ replaces existing target files or folders."],
+    ["Mit „Überschreiben“ werden die vorhandenen Zieldateien oder Zielordner ersetzt.", "Choosing “Overwriteâ€ replaces existing target files or folders."],
     ["Überschreiben", "Overwrite"],
     ["Übernehmen", "Apply"],
     ["Öffnen", "Open"],
@@ -154,7 +154,7 @@
     ["In Bambu Studio öffnen", "Open in Bambu Studio"],
     ["Modell wurde zur 3D-Druck-Warteschlange hinzugefügt.", "Model was added to the 3D print queue."],
     ["Warteschlange wird geladen …", "Loading queue …"],
-    ["Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen …â€œ.", "No planned models yet. Open the gallery or use the existing â€œSchedule …â€ item in the file manager."],
+    ["Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt „Planen …“.", "No planned models yet. Open the gallery or use the existing “Schedule …â€ item in the file manager."],
     ["Galerie öffnen", "Open gallery"],
     ["Persistente Planung für", "Persistent planning for"],
     ["Einträge", "items"],
@@ -3305,7 +3305,7 @@
           ${folder
             ? action("open-folder","Öffnen","📁")
             : `
-              ${action("print","Drucken …","ðŸ–¨",!project)}
+              ${action("print","Drucken …","🖨",!project)}
               ${action("plan","Planen …","ðŸ—“",!project)}
               ${action("model-open","In Bambu Studio öffnen (Original-3MF)","↗",!project)}
               ${action("studio-open","In 3D-Studio öffnen","[S]",!project)}
@@ -3314,7 +3314,7 @@
               ${action("preview","3D-Vorschau","◈")}
               <div class="archive-context-separator"></div>
               ${action("photos","Fotos ansehen","â–£",true)}
-              ${action("add-project","Zu Projekt hinzufügen","ï¼‹",true)}
+              ${action("add-project","Zu Projekt hinzufügen","+",true)}
               ${action("print-log","Druckprotokoll","â˜·",true)}
             `
           }
@@ -3420,7 +3420,7 @@
         window.PCC_STUDIO_HANDOFF?.broadcast?.(job);
         this._contextMenu=null;
         this._previewItem=null;
-        this._notice=`3D-Studio-Job erstellt: ${item.name}. Oeffne die Studio-Seite und nutze "Plan prüfen".`;
+        this._notice=`3D-Studio-Job erstellt: ${item.name}. Öffne die Studio-Seite und nutze "Plan prüfen".`;
         this.render();
       }catch(error){
         this._error=`3D-Studio-Handoff fehlgeschlagen: ${String(error?.message||error)}`;
@@ -3609,7 +3609,7 @@
               ${conflicts.map((item)=>`<small>â€¢ ${esc(item.path||item.name||"")}</small>`).join("")}
             </div>
           </div>
-          <p class="muted">Mit â€žÜberschreibenâ€œ werden die vorhandenen Zieldateien oder Zielordner ersetzt.</p>
+          <p class="muted">Mit „Überschreiben“ werden die vorhandenen Zieldateien oder Zielordner ersetzt.</p>
         `;
       }
 
@@ -3694,7 +3694,7 @@
                  <button data-dialog-type="rename" data-dialog-path="${esc(item.path)}">âœŽ Umbenennen</button>
                  <button data-context-button="${esc(item.path)}">â‹®</button>`
               : `
-                ${project?`<button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">ðŸ–¨ Drucken</button>`:`<button data-context-direct="download" data-context-path="${esc(item.path)}">⬇ Download</button>`}
+                ${project?`<button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">🖨 Drucken</button>`:`<button data-context-direct="download" data-context-path="${esc(item.path)}">⬇ Download</button>`}
                 <button data-preview-path="${esc(item.path)}">◈ 3D-Vorschau</button>
                 <button data-context-button="${esc(item.path)}" title="Weitere Aktionen">â‹®</button>
               `
@@ -3787,7 +3787,7 @@
               </div>
 
               ${project?`
-                <button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">ðŸ–¨ Drucken …</button>
+                <button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">🖨 Drucken …</button>
                 <button data-context-direct="plan" data-context-path="${esc(item.path)}">ðŸ—“ Planen …</button>
                 <button class="primary" data-context-direct="model-open" data-context-path="${esc(item.path)}">↗ In Bambu Studio öffnen (Original-3MF)</button>
                 <button data-context-direct="studio-open" data-context-path="${esc(item.path)}">[S] In 3D-Studio öffnen</button>
@@ -4028,7 +4028,7 @@
                 <button data-bulk-action="select-all" ${visibleSelectableCount?"":"disabled"}>â˜‘ Sichtbare auswählen</button>
                 <span class="badge" title="Kein Zusatzhelfer erforderlich. Bambu Studio prüft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.">HA-only - Original-3MF an Bambu Studio</span>
                 <button class="primary" data-action="choose-upload">â¬† 3MF hochladen</button>
-                ${this._source==="archive"?`<button data-action="gallery-export">â‡© Galerie-ZIP exportieren</button><button data-action="choose-zip-import">â‡§ Galerie-ZIP importieren</button>`:""}
+                ${this._source==="archive"?`<button data-action="gallery-export">⇩ Galerie-ZIP exportieren</button><button data-action="choose-zip-import">⇧ Galerie-ZIP importieren</button>`:""}
                 <button data-action="template-refresh" title="3D-Drucker-Dateimanager/Galerie aktualisieren">↻ Aktualisieren</button>
               </div>
             </div>
@@ -4486,7 +4486,7 @@
           path:item.path,
         });
         const absolute=new URL(data.download_url,window.location.origin).href;
-        this._queueNotice="Bambu Studio wird mit der unveränderten Original-3MF-Datei geöffnet. Nach einem erfolgreich gestarteten Druck kannst du einen Durchlauf mit â€š1 erledigtâ€˜ abhaken.";
+        this._queueNotice="Bambu Studio wird mit der unveränderten Original-3MF-Datei geöffnet. Nach einem erfolgreich gestarteten Druck kannst du einen Durchlauf mit ‚1 erledigt‘ abhaken.";
         this.render();
         window.setTimeout(()=>{window.location.href=`bambustudio://open?file=${encodeURIComponent(absolute)}`;},0);
       }catch(error){
@@ -4550,7 +4550,7 @@
             <strong>${selected} Modell(e) markiert</strong>
             <label>Stückzahl je Modell <select data-queue-picker-quantity>${this.quantityOptions(this._pickerQuantity||1)}</select></label>
             <label>Zeitpunkt optional <input data-queue-picker-scheduled type="datetime-local" value="${esc(this._pickerScheduled||"")}"></label>
-            <button class="primary" data-queue-picker-add ${selected?"":"disabled"}>ï¼‹ Markierte Modelle hinzufügen</button>
+            <button class="primary" data-queue-picker-add ${selected?"":"disabled"}>+ Markierte Modelle hinzufügen</button>
             <button data-queue-picker-close>Abbrechen</button>
           </div>
         </section>
@@ -4658,7 +4658,7 @@
           <button class="queue-apply" data-queue-apply="${esc(item.id)}">âœ“ Auswahl übernehmen</button>
           <button data-queue-move="up" data-queue-id="${esc(item.id)}" title="Nach oben">â†‘ Nach oben</button>
           <button data-queue-move="down" data-queue-id="${esc(item.id)}" title="Nach unten">â†“ Nach unten</button>
-          <button class="primary queue-print" data-queue-studio="${esc(item.id)}">ðŸ–¨ Drucken …</button>
+          <button class="primary queue-print" data-queue-studio="${esc(item.id)}">🖨 Drucken …</button>
           <button data-queue-complete="${esc(item.id)}">âœ“ 1 erledigt</button>
           <button class="danger" data-queue-delete="${esc(item.id)}">🗑 Entfernen</button>
         </div>
@@ -4675,14 +4675,14 @@
       this.shadowRoot.innerHTML=frame(this._config,`
         <div class="row between">
           <div><h2>${esc(this._config.title||"3D-Druck-Warteschlange")}</h2><small>Persistente Planung für ${esc(this.serial(map))}</small></div>
-          <div class="toolbar"><button class="primary" data-queue-open-gallery>ï¼‹ Galerie öffnen</button><button data-queue-refresh>↻ Aktualisieren</button></div>
+          <div class="toolbar"><button class="primary" data-queue-open-gallery>+ Galerie öffnen</button><button data-queue-refresh>↻ Aktualisieren</button></div>
         </div>
         <div class="row"><span class="badge">${this._queue.length} Einträge</span><span class="badge">${total} Druckdurchläufe</span></div>
         ${this._queueError?`<p class="notice">${esc(this._queueError)}</p>`:""}
         ${this._queueNotice?`<p class="notice">${esc(this._queueNotice)}</p>`:""}
         ${this._queueLoading?`<p class="muted">Warteschlange wird geladen …</p>`:""}
         ${this._queueToast?`<div class="queue-mini-toast" style="left:${Number(this._queueToastPosition?.left||18)}px;top:${Number(this._queueToastPosition?.top||92)}px">${esc(this._queueToast)}</div>`:""}
-        <div class="queue-list">${this._queue.map((item,index)=>this.rowHtml(item,index)).join("")||`<p class="muted">Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen …â€œ.</p>`}</div>
+        <div class="queue-list">${this._queue.map((item,index)=>this.rowHtml(item,index)).join("")||`<p class="muted">Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt „Planen …“.</p>`}</div>
       `,"archive-library-card");
       this.shadowRoot.querySelector("[data-queue-open-gallery]")?.addEventListener("click",()=>this.openPicker(map));
       this.shadowRoot.querySelector("[data-queue-refresh]")?.addEventListener("click",()=>this.loadQueue(map));
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta25",
+        version: "5.0.0-beta26",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta25";
+  const STUDIO_VERSION = "5.0.0-beta26";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -6257,7 +6257,7 @@
     renderJobsList() {
       const jobs = Array.isArray(this._jobs) ? this._jobs.slice(0, 8) : [];
       if (!jobs.length) {
-        return `<div class="health-note">Noch kein persistenter Studio-Job. Oeffne ein 3MF-Modell in der Galerie ueber "In 3D-Studio öffnen".</div>`;
+        return `<div class="health-note">Noch kein persistenter Studio-Job. Öffne ein 3MF-Modell in der Galerie ueber "In 3D-Studio öffnen".</div>`;
       }
 
       return jobs.map((job) => {
@@ -8521,7 +8521,7 @@
   const PCC_BETA7_TEXT_FIXES = [
     ["Ãƒ"+"Â¤","ä"],["Ãƒ"+"Â¶","ö"],["Ãƒ"+"Â¼","ü"],["Ãƒ"+"Å“","Ü"],["Ãƒ"+"â€“","Ö"],["Ãƒ"+"Â„","Ä"],["Ãƒ"+"Å¸","ß"],
     ["Ã"+"¼","ü"],["Ã"+"¶","ö"],["Ã"+"¤","ä"],["Ã"+"œ","Ü"],["Ã"+"–","Ö"],["Ã"+"„","Ä"],["Ã"+"Ÿ","ß"],
-    ["Ã¢"+"â‚¬Å¾","„"],["Ã¢"+"â‚¬Å“","“"],["Ã¢"+"â‚¬Â","”"],["Ã¢"+"â‚¬Â¦","…"],["Ã¢"+"â‚¬â€œ","–"],["Ã¢"+"â‚¬â€�","—"],
+    ["Ã¢"+"â‚¬Å¾","„"],["Ã¢"+"â‚¬Å“","“"],["Ã¢"+"â‚¬Â","”"],["Ã¢"+"â‚¬Â¦","…"],["Ã¢"+"â‚¬“","–"],["Ã¢"+"â‚¬â€�","—"],
     ["Ã¢"+"â€”Â","●"],["Ã¢"+"â€ â€”","↗"],["Ã¢"+"â€ Â»","↻"],["Ã¢"+"â€ â€”","↗"],["Ã¢"+"â€ Â»","↻"],
     ["ðŸ"+"—‘","🗑"],["ðŸ"+"“","📁"],["ðŸ"+"“„","📄"],["ðŸ"+"“·","📷"],["ðŸ"+"’¡","💡"],
     ["Loe"+"schen","Löschen"],["Öffnen","Öffnen"],["öffnen","öffnen"],["Prüfen","Prüfen"],["prüfen","prüfen"],
@@ -12395,6 +12395,463 @@ const PCC_BETA23_STUDIO_CLASS = customElements.get("printer-control-center-studi
     });
 
     this.queueMeshRender?.();
+  };
+
+const PCC_BETA26_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA26_PREV_ENSURE_MESH = PCC_BETA26_STUDIO_CLASS.prototype.ensureStudioMeshLoaded;
+  const PCC_BETA26_PREV_RENDER_MESH = PCC_BETA26_STUDIO_CLASS.prototype.renderMeshCanvas;
+  const PCC_BETA26_PREV_BETA7_IMPORT_PLAN = PCC_BETA26_STUDIO_CLASS.prototype.beta7ImportPlan;
+
+  function pccBeta26PrimitiveKind(job) {
+    return String(job?.primitive?.kind || job?.primitive_kind || job?.model?.primitive_kind || job?.model?.primitive || "")
+      .trim()
+      .replace(/^primitive-/, "")
+      .replace(/-/g, "_");
+  }
+
+  function pccBeta26IsPrimitiveJob(job) {
+    const source = String(job?.source || job?.origin || job?.model?.source || "").trim();
+    return source === "primitive" || Boolean(pccBeta26PrimitiveKind(job));
+  }
+
+  function pccBeta26RenderablePath(job) {
+    const values = [
+      job?.archive_model_stl,
+      job?.sd_model_stl,
+      job?.model_stl,
+      job?.stl_url,
+      job?.mesh_url,
+      job?.geometry_url,
+      job?.preview_mesh_url,
+      job?.download_url,
+      job?.file_url,
+      job?.file_path,
+      job?.path,
+      job?.model?.archive_model_stl,
+      job?.model?.sd_model_stl,
+      job?.model?.stl_url,
+      job?.model?.mesh_url,
+      job?.model?.geometry_url,
+      job?.model?.download_url,
+      job?.model?.file_url,
+      job?.model?.path,
+      job?.filename,
+      job?.file_name,
+      job?.name,
+      job?.model?.name
+    ];
+
+    return values.map((value) => String(value || "").trim()).find((value) => /\.(3mf|stl|obj)(\?|#|$)/i.test(value)) || "";
+  }
+
+  function pccBeta26IsRenderableJob(job) {
+    if (!job) return false;
+    if (pccBeta26IsPrimitiveJob(job)) return true;
+    return Boolean(pccBeta26RenderablePath(job));
+  }
+
+  function pccBeta26ToolIcon(name) {
+    const common = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+    const icons = {
+      import:'<path d="M4 17v3h16v-3"/><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/>',
+      primitive:'<path d="M12 2 4 6v12l8 4 8-4V6z"/><path d="M12 22V10"/><path d="M4 6l8 4 8-4"/>',
+      move:'<path d="M12 2v20"/><path d="M2 12h20"/><path d="m8 6 4-4 4 4"/><path d="m8 18 4 4 4-4"/><path d="m6 8-4 4 4 4"/><path d="m18 8 4 4-4 4"/>',
+      rotate:'<path d="M4 12a8 8 0 0 1 13.7-5.7"/><path d="M18 3v5h-5"/><path d="M20 12a8 8 0 0 1-13.7 5.7"/><path d="M6 21v-5h5"/>',
+      scale:'<path d="M5 19 19 5"/><path d="M9 5h10v10"/><path d="M5 9v10h10"/>',
+      mirror:'<path d="M12 3v18"/><path d="M4 7h5v10H4z"/><path d="M20 7h-5v10h5z"/>',
+      view:'<circle cx="10" cy="10" r="6"/><path d="M14.5 14.5 21 21"/><path d="M10 7v6"/><path d="M7 10h6"/>',
+      color:'<path d="M4 14 14 4l6 6-10 10H4z"/><path d="M13 5l6 6"/><path d="M4 20h6"/>',
+      delete:'<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M8 10v9"/><path d="M16 10v9"/><path d="M6 7l1 14h10l1-14"/>',
+      reload:'<path d="M20 6v6h-6"/><path d="M4 18v-6h6"/><path d="M19 12a7 7 0 0 0-12-5l-3 3"/><path d="M5 12a7 7 0 0 0 12 5l3-3"/>',
+      center:'<circle cx="12" cy="12" r="7"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/>'
+    };
+    return `<svg ${common}>${icons[name] || icons.primitive}</svg>`;
+  }
+
+  function pccBeta26MenuButton(action, icon, label) {
+    return `<button class="pcc-beta26-menu-action" data-beta26-action="${action}" title="${label}">${pccBeta26ToolIcon(icon)}<span>${label}</span></button>`;
+  }
+
+  PCC_BETA26_STUDIO_CLASS.prototype.beta26EnsurePrimitiveMesh = function beta26EnsurePrimitiveMesh() {
+    if (!pccBeta26IsPrimitiveJob(this._activeJob)) return false;
+
+    const kind = pccBeta26PrimitiveKind(this._activeJob) || "cube";
+    const mesh = typeof pccBeta20PrimitiveMesh === "function" ? pccBeta20PrimitiveMesh(kind) : null;
+    if (!mesh?.triangles?.length) return false;
+
+    this._studioMesh = mesh;
+    this._studioMeshJobId = String(this._activeJob?.id || `primitive://${kind}`);
+    this._studioMeshUrl = "";
+    this._studioMeshError = "";
+    this._studioModelImageUrl = "";
+    return true;
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.beta26EnsureStyle = function beta26EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta26-compact-toolbar-single-render-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta26-compact-toolbar-single-render-style";
+    style.textContent = `
+      .pcc-beta22-top-toolbar,
+      .pcc-beta23-top-toolbar{display:none!important;}
+
+      .studio-grid{grid-template-columns:minmax(250px,280px) minmax(560px,1fr)!important;}
+      .studio-grid > aside.panel:last-child{display:none!important;}
+
+      .studio-shell > .status,
+      .studio-shell .buildplate-wrap > .status,
+      .studio-shell .buildplate-wrap > .plan-note,
+      .studio-shell .buildplate-wrap > .plan-summary{display:none!important;}
+
+      .pcc-beta26-toolbar{
+        position:sticky;top:0;z-index:180;display:flex;align-items:center;gap:0;
+        min-height:38px;padding:0;margin:0 0 8px;
+        border-top:1px solid rgba(255,255,255,.18);
+        border-bottom:1px solid rgba(0,169,214,.42);
+        background:linear-gradient(180deg,rgba(47,50,54,.98),rgba(24,28,33,.98));
+        box-shadow:0 8px 22px rgba(0,0,0,.26);
+        overflow:visible;
+      }
+
+      .pcc-beta26-menu,.pcc-beta26-direct{position:relative;flex:0 0 auto;border-right:1px solid rgba(255,255,255,.18);}
+      .pcc-beta26-menu > summary,.pcc-beta26-direct{
+        list-style:none;width:38px;height:36px;display:grid;place-items:center;
+        border:0;border-radius:0;background:rgba(255,255,255,.045);
+        color:rgba(255,255,255,.86);cursor:pointer;padding:0;
+      }
+      .pcc-beta26-menu > summary::-webkit-details-marker{display:none;}
+      .pcc-beta26-menu[open] > summary,.pcc-beta26-menu > summary:hover,.pcc-beta26-direct:hover{background:rgba(0,169,214,.18);color:#fff;}
+
+      .pcc-beta26-menu-body{
+        position:absolute;top:37px;left:0;z-index:240;display:grid;
+        min-width:190px;padding:6px;gap:3px;
+        border:1px solid rgba(0,169,214,.45);
+        background:rgba(22,26,31,.98);
+        box-shadow:0 18px 38px rgba(0,0,0,.44);
+      }
+
+      .pcc-beta26-menu-action{
+        display:grid;grid-template-columns:28px 1fr;gap:7px;align-items:center;
+        min-height:32px;padding:4px 8px;border:1px solid transparent;border-radius:0;
+        background:transparent;color:rgba(255,255,255,.86);text-align:left;cursor:pointer;
+      }
+      .pcc-beta26-menu-action:hover{border-color:rgba(0,169,214,.55);background:rgba(0,169,214,.14);color:#fff;}
+      .pcc-beta26-danger:hover{border-color:rgba(255,80,80,.75)!important;background:rgba(255,80,80,.16)!important;}
+
+      .pcc-beta26-color-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;max-width:230px;}
+      .pcc-beta26-color{width:32px;height:28px;padding:0;border:1px solid rgba(255,255,255,.26);border-radius:0;background:transparent;cursor:pointer;}
+      .pcc-beta26-swatch{width:24px;height:24px;border:1px solid rgba(255,255,255,.28);border-radius:0;cursor:pointer;}
+      .pcc-beta26-swatch.active{outline:2px solid rgba(0,235,255,.80);outline-offset:1px;}
+
+      .buildplate.pcc-beta26-single-frame .model,
+      .buildplate.pcc-beta26-single-frame .model-label,
+      .buildplate.pcc-beta26-single-frame .studio-model-image{opacity:0!important;pointer-events:none!important;}
+
+      .buildplate.pcc-beta26-single-frame .studio-mesh-canvas{opacity:1!important;display:block!important;z-index:31!important;}
+
+      .pcc-beta9-plate-selector,.pcc-beta9-plate-selector *{pointer-events:auto!important;}
+      .pcc-beta9-plate-dropdown{z-index:260!important;}
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.beta26ToolbarHtml = function beta26ToolbarHtml() {
+    const color = this.beta22ObjectColor?.() || "#00a9d6";
+    const swatches = ["#00a9d6", "#f44336", "#ff9800", "#ffeb3b", "#4caf50", "#2196f3", "#9c27b0", "#ffffff", "#111111"];
+    const swatchHtml = swatches.map((value) => `<button class="pcc-beta26-swatch ${value.toLowerCase() === color.toLowerCase() ? "active" : ""}" data-beta26-color="${value}" title="${value}" style="background:${value}"></button>`).join("");
+
+    return `
+      <div class="pcc-beta26-toolbar" aria-label="Studio Werkzeugleiste">
+        <button class="pcc-beta26-direct" data-beta26-action="open-import" title="Aus Galerie importieren">${pccBeta26ToolIcon("import")}</button>
+        <details class="pcc-beta26-menu"><summary title="Primitive">${pccBeta26ToolIcon("primitive")}</summary><div class="pcc-beta26-menu-body">
+          ${pccBeta26MenuButton("primitive-cube","primitive","Würfel")}
+          ${pccBeta26MenuButton("primitive-cuboid","primitive","Quader")}
+          ${pccBeta26MenuButton("primitive-cylinder","primitive","Zylinder")}
+          ${pccBeta26MenuButton("primitive-first-layer","primitive","First Layer")}
+        </div></details>
+        <details class="pcc-beta26-menu"><summary title="Verschieben">${pccBeta26ToolIcon("move")}</summary><div class="pcc-beta26-menu-body">
+          ${pccBeta26MenuButton("move-left","move","Links")}
+          ${pccBeta26MenuButton("move-right","move","Rechts")}
+          ${pccBeta26MenuButton("move-up","move","Nach hinten")}
+          ${pccBeta26MenuButton("move-down","move","Nach vorne")}
+          ${pccBeta26MenuButton("z-up","move","Z höher")}
+          ${pccBeta26MenuButton("z-down","move","Z tiefer")}
+          ${pccBeta26MenuButton("center","center","Zentrieren")}
+        </div></details>
+        <details class="pcc-beta26-menu"><summary title="Drehen">${pccBeta26ToolIcon("rotate")}</summary><div class="pcc-beta26-menu-body">
+          ${pccBeta26MenuButton("rot-x","rotate","Rot X +15°")}
+          ${pccBeta26MenuButton("rot-y","rotate","Rot Y +15°")}
+          ${pccBeta26MenuButton("rot-z","rotate","Rot Z +15°")}
+          ${pccBeta26MenuButton("lay-flat","rotate","Flach legen")}
+        </div></details>
+        <details class="pcc-beta26-menu"><summary title="Skalieren / Strecken">${pccBeta26ToolIcon("scale")}</summary><div class="pcc-beta26-menu-body">
+          ${pccBeta26MenuButton("scale-down","scale","Kleiner")}
+          ${pccBeta26MenuButton("scale-up","scale","Größer")}
+          ${pccBeta26MenuButton("stretch-x-up","scale","Breite +")}
+          ${pccBeta26MenuButton("stretch-y-up","scale","Länge +")}
+          ${pccBeta26MenuButton("stretch-z-up","scale","Höhe +")}
+        </div></details>
+        <details class="pcc-beta26-menu"><summary title="Spiegeln / Zerren">${pccBeta26ToolIcon("mirror")}</summary><div class="pcc-beta26-menu-body">
+          ${pccBeta26MenuButton("mirror-x","mirror","Spiegel X")}
+          ${pccBeta26MenuButton("mirror-y","mirror","Spiegel Y")}
+          ${pccBeta26MenuButton("mirror-z","mirror","Spiegel Z")}
+          ${pccBeta26MenuButton("skew-x","mirror","Zerr X +5°")}
+          ${pccBeta26MenuButton("skew-y","mirror","Zerr Y +5°")}
+        </div></details>
+        <details class="pcc-beta26-menu"><summary title="Ansicht">${pccBeta26ToolIcon("view")}</summary><div class="pcc-beta26-menu-body">
+          ${pccBeta26MenuButton("zoom-out","view","Zoom -")}
+          ${pccBeta26MenuButton("zoom-in","view","Zoom +")}
+          ${pccBeta26MenuButton("reload-model","reload","Modell neu laden")}
+          ${pccBeta26MenuButton("reset","view","Reset")}
+        </div></details>
+        <details class="pcc-beta26-menu"><summary title="Objektfarbe">${pccBeta26ToolIcon("color")}</summary><div class="pcc-beta26-menu-body">
+          <div class="pcc-beta26-color-row"><input class="pcc-beta26-color" type="color" value="${color}" title="Objekt einfärben">${swatchHtml}</div>
+        </div></details>
+        <button class="pcc-beta26-direct pcc-beta26-danger" data-beta26-action="delete" title="Löschen">${pccBeta26ToolIcon("delete")}</button>
+      </div>
+    `;
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.beta26InstallToolbar = function beta26InstallToolbar() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".pcc-beta22-top-toolbar,.pcc-beta23-top-toolbar").forEach((node) => node.remove());
+
+    const shell = root.querySelector(".studio-shell") || root.querySelector(".studio-grid")?.parentElement || root.querySelector(".buildplate")?.parentElement;
+    if (!shell) return;
+
+    let toolbar = root.querySelector(".pcc-beta26-toolbar");
+    if (!toolbar) {
+      const wrap = document.createElement("div");
+      wrap.innerHTML = this.beta26ToolbarHtml().trim();
+      toolbar = wrap.firstElementChild;
+      shell.insertBefore(toolbar, shell.firstElementChild);
+    }
+
+    if (toolbar.dataset.beta26Bound === "1") return;
+    toolbar.dataset.beta26Bound = "1";
+
+    toolbar.addEventListener("click", (event) => {
+      const colorButton = event.target?.closest?.("[data-beta26-color]");
+      if (colorButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta22SetObjectColor?.(colorButton.dataset.beta26Color);
+        this.queueMeshRender?.();
+        return;
+      }
+
+      const button = event.target?.closest?.("[data-beta26-action]");
+      if (!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.beta26CloseToolbarMenus(button.closest("details"));
+      this.beta26ApplyToolbarAction(button.dataset.beta26Action);
+    });
+
+    toolbar.addEventListener("input", (event) => {
+      const input = event.target?.closest?.(".pcc-beta26-color");
+      if (!input) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.beta22SetObjectColor?.(input.value);
+      this.queueMeshRender?.();
+    });
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.beta26CloseToolbarMenus = function beta26CloseToolbarMenus(keep=null) {
+    this.shadowRoot?.querySelectorAll(".pcc-beta26-menu[open]").forEach((details) => {
+      if (details !== keep) details.removeAttribute("open");
+    });
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.beta26ApplyToolbarAction = function beta26ApplyToolbarAction(action) {
+    const text = String(action || "");
+
+    if (text === "open-import") {
+      this.openBeta7ImportAssistant?.();
+      return;
+    }
+
+    if (text.startsWith("primitive-")) {
+      this.beta21SetPrimitiveActive?.(text.replace("primitive-", ""));
+      return;
+    }
+
+    if (text === "delete") {
+      this.deleteActiveJob?.();
+      return;
+    }
+
+    if (text === "reload-model") {
+      this._pccBeta26MeshFailedKey = "";
+      this.ensureStudioMeshLoaded?.(true);
+      return;
+    }
+
+    this.beta22ApplyToolbarAction?.(text);
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.beta26CleanWorkflowTopbar = function beta26CleanWorkflowTopbar() {
+    const topbar = this.shadowRoot?.querySelector(".studio-topbar");
+    if (!topbar) return;
+
+    const keepLabels = new Set(["Importieren", "Löschen", "Plan prüfen", "Health prüfen", "Jobs neu laden"]);
+    for (const button of [...topbar.querySelectorAll("button")]) {
+      const label = String(button.textContent || "").trim();
+      if (!keepLabels.has(label)) {
+        button.remove();
+        continue;
+      }
+      if (label === "Importieren") {
+        button.className = "action";
+        button.dataset.action = "import";
+      }
+      if (label === "Löschen") {
+        button.className = "action";
+        button.dataset.action = "delete";
+      }
+    }
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.beta9SetPlate = function beta26SetPlate(id) {
+    const plate = typeof pccBeta9PlateById === "function" ? pccBeta9PlateById(id) : {id, name:id, short:id, label:id, surface:"smooth"};
+    this._studioBuildPlate = plate.id;
+
+    if (this._activeJob) {
+      this._activeJob.profile_context = this._activeJob.profile_context || {};
+      this._activeJob.profile_context.build_plate = {id:plate.id,name:plate.name,short:plate.short,label:plate.label,surface:plate.surface};
+      this._activeJob.profile_context.build_plate_id = plate.id;
+      this._activeJob.build_plate = plate.name;
+      this._activeJob.build_plate_id = plate.id;
+      try { this.scheduleActiveJobSave?.(); } catch (_error) {}
+    }
+
+    this._status = `Druckplatte gewählt: ${plate.name}.`;
+    try { this.beta9ApplyBuildplateVisual?.(); } catch (_error) {}
+    this.shadowRoot?.querySelectorAll(".pcc-beta9-plate-dropdown").forEach((node) => node.setAttribute("hidden", ""));
+    this.queueMeshRender?.();
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.queueMeshRender = function beta26QueueMeshRender() {
+    this._pccBeta26CanvasDirty = true;
+    if (this._pccBeta26RenderFrame) return;
+
+    this._pccBeta26RenderFrame = requestAnimationFrame(() => {
+      this._pccBeta26RenderFrame = 0;
+      if (!this._pccBeta26CanvasDirty) return;
+      this._pccBeta26CanvasDirty = false;
+      this.renderMeshCanvas?.();
+    });
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.renderMeshCanvas = function beta26RenderMeshCanvas() {
+    if (this._pccBeta26Rendering) return;
+    this._pccBeta26Rendering = true;
+
+    try {
+      this.beta26EnsurePrimitiveMesh();
+      if (typeof PCC_BETA26_PREV_RENDER_MESH === "function") PCC_BETA26_PREV_RENDER_MESH.call(this);
+      const buildplate = this.shadowRoot?.querySelector(".buildplate");
+      if (buildplate) buildplate.classList.add("pcc-beta26-single-frame");
+    } finally {
+      this._pccBeta26Rendering = false;
+    }
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.ensureStudioMeshLoaded = async function beta26EnsureStudioMeshLoaded(force=false) {
+    const job = this._activeJob;
+
+    if (pccBeta26IsPrimitiveJob(job)) {
+      this.beta26EnsurePrimitiveMesh();
+      this.queueMeshRender?.();
+      return;
+    }
+
+    if (!pccBeta26IsRenderableJob(job)) return;
+
+    const key = this.meshJobKey?.() || pccBeta26RenderablePath(job);
+    if (!force && this._pccBeta26MeshFailedKey && this._pccBeta26MeshFailedKey === key) return;
+
+    await PCC_BETA26_PREV_ENSURE_MESH.call(this, force);
+
+    if (!this._studioMesh?.triangles?.length && this._studioMeshError) {
+      this._pccBeta26MeshFailedKey = key;
+    } else {
+      this._pccBeta26MeshFailedKey = "";
+    }
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.applyActiveJob = function beta26ApplyActiveJob(job, options={}) {
+    if (!pccBeta26IsRenderableJob(job)) {
+      this._activeJob = null;
+      this._activeJobId = "";
+      this._jobs = [];
+      this._studioMesh = null;
+      this._studioMeshJobId = "";
+      this._studioMeshUrl = "";
+      this._studioMeshError = "";
+      this._studioModelImageUrl = "";
+      if (options?.render !== false) this.render();
+      return;
+    }
+
+    const result = PCC_BETA23_PREV_APPLY_JOB.call(this, job, options);
+
+    if (!pccBeta26IsPrimitiveJob(this._activeJob || job)) {
+      this._pccBeta26MeshFailedKey = "";
+      window.setTimeout(() => this.ensureStudioMeshLoaded?.(false), 0);
+    }
+
+    return result;
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.loadStudioJobs = async function beta26LoadStudioJobs(...args) {
+    const result = await PCC_BETA23_PREV_LOAD_JOBS.apply(this, args);
+    if (Array.isArray(this._jobs)) this._jobs = this._jobs.filter((job) => pccBeta26IsRenderableJob(job));
+    return result;
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.beta7ImportPlan = async function beta26Beta7ImportPlan(plan) {
+    await PCC_BETA26_PREV_BETA7_IMPORT_PLAN.call(this, plan);
+    this._pccBeta26MeshFailedKey = "";
+    window.setTimeout(() => this.ensureStudioMeshLoaded?.(true), 0);
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.handleContextMenu = function beta26HandleContextMenu(event) {
+    if (event.target?.closest?.(".buildplate")) {
+      event.preventDefault();
+      event.stopPropagation();
+      this._studioContextMenu = null;
+    }
+  };
+
+  PCC_BETA26_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function beta26CleanupBetaStudioUi() {
+    this.beta26EnsureStyle();
+    this.beta26CleanWorkflowTopbar();
+
+    try { this.beta9EnsureStyle?.(); } catch (_error) {}
+    try { this.beta9InstallSelector?.(); } catch (_error) {}
+    try { this.beta9ApplyBuildplateVisual?.(); } catch (_error) {}
+    try { this.beta20EnsureStyle?.(); } catch (_error) {}
+    try { this.beta20InjectPrimitivePanel?.(); } catch (_error) {}
+    try { this.beta21EnsureStyle?.(); } catch (_error) {}
+    try { this.beta21SyncBuildplateState?.(); } catch (_error) {}
+    try { this.beta22EnsureStyle?.(); } catch (_error) {}
+    try { this.beta22HideRightInspector?.(); } catch (_error) {}
+    try { this.beta22RemoveBottomMessages?.(); } catch (_error) {}
+
+    this.beta26InstallToolbar();
+    this.beta23BindMouseTools?.();
+
+    const root = this.shadowRoot;
+    root?.querySelectorAll(".pcc-beta22-top-toolbar,.pcc-beta23-top-toolbar,.context-menu,.pcc-context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
+
+    const buildplate = root?.querySelector(".buildplate");
+    if (buildplate) buildplate.classList.add("pcc-beta26-single-frame");
   };
 
   if (!customElements.get("printer-control-center-studio-card")) {

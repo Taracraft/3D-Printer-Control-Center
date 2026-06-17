@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta27*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta28*/
 (() => {
-  const VERSION = "5.0.0-beta27";
+  const VERSION = "5.0.0-beta28";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta27",
+        version: "5.0.0-beta28",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta27";
+  const STUDIO_VERSION = "5.0.0-beta28";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -13137,6 +13137,555 @@ const PCC_BETA27_STUDIO_CLASS = customElements.get("printer-control-center-studi
 
     if (this._pccBeta27ImportOpen) {
       window.requestAnimationFrame(() => this.beta27PromoteImportAssistant());
+    }
+  };
+
+const PCC_BETA28_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA28_PREV_CLEANUP = PCC_BETA28_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+  const PCC_BETA28_PREV_OPEN_IMPORT = PCC_BETA28_STUDIO_CLASS.prototype.openBeta7ImportAssistant;
+
+  function pccBeta28Icon(name) {
+    const common = 'viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+    const icons = {
+      import:'<path d="M4 17v3h16v-3"/><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/>',
+      cube:'<path d="M12 2 4 6v12l8 4 8-4V6z"/><path d="M12 22V10"/><path d="M4 6l8 4 8-4"/>',
+      move:'<path d="M12 2v20"/><path d="M2 12h20"/><path d="m8 6 4-4 4 4"/><path d="m8 18 4 4 4-4"/><path d="m6 8-4 4 4 4"/><path d="m18 8 4 4-4 4"/>',
+      rotate:'<path d="M4 12a8 8 0 0 1 13.7-5.7"/><path d="M18 3v5h-5"/><path d="M20 12a8 8 0 0 1-13.7 5.7"/><path d="M6 21v-5h5"/>',
+      scale:'<path d="M5 19 19 5"/><path d="M9 5h10v10"/><path d="M5 9v10h10"/>',
+      mirror:'<path d="M12 3v18"/><path d="M4 7h5v10H4z"/><path d="M20 7h-5v10h5z"/>',
+      view:'<circle cx="10" cy="10" r="6"/><path d="M14.5 14.5 21 21"/><path d="M10 7v6"/><path d="M7 10h6"/>',
+      color:'<path d="M4 14 14 4l6 6-10 10H4z"/><path d="M13 5l6 6"/><path d="M4 20h6"/>',
+      trash:'<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M8 10v9"/><path d="M16 10v9"/><path d="M6 7l1 14h10l1-14"/>',
+      reload:'<path d="M20 6v6h-6"/><path d="M4 18v-6h6"/><path d="M19 12a7 7 0 0 0-12-5l-3 3"/><path d="M5 12a7 7 0 0 0 12 5l3-3"/>',
+      center:'<circle cx="12" cy="12" r="7"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/>'
+    };
+    return `<svg ${common}>${icons[name] || icons.cube}</svg>`;
+  }
+
+  function pccBeta28ActionButton(action, icon, label) {
+    return `<button class="pcc-beta28-menu-action" data-beta28-action="${action}" title="${label}">${pccBeta28Icon(icon)}<span>${label}</span></button>`;
+  }
+
+  PCC_BETA28_STUDIO_CLASS.prototype.beta28EnsureStyle = function beta28EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta28-polished-toolbar-import-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta28-polished-toolbar-import-style";
+    style.textContent = `
+      .studio-shell{position:relative!important;}
+
+      .pcc-beta22-top-toolbar,
+      .pcc-beta23-top-toolbar,
+      .pcc-beta26-toolbar{
+        display:none!important;
+      }
+
+      .pcc-beta28-toolbar{
+        position:sticky;
+        top:0;
+        z-index:620;
+        display:flex;
+        align-items:center;
+        gap:0;
+        min-height:34px;
+        padding:0;
+        margin:0 0 7px;
+        border-top:1px solid rgba(255,255,255,.16);
+        border-bottom:1px solid rgba(0,169,214,.46);
+        background:linear-gradient(180deg,rgba(45,48,52,.98),rgba(21,25,30,.98));
+        box-shadow:0 8px 20px rgba(0,0,0,.26);
+        overflow:visible;
+      }
+
+      .pcc-beta28-import-main{
+        height:33px;
+        min-width:82px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:6px;
+        padding:0 9px;
+        border:0;
+        border-right:1px solid rgba(255,255,255,.16);
+        border-radius:0;
+        background:rgba(0,118,150,.24);
+        color:#fff;
+        font-size:12px;
+        font-weight:700;
+        cursor:pointer;
+      }
+
+      .pcc-beta28-menu-wrap{
+        position:relative;
+        flex:0 0 auto;
+        border-right:1px solid rgba(255,255,255,.16);
+      }
+
+      .pcc-beta28-main{
+        width:34px;
+        height:33px;
+        display:grid;
+        place-items:center;
+        border:0;
+        border-radius:0;
+        background:rgba(255,255,255,.045);
+        color:rgba(255,255,255,.86);
+        cursor:pointer;
+        padding:0;
+      }
+
+      .pcc-beta28-main:hover,
+      .pcc-beta28-main.active,
+      .pcc-beta28-import-main:hover{
+        background:rgba(0,169,214,.20);
+        color:#fff;
+      }
+
+      .pcc-beta28-delete{
+        color:rgba(255,210,210,.95);
+      }
+
+      .pcc-beta28-delete:hover{
+        background:rgba(210,50,50,.24)!important;
+      }
+
+      .pcc-beta28-menu-body{
+        position:absolute;
+        top:34px;
+        left:0;
+        z-index:700;
+        min-width:172px;
+        max-width:260px;
+        max-height:280px;
+        overflow:auto;
+        padding:5px;
+        display:none;
+        grid-template-columns:1fr;
+        gap:3px;
+        border:1px solid rgba(0,169,214,.55);
+        background:rgba(15,20,25,.98);
+        box-shadow:0 16px 34px rgba(0,0,0,.42);
+      }
+
+      .pcc-beta28-menu-wrap.open > .pcc-beta28-menu-body{
+        display:grid;
+      }
+
+      .pcc-beta28-menu-action{
+        min-height:29px;
+        display:grid;
+        grid-template-columns:24px 1fr;
+        gap:6px;
+        align-items:center;
+        padding:3px 7px;
+        border:1px solid transparent;
+        border-radius:0;
+        background:transparent;
+        color:rgba(255,255,255,.88);
+        font-size:12px;
+        text-align:left;
+        cursor:pointer;
+        white-space:nowrap;
+      }
+
+      .pcc-beta28-menu-action:hover{
+        border-color:rgba(0,169,214,.55);
+        background:rgba(0,169,214,.14);
+        color:#fff;
+      }
+
+      .pcc-beta28-color-row{
+        display:flex;
+        align-items:center;
+        gap:5px;
+        flex-wrap:wrap;
+        width:168px;
+      }
+
+      .pcc-beta28-color{
+        width:28px;
+        height:25px;
+        padding:0;
+        border:1px solid rgba(255,255,255,.26);
+        border-radius:0;
+        background:transparent;
+        cursor:pointer;
+      }
+
+      .pcc-beta28-swatch{
+        width:22px;
+        height:22px;
+        border:1px solid rgba(255,255,255,.28);
+        border-radius:0;
+        cursor:pointer;
+      }
+
+      .pcc-beta28-swatch.active{
+        outline:2px solid rgba(0,235,255,.82);
+        outline-offset:1px;
+      }
+
+      .pcc-beta27-import-modal{
+        position:absolute!important;
+        inset:46px auto auto 50%!important;
+        transform:translateX(-50%)!important;
+        width:min(760px,calc(100% - 24px))!important;
+        max-height:min(70vh,calc(100% - 62px))!important;
+        z-index:650!important;
+        display:block!important;
+        padding:0!important;
+        background:transparent!important;
+        border:0!important;
+        backdrop-filter:none!important;
+      }
+
+      .pcc-beta27-import-dialog{
+        width:100%!important;
+        max-height:min(70vh,620px)!important;
+        overflow:auto!important;
+        padding:12px!important;
+        border:1px solid rgba(0,169,214,.68)!important;
+        border-radius:12px!important;
+        background:linear-gradient(180deg,rgba(14,21,27,.98),rgba(5,11,15,.98))!important;
+        box-shadow:0 20px 52px rgba(0,0,0,.58)!important;
+      }
+
+      .pcc-beta27-import-close{
+        position:absolute!important;
+        right:10px!important;
+        top:10px!important;
+        width:30px!important;
+        height:28px!important;
+        border-radius:6px!important;
+        background:rgba(0,72,96,.90)!important;
+      }
+
+      .pcc-beta27-import-dialog h1,
+      .pcc-beta27-import-dialog h2,
+      .pcc-beta27-import-dialog h3{
+        margin:0 40px 10px 0!important;
+        font-size:18px!important;
+        line-height:1.2!important;
+      }
+
+      .pcc-beta27-import-dialog p,
+      .pcc-beta27-import-dialog div,
+      .pcc-beta27-import-dialog span{
+        font-size:12px;
+      }
+
+      .pcc-beta27-import-dialog button{
+        min-height:28px!important;
+        padding:4px 9px!important;
+        border-radius:7px!important;
+        border:1px solid rgba(0,169,214,.55)!important;
+        background:rgba(0,64,86,.70)!important;
+        color:#fff!important;
+        font-size:12px!important;
+        font-weight:600!important;
+        cursor:pointer!important;
+      }
+
+      .pcc-beta27-import-dialog button:hover{
+        background:rgba(0,110,148,.85)!important;
+      }
+
+      .pcc-beta27-import-dialog button:disabled{
+        opacity:.45!important;
+        cursor:not-allowed!important;
+      }
+
+      .pcc-beta27-import-dialog input,
+      .pcc-beta27-import-dialog select{
+        min-height:28px!important;
+        border-radius:7px!important;
+        border:1px solid rgba(0,169,214,.38)!important;
+        background:rgba(0,0,0,.25)!important;
+        color:#fff!important;
+      }
+
+      .pcc-beta27-import-dialog [data-folder],
+      .pcc-beta27-import-dialog [data-path],
+      .pcc-beta27-import-dialog .folder,
+      .pcc-beta27-import-dialog .file{
+        border-radius:8px;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA28_STUDIO_CLASS.prototype.beta28ToolbarHtml = function beta28ToolbarHtml() {
+    const color = this.beta22ObjectColor?.() || "#00a9d6";
+    const colors = ["#00a9d6", "#f44336", "#ff9800", "#ffeb3b", "#4caf50", "#2196f3", "#9c27b0", "#ffffff", "#111111"];
+    const swatches = colors.map((value) => `<button class="pcc-beta28-swatch ${value.toLowerCase() === color.toLowerCase() ? "active" : ""}" data-beta28-color="${value}" title="${value}" style="background:${value}"></button>`).join("");
+
+    return `
+      <div class="pcc-beta28-toolbar" aria-label="Studio Werkzeugleiste">
+        <button class="pcc-beta28-import-main" data-beta28-action="open-import" title="Galerie/Archiv importieren">${pccBeta28Icon("import")}<span>Import</span></button>
+
+        <div class="pcc-beta28-menu-wrap">
+          <button class="pcc-beta28-main" data-beta28-menu="primitive" title="Primitive">${pccBeta28Icon("cube")}</button>
+          <div class="pcc-beta28-menu-body">
+            ${pccBeta28ActionButton("primitive-cube","cube","Würfel")}
+            ${pccBeta28ActionButton("primitive-cuboid","cube","Quader")}
+            ${pccBeta28ActionButton("primitive-cylinder","cube","Zylinder")}
+            ${pccBeta28ActionButton("primitive-first-layer","cube","First Layer")}
+          </div>
+        </div>
+
+        <div class="pcc-beta28-menu-wrap">
+          <button class="pcc-beta28-main" data-beta28-menu="move" title="Verschieben">${pccBeta28Icon("move")}</button>
+          <div class="pcc-beta28-menu-body">
+            ${pccBeta28ActionButton("move-left","move","Links")}
+            ${pccBeta28ActionButton("move-right","move","Rechts")}
+            ${pccBeta28ActionButton("move-up","move","Nach hinten")}
+            ${pccBeta28ActionButton("move-down","move","Nach vorne")}
+            ${pccBeta28ActionButton("z-up","move","Z höher")}
+            ${pccBeta28ActionButton("z-down","move","Z tiefer")}
+            ${pccBeta28ActionButton("center","center","Zentrieren")}
+          </div>
+        </div>
+
+        <div class="pcc-beta28-menu-wrap">
+          <button class="pcc-beta28-main" data-beta28-menu="rotate" title="Drehen">${pccBeta28Icon("rotate")}</button>
+          <div class="pcc-beta28-menu-body">
+            ${pccBeta28ActionButton("rot-x","rotate","Rot X +15°")}
+            ${pccBeta28ActionButton("rot-y","rotate","Rot Y +15°")}
+            ${pccBeta28ActionButton("rot-z","rotate","Rot Z +15°")}
+            ${pccBeta28ActionButton("lay-flat","rotate","Flach legen")}
+          </div>
+        </div>
+
+        <div class="pcc-beta28-menu-wrap">
+          <button class="pcc-beta28-main" data-beta28-menu="scale" title="Skalieren">${pccBeta28Icon("scale")}</button>
+          <div class="pcc-beta28-menu-body">
+            ${pccBeta28ActionButton("scale-down","scale","Kleiner")}
+            ${pccBeta28ActionButton("scale-up","scale","Größer")}
+            ${pccBeta28ActionButton("stretch-x-up","scale","Breite +")}
+            ${pccBeta28ActionButton("stretch-y-up","scale","Länge +")}
+            ${pccBeta28ActionButton("stretch-z-up","scale","Höhe +")}
+          </div>
+        </div>
+
+        <div class="pcc-beta28-menu-wrap">
+          <button class="pcc-beta28-main" data-beta28-menu="mirror" title="Spiegeln/Zerren">${pccBeta28Icon("mirror")}</button>
+          <div class="pcc-beta28-menu-body">
+            ${pccBeta28ActionButton("mirror-x","mirror","Spiegel X")}
+            ${pccBeta28ActionButton("mirror-y","mirror","Spiegel Y")}
+            ${pccBeta28ActionButton("mirror-z","mirror","Spiegel Z")}
+            ${pccBeta28ActionButton("skew-x","mirror","Zerr X +5°")}
+            ${pccBeta28ActionButton("skew-y","mirror","Zerr Y +5°")}
+          </div>
+        </div>
+
+        <div class="pcc-beta28-menu-wrap">
+          <button class="pcc-beta28-main" data-beta28-menu="view" title="Ansicht">${pccBeta28Icon("view")}</button>
+          <div class="pcc-beta28-menu-body">
+            ${pccBeta28ActionButton("zoom-out","view","Zoom -")}
+            ${pccBeta28ActionButton("zoom-in","view","Zoom +")}
+            ${pccBeta28ActionButton("reload-model","reload","Modell neu laden")}
+            ${pccBeta28ActionButton("reset","view","Reset")}
+          </div>
+        </div>
+
+        <div class="pcc-beta28-menu-wrap">
+          <button class="pcc-beta28-main" data-beta28-menu="color" title="Farbe">${pccBeta28Icon("color")}</button>
+          <div class="pcc-beta28-menu-body">
+            <div class="pcc-beta28-color-row">
+              <input class="pcc-beta28-color" type="color" value="${color}" title="Objekt einfärben">
+              ${swatches}
+            </div>
+          </div>
+        </div>
+
+        <button class="pcc-beta28-main pcc-beta28-delete" data-beta28-action="delete" title="Löschen">${pccBeta28Icon("trash")}</button>
+      </div>
+    `;
+  };
+
+  PCC_BETA28_STUDIO_CLASS.prototype.beta28InstallToolbar = function beta28InstallToolbar() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".pcc-beta22-top-toolbar,.pcc-beta23-top-toolbar,.pcc-beta26-toolbar").forEach((node) => node.remove());
+
+    const shell = root.querySelector(".studio-shell") || root.querySelector(".studio-grid")?.parentElement || root.querySelector(".buildplate")?.parentElement;
+    if (!shell) return;
+
+    let toolbar = root.querySelector(".pcc-beta28-toolbar");
+    if (!toolbar) {
+      const wrap = document.createElement("div");
+      wrap.innerHTML = this.beta28ToolbarHtml().trim();
+      toolbar = wrap.firstElementChild;
+      shell.insertBefore(toolbar, shell.firstElementChild);
+    }
+
+    this.beta28SyncColor();
+
+    if (toolbar.dataset.beta28Bound === "1") return;
+    toolbar.dataset.beta28Bound = "1";
+
+    toolbar.addEventListener("click", (event) => {
+      const menuButton = event.target?.closest?.("[data-beta28-menu]");
+      if (menuButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta28ToggleMenu(menuButton.closest(".pcc-beta28-menu-wrap"));
+        return;
+      }
+
+      const colorButton = event.target?.closest?.("[data-beta28-color]");
+      if (colorButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta22SetObjectColor?.(colorButton.dataset.beta28Color);
+        this.beta28SyncColor();
+        this.queueMeshRender?.();
+        return;
+      }
+
+      const actionButton = event.target?.closest?.("[data-beta28-action]");
+      if (actionButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta28CloseMenus();
+        this.beta28ApplyAction(actionButton.dataset.beta28Action);
+      }
+    }, {capture:true});
+
+    toolbar.addEventListener("input", (event) => {
+      const input = event.target?.closest?.(".pcc-beta28-color");
+      if (!input) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.beta22SetObjectColor?.(input.value);
+      this.beta28SyncColor();
+      this.queueMeshRender?.();
+    }, {capture:true});
+
+    root.addEventListener("click", (event) => {
+      if (event.target?.closest?.(".pcc-beta28-toolbar")) return;
+      if (event.target?.closest?.(".pcc-beta27-import-modal")) return;
+      this.beta28CloseMenus();
+    }, {capture:true});
+  };
+
+  PCC_BETA28_STUDIO_CLASS.prototype.beta28ToggleMenu = function beta28ToggleMenu(wrap) {
+    if (!wrap) return;
+    const wasOpen = wrap.classList.contains("open");
+    this.shadowRoot?.querySelectorAll(".pcc-beta28-menu-wrap.open").forEach((node) => {
+      node.classList.remove("open");
+      node.querySelector(".pcc-beta28-main")?.classList.remove("active");
+    });
+    if (!wasOpen) {
+      wrap.classList.add("open");
+      wrap.querySelector(".pcc-beta28-main")?.classList.add("active");
+    }
+  };
+
+  PCC_BETA28_STUDIO_CLASS.prototype.beta28CloseMenus = function beta28CloseMenus() {
+    this.shadowRoot?.querySelectorAll(".pcc-beta28-menu-wrap.open").forEach((node) => {
+      node.classList.remove("open");
+      node.querySelector(".pcc-beta28-main")?.classList.remove("active");
+    });
+  };
+
+  PCC_BETA28_STUDIO_CLASS.prototype.beta28ApplyAction = function beta28ApplyAction(action) {
+    const text = String(action || "");
+
+    if (text === "open-import") {
+      this.openBeta7ImportAssistant?.();
+      return;
+    }
+
+    if (text.startsWith("primitive-")) {
+      this.beta21SetPrimitiveActive?.(text.replace("primitive-", ""));
+      return;
+    }
+
+    if (text === "delete") {
+      this.deleteActiveJob?.();
+      return;
+    }
+
+    if (text === "reload-model") {
+      this._pccBeta26MeshFailedKey = "";
+      this.ensureStudioMeshLoaded?.(true);
+      return;
+    }
+
+    this.beta22ApplyToolbarAction?.(text);
+  };
+
+  PCC_BETA28_STUDIO_CLASS.prototype.beta28SyncColor = function beta28SyncColor() {
+    const root = this.shadowRoot;
+    const toolbar = root?.querySelector(".pcc-beta28-toolbar");
+    if (!toolbar) return;
+    const color = this.beta22ObjectColor?.() || "#00a9d6";
+
+    const input = toolbar.querySelector(".pcc-beta28-color");
+    if (input && input.value.toLowerCase() !== color.toLowerCase()) input.value = color;
+
+    toolbar.querySelectorAll("[data-beta28-color]").forEach((button) => {
+      button.classList.toggle("active", String(button.dataset.beta28Color).toLowerCase() === color.toLowerCase());
+    });
+  };
+
+  PCC_BETA28_STUDIO_CLASS.prototype.openBeta7ImportAssistant = function beta28OpenImportAssistant(...args) {
+    let result;
+    if (typeof PCC_BETA28_PREV_OPEN_IMPORT === "function") {
+      result = PCC_BETA28_PREV_OPEN_IMPORT.apply(this, args);
+    }
+
+    const promote = () => {
+      this.beta27PromoteImportAssistant?.();
+      this.beta28PolishImportPopup?.();
+    };
+
+    requestAnimationFrame(promote);
+    window.setTimeout(promote, 60);
+    window.setTimeout(promote, 220);
+
+    return result;
+  };
+
+  PCC_BETA28_STUDIO_CLASS.prototype.beta28PolishImportPopup = function beta28PolishImportPopup() {
+    const root = this.shadowRoot;
+    const modal = root?.querySelector(".pcc-beta27-import-modal");
+    const dialog = root?.querySelector(".pcc-beta27-import-dialog");
+    if (!modal || !dialog) return;
+
+    modal.dataset.beta28Polished = "1";
+    dialog.dataset.beta28Polished = "1";
+
+    const headings = [...dialog.querySelectorAll("h1,h2,h3")];
+    for (const heading of headings) {
+      if (String(heading.textContent || "").includes("Studio-Import-Assistent")) {
+        heading.textContent = "Studio-Import";
+      }
+    }
+
+    dialog.querySelectorAll("button").forEach((button) => {
+      const txt = String(button.textContent || "").trim();
+      if (txt === "Schließen") button.textContent = "Schließen";
+      if (txt === "Auswahl ins Studio übernehmen") button.textContent = "Ins Studio übernehmen";
+    });
+  };
+
+  PCC_BETA28_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function beta28CleanupBetaStudioUi(...args) {
+    if (typeof PCC_BETA28_PREV_CLEANUP === "function") {
+      PCC_BETA28_PREV_CLEANUP.apply(this, args);
+    }
+
+    this.beta28EnsureStyle();
+    this.beta28InstallToolbar();
+    this.beta28SyncColor();
+
+    this.shadowRoot?.querySelectorAll(".pcc-beta22-top-toolbar,.pcc-beta23-top-toolbar,.pcc-beta26-toolbar").forEach((node) => node.remove());
+
+    if (this.shadowRoot?.querySelector(".pcc-beta27-import-modal")) {
+      this.beta28PolishImportPopup();
     }
   };
 

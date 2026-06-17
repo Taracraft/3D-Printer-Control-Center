@@ -1,3 +1,24 @@
+## 5.0.0-beta28 - Polished compact Studio toolbar and import popup
+
+### Deutsch
+- Behält die aktuelle Studio-Basis ohne Rückschritt.
+- Ersetzt die sichtbare Toolbar durch eine kompaktere eckige Bambu-Studio-artige Toolbar.
+- Fügt einen klar sichtbaren Import-Button mit Text hinzu.
+- Stellt sicher, dass immer nur ein Toolbar-Menü offen ist.
+- Poliert den Studio-Import-Assistenten als kompaktes Popup im Studio-Frame.
+- Kein Render-Umbau, keine Kamera-, Dashboard-, Backend- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Keeps the current Studio base without rollback.
+- Replaces the visible toolbar with a more compact square Bambu Studio inspired toolbar.
+- Adds a clearly visible Import button with text.
+- Ensures that only one toolbar menu can be open at a time.
+- Polishes the Studio import assistant as a compact in-frame popup.
+- No render rewrite, camera, dashboard, backend or connection changes.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta27 - Studio import popup and stable dropdown menus
 
 ### Deutsch

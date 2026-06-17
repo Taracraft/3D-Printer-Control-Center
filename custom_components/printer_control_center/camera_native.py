@@ -1,12 +1,9 @@
-from __future__ import annotations
-
-from typing import Any
-import asyncio
 """Native Bambu-compatible TLS JPEG camera reader.
 
 The reader connects directly to the printer on TCP 6000.  No Bambuddy,
 go2rtc, Docker sidecar or cloud proxy is required.
 """
+from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -297,83 +294,3 @@ class NativePrinterCameraClient:
                 break
 
             delay = min(_MAX_RECONNECT_DELAY, delay * 1.7)
-
-
-# PCC beta17 native camera helpers
-PCC_BETA17_CAMERA_VERSION = "5.0.0-beta17"
-
-PCC_BETA17_HTTP_PATHS = (
-    "/?action=snapshot",
-    "/?action=stream",
-    "/stream",
-    "/video",
-    "/snapshot",
-    "/image.jpg",
-    "/jpg",
-    "/",
-)
-
-def pcc_beta17_extract_jpeg(buffer: bytes) -> bytes | None:
-    """Return the first complete JPEG frame from a byte buffer."""
-    if not buffer:
-        return None
-    start = buffer.find(b"\xff\xd8")
-    if start < 0:
-        return None
-    end = buffer.find(b"\xff\xd9", start + 2)
-    if end < 0:
-        return None
-    return buffer[start:end + 2]
-
-def pcc_beta17_http_fetch_jpeg_sync(host: str, port: int = 6000, timeout: float = 4.0) -> tuple[bytes | None, str]:
-    """Try common Bambu A1/P1 TCP-6000 HTTP/MJPEG camera endpoints."""
-    last_error = ""
-    host = str(host or "").strip()
-    if not host:
-        return None, "missing host"
-
-    for path in PCC_BETA17_HTTP_PATHS:
-        sock = None
-        try:
-            sock = socket.create_connection((host, int(port)), timeout=timeout)
-            sock.settimeout(timeout)
-            request = (
-                f"GET {path} HTTP/1.1\r\n"
-                f"Host: {host}:{port}\r\n"
-                "User-Agent: 3D-Printer-Control-Center/5.0.0-beta17\r\n"
-                "Accept: image/jpeg,multipart/x-mixed-replace,*/*\r\n"
-                "Connection: close\r\n"
-                "\r\n"
-            ).encode("ascii", "ignore")
-            sock.sendall(request)
-
-            chunks: list[bytes] = []
-            deadline = time.monotonic() + timeout
-            while time.monotonic() < deadline:
-                chunk = sock.recv(65536)
-                if not chunk:
-                    break
-                chunks.append(chunk)
-                joined = b"".join(chunks)
-                jpeg = pcc_beta17_extract_jpeg(joined)
-                if jpeg:
-                    return jpeg, f"http {path}"
-            joined = b"".join(chunks)
-            jpeg = pcc_beta17_extract_jpeg(joined)
-            if jpeg:
-                return jpeg, f"http {path}"
-            last_error = f"{path}: no JPEG in {len(joined)} bytes"
-        except Exception as exc:
-            last_error = f"{path}: {type(exc).__name__}: {exc}"
-        finally:
-            try:
-                if sock:
-                    sock.close()
-            except Exception:
-                pass
-
-    return None, last_error or "no HTTP/MJPEG endpoint returned a JPEG"
-
-async def pcc_beta17_http_fetch_jpeg(hass: Any, host: str, port: int = 6000, timeout: float = 4.0) -> tuple[bytes | None, str]:
-    """Async wrapper for the blocking TCP/HTTP camera probe."""
-    return await hass.async_add_executor_job(pcc_beta17_http_fetch_jpeg_sync, host, port, timeout)

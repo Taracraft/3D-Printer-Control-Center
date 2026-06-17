@@ -1,3 +1,20 @@
+## 5.0.0-beta18 - Revert beta17 backend camera route
+
+### English
+- Reverts the beta17 backend camera route experiment.
+- Restores the beta16 camera rendering path, using the native Home Assistant camera entity/proxy path again.
+- Keeps the good beta9 Studio buildplate selector/runtime unchanged.
+- Removes the custom `/api/printer_control_center/camera/...` frontend dependency from the active card code.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Macht das beta17-Backend-Kamera-Routenexperiment rückgängig.
+- Stellt den beta16-Kamera-Renderpfad wieder her, der wieder die native Home-Assistant-Kamera-Entity beziehungsweise den Proxy-Pfad nutzt.
+- Behält die gute beta9-Studio-Buildplate-/Selector-Laufzeit unverändert.
+- Entfernt die Custom-Route `/api/printer_control_center/camera/...` aus dem aktiven Frontendpfad.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta17 - Backend Camera Route Fix
 
 ### English

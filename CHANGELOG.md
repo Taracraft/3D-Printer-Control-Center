@@ -1,3 +1,22 @@
+## 5.0.0-beta14 - Camera Renderpath Recovery
+
+### English
+- Keeps the good beta9 Studio buildplate selector/runtime as active base.
+- Restores the printer dashboard camera through the real render path: `cameraProxy()` -> `mediaSource()` -> `mediaHtml()`.
+- Uses generic Home Assistant camera handling via `camera.*_native_live_camera`, `entity_picture`, `/api/camera_proxy/...` and `/api/camera_proxy_stream/...`.
+- Uses transport/port information to decide between live stream and snapshot fallback; no model-specific X1 workplace logic was added.
+- Removes overlay-style camera injection from the recovery path.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Behält die gute beta9-Studio-Buildplate-/Selector-Laufzeit als aktive Basis.
+- Stellt die Kamera der Druckerkarte über den echten Renderpfad wieder her: `cameraProxy()` -> `mediaSource()` -> `mediaHtml()`.
+- Nutzt generische Home-Assistant-Kamera-Verarbeitung über `camera.*_native_live_camera`, `entity_picture`, `/api/camera_proxy/...` und `/api/camera_proxy_stream/...`.
+- Entscheidet anhand Transport/Port zwischen Live-Stream und Snapshot-Fallback; es wurde keine X1-Arbeitsplatz-Sonderlogik eingebaut.
+- Overlay-artige Kamera-Injection wird im Recovery-Pfad nicht verwendet.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta13 - Recovery Stable Studio UI
 
 ### English

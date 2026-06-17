@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta13*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta14*/
 (() => {
-  const VERSION = "5.0.0-beta13";
+  const VERSION = "5.0.0-beta14";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -2205,25 +2205,77 @@
     ) || "";
   }
 
-  function cameraProxy(hass, map, config) {
+function pccV5CameraDecisionText(hass, map, config, entityId) {
+    const at = attrs(hass, entityId);
+    const values = [
+      config?.camera_entity,
+      config?.camera_url,
+      config?.camera_mode,
+      config?.camera_transport,
+      stateValue(hass, map.cameraMode),
+      stateValue(hass, map.cameraTransport),
+      stateValue(hass, map.cameraPort),
+      at.camera_mode,
+      at.camera_transport,
+      at.camera_label,
+      at.camera_port,
+      at.rtsp_transport,
+      at.rtsp_port,
+      at.transport,
+      at.entity_picture,
+      entityId
+    ];
+
+    return values
+      .filter((value) => value !== undefined && value !== null)
+      .map((value) => String(value).toLowerCase())
+      .join(" ");
+  }
+
+  function pccV5CameraIsSnapshotOnly(hass, map, config, entityId) {
+    const text = pccV5CameraDecisionText(hass, map, config, entityId);
+
+    if (text.includes("rtsps")) return true;
+    if (text.includes("rtsp_port 322")) return true;
+    if (text.includes("camera_port 322")) return true;
+    if (text.includes("tcp 322")) return true;
+    if (text.includes(":322")) return true;
+
+    return false;
+  }
+
+  function pccV5CameraUrlWithToken(path, token) {
+    if (!path) return "";
+    if (!token) return path;
+    const sep = path.includes("?") ? "&" : "?";
+    return `${path}${sep}token=${encodeURIComponent(token)}`;
+  }
+
+function cameraProxy(hass, map, config) {
     const entityId = (
       String(config?.camera_entity || "").trim()
       || map.nativeCamera
-      || autoEntity(hass, "camera", map.prefix, ["native_live_camera", "camera", "kamera"])
+      || autoEntity(hass, "camera", map.prefix, ["native_live_camera", "chamber", "camera", "kamera"])
     );
 
     const at = attrs(hass, entityId);
     const token = String(at.access_token || "").trim();
-    const still = String(at.entity_picture || "").trim()
-      || (entityId && token ? `/api/camera_proxy/${entityId}?token=${encodeURIComponent(token)}` : "");
-    const stream = entityId && token
+    const entityPicture = String(at.entity_picture || "").trim();
+
+    const still = entityPicture
+      || (entityId ? pccV5CameraUrlWithToken(`/api/camera_proxy/${entityId}`, token) : "");
+
+    const snapshotOnly = pccV5CameraIsSnapshotOnly(hass, map, config, entityId);
+
+    const stream = entityId && token && !snapshotOnly
       ? `/api/camera_proxy_stream/${entityId}?token=${encodeURIComponent(token)}&interval=0.8`
       : "";
 
-    return { entityId, token, still, stream };
+    return { entityId, token, still, stream, snapshotOnly };
   }
 
-  function mediaSource(hass, map, config, cameraVisible, online, status) {
+
+function mediaSource(hass, map, config, cameraVisible, online, status) {
     const previewEntity = config?.preview_entity || autoEntity(hass, "image", map.prefix, ["cover_image", "titelbild", "model_preview", "bild_wahlen"]);
     const overrideUrl = String(config?.camera_url || "").trim();
     const native = cameraProxy(hass, map, config);
@@ -2233,7 +2285,7 @@
     if (cameraVisible) {
       if (overrideUrl) return { src: overrideUrl, label: "Live-Kamera", mode: "live" };
       if (native.stream) return { src: native.stream, label: "Native Live-Kamera", mode: "live" };
-      if (native.still) return { src: native.still, label: "Native Kamera-Snapshot", mode: "live" };
+      if (native.still) return { src: native.still, label: native.snapshotOnly ? "Native Kamera-Snapshot" : "Native Live-Kamera", mode: "live" };
     }
 
     if (previewEntity && attrs(hass, previewEntity).entity_picture) {
@@ -2248,7 +2300,8 @@
     };
   }
 
-  function mediaHtml(hass, map, config, cameraVisible, online, status) {
+
+function mediaHtml(hass, map, config, cameraVisible, online, status) {
     const source = mediaSource(hass, map, config, cameraVisible, online, status);
     const task = stateValue(hass, map.task, "Kein aktiver Druckauftrag");
     const native = cameraProxy(hass, map, config);
@@ -2257,34 +2310,33 @@
       return `
         <div class="media-empty">
           <div>
-            <strong>Native Live-Kamera startet â€¦</strong>
-            <small>Das 3D-Printer Control Center verbindet Home Assistant direkt mit TCP 6000. Keine externen Dienste erforderlich.</small>
+            <strong>Native Live-Kamera startet …</strong>
+            <small>Das 3D-Printer Control Center wartet auf das Home-Assistant-Kamerabild.</small>
           </div>
         </div>
       `;
     }
 
     return `
-      <div class="media ${source.mode === "preview" ? "media-preview" : ""}">
+      <div class="media ${source.mode === "preview" ? "media-preview" : ""}" data-pcc-camera-entity="${esc(native.entityId || "")}">
         <img src="${esc(source.src)}" alt="${esc(source.label)}">
         <span class="media-label">${esc(source.label)}</span>
         ${source.mode === "preview" ? `<span class="media-task">${esc(task)}</span>` : ""}
-        ${native.stream ? `<button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">â†—</button>` : ""}
+        ${(native.stream || native.still) ? `<button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">↗</button>` : ""}
       </div>
     `;
   }
 
-  function openCameraPopup(hass, map, config) {
-    const native = cameraProxy(hass, map, config);
-    if (!native.stream) return;
 
-    const still = native.still || native.stream;
+function openCameraPopup(hass, map, config) {
+    const native = cameraProxy(hass, map, config);
+    const source = native.stream || native.still;
+    if (!source) return;
+
+    const title = esc(`3D-Printer Control Center Kamera · ${stateValue(hass, map.serial, map.prefix)}`);
+    const sourceHtml = esc(source);
     const popup = window.open("", `printer-control-center-camera-${map.prefix}`, "width=1280,height=820,resizable=yes,scrollbars=no");
     if (!popup) return;
-
-    const streamHtml = esc(native.stream);
-    const stillJson = JSON.stringify(still);
-    const title = esc(`3D-Printer Control Center Live-Kamera - ${stateValue(hass, map.serial, map.prefix)}`);
 
     popup.document.open();
     popup.document.write(`<!doctype html>
@@ -2294,32 +2346,27 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title}</title>
 <style>
-  :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#05080c;color:#eaf7ff;font-family:Arial,sans-serif}
-  header{display:flex;gap:7px;align-items:center;justify-content:space-between;padding:9px 14px;background:#111922;border-bottom:1px solid #1a6584}
-  .left,.right{display:flex;gap:6px;align-items:center}.live{padding:5px 9px;border-radius:999px;background:#007f4f;color:#d7fff0;font-weight:700}
-  button{cursor:pointer;border:1px solid #21799e;background:#15232c;color:#eaf7ff;padding:7px 10px;border-radius:8px}
-  main{height:calc(100vh - 58px);display:grid;place-items:center;background:#000}
-  img{display:block;max-width:100%;max-height:100%;object-fit:contain}
+  :root{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:#05080c;color:#eaf7ff;font-family:Arial,sans-serif}
+  header{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 14px;background:#111922;border-bottom:1px solid #1a6584}
+  img{display:block;width:100vw;height:calc(100vh - 48px);object-fit:contain;background:#000}
+  .badge{padding:5px 10px;border-radius:999px;background:#007f4f;color:#d7fff0;font-weight:700;font-size:12px}
+  button{border:1px solid #1a8cad;border-radius:8px;background:#082630;color:#eaf7ff;padding:6px 10px;cursor:pointer}
 </style>
 </head>
 <body>
 <header>
-  <div class="left"><strong>${title}</strong><span class="live">Live</span></div>
-  <div class="right">
-    <button id="snapshot">Schnappschuss</button>
-    <button id="fullscreen">Vollbild</button>
-    <button onclick="window.close()">Schließen</button>
-  </div>
+  <strong>${title}</strong>
+  <span class="badge">${esc(native.snapshotOnly ? "Snapshot" : "Live")}</span>
+  <button onclick="window.location.reload()">Aktualisieren</button>
 </header>
-<main><img id="stream" alt="3D-Printer Control Center Kamera-Stream" src="${streamHtml}"></main>
-<script>
-  document.getElementById("snapshot").addEventListener("click",()=>window.open(${stillJson} + (${stillJson}.includes("?") ? "&" : "?") + "t=" + Date.now(),"_blank","noopener"));
-  document.getElementById("fullscreen").addEventListener("click",()=>document.getElementById("stream").requestFullscreen?.());
-<\/script>
+<img src="${sourceHtml}" alt="${title}">
 </body>
 </html>`);
     popup.document.close();
   }
+
 
   function commonStub() {
     return {
@@ -4811,7 +4858,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta13",
+        version: "5.0.0-beta14",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4882,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta13";
+  const STUDIO_VERSION = "5.0.0-beta14";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -4881,7 +4928,7 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta13 Recovery Stable Studio UI bereit. beta12 Overlay-Guard wurde entfernt; Studio-Selector und Buildplate werden nicht mehr übereinander neu aufgebaut.";
+      this._status = "beta14 Camera Renderpath Recovery bereit. Die Druckplattenauswahl wird jetzt im ShadowRoot als Bambu-Studio-Kachel mit stabilem Dropdown gerendert; die Buildplate übernimmt sichtbar Oberfläche, Kontur, Grid, Logo und Frontleiste.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -4944,7 +4991,7 @@
       this.ensureStudioMeshLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Beta13: Home Assistant pushes frequent hass updates.
+      // Beta9: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -6039,7 +6086,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta13: no full render on every keystroke.
+      // Beta9: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -6054,7 +6101,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta13: render is intentionally skipped while editing to avoid cursor jumps.
+      // Beta9: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -6443,7 +6490,7 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta13 Recovery Stable Studio UI</div>
+                  <div class="plate-label">Buildplate - beta14 Camera Renderpath Recovery</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   ${this._studioModelImageUrl ? html`
@@ -10383,1757 +10430,6 @@
     } catch (_error) {}
   };
 
-
-  const PCC_BETA10_BUILD_PLATES = [
-    {id:"cool_plate", name:"Cool Plate/PLA Plate", short:"Cool Plate / PLA", label:"Bambu Cool Plate / PLA Plate", surface:"cool", logo:"Bambu Cool Plate", footer:"PLA / PETG", badge:"COOL PLATE"},
-    {id:"engineering_plate", name:"Engineering Plate", short:"Engineering Plate", label:"Bambu Engineering Plate", surface:"engineering", logo:"Bambu Engineering Plate", footer:"ENGINEERING", badge:"ENGINEERING"},
-    {id:"smooth_pei_high_temp", name:"Smooth PEI Plate / High Temp Plate", short:"Smooth PEI / High Temp", label:"Bambu Smooth PEI Plate / High Temp Plate", surface:"smooth", logo:"Bambu Smooth PEI Plate / High Temp Plate", footer:"PLA / PETG / ABS / TPU / PC", badge:"HOT SURFACE"},
-    {id:"textured_pei", name:"Textured PEI Plate", short:"Textured PEI", label:"Bambu Textured PEI Plate", surface:"textured", logo:"Bambu Textured PEI Plate", footer:"PLA / PETG", badge:"TEXTURED"},
-    {id:"bambu_cool_plate_supertack", name:"Bambu Cool Plate SuperTack", short:"Cool Plate SuperTack", label:"Bambu Cool Plate SuperTack", surface:"supertack", logo:"Bambu Cool Plate (SuperTack)", footer:"GLUE STICK CAN HELP", badge:"SUPER TACK"}
-  ];
-
-  const PCC_BETA10_PRIMITIVES = [
-    {id:"cube", name:"Würfel", icon:"◼", shape:"cube", w:36, h:36},
-    {id:"cylinder", name:"Zylinder", icon:"◯", shape:"cylinder", w:36, h:36},
-    {id:"rectangle", name:"Rechteck", icon:"▰", shape:"rectangle", w:58, h:32},
-    {id:"square", name:"Quadrat", icon:"□", shape:"square", w:42, h:42},
-    {id:"sphere", name:"Kugel", icon:"●", shape:"sphere", w:38, h:38}
-  ];
-
-  function pccBeta10Esc(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    }[char]));
-  }
-
-  function pccBeta10PlateById(id) {
-    const wanted = String(id || "").trim();
-    return PCC_BETA10_BUILD_PLATES.find((plate) => plate.id === wanted) ||
-      PCC_BETA10_BUILD_PLATES.find((plate) => plate.id === "smooth_pei_high_temp") ||
-      PCC_BETA10_BUILD_PLATES[0];
-  }
-
-  function pccBeta10PlateClass(plate) {
-    return `pcc-beta10-plate-${String(plate?.surface || "smooth")}`;
-  }
-
-  function pccBeta10PrimitiveById(id) {
-    const wanted = String(id || "").trim();
-    return PCC_BETA10_PRIMITIVES.find((item) => item.id === wanted) || PCC_BETA10_PRIMITIVES[0];
-  }
-
-  const PCC_BETA10_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
-
-  PCC_BETA10_STUDIO_CLASS.prototype.beta10CurrentPlate = function beta10CurrentPlate() {
-    const job = this._activeJob || {};
-    const profile = job.profile_context || {};
-    const id =
-      this._studioBuildPlate ||
-      profile?.build_plate?.id ||
-      profile?.build_plate_id ||
-      job?.build_plate_id ||
-      "smooth_pei_high_temp";
-    return pccBeta10PlateById(id);
-  };
-
-  PCC_BETA10_STUDIO_CLASS.prototype.beta10HasActiveModel = function beta10HasActiveModel() {
-    const job = this._activeJob || null;
-    if (!job) return false;
-
-    const name = String(job.modelName || job.file_name || job.filename || job.name || job.model?.name || "").trim();
-    const path = String(job.file_path || job.path || job.model?.path || "").trim();
-    const source = String(job.source || job.origin || job.model?.source || "").trim();
-
-    if (source === "primitive") return true;
-    if (job.primitive_kind || job.model?.primitive_kind) return true;
-    if (path && /\.(3mf|stl|obj)$/i.test(path)) return true;
-    if (name && /\.(3mf|stl|obj)$/i.test(name)) return true;
-
-    return false;
-  };
-
-  PCC_BETA10_STUDIO_CLASS.prototype.beta10SetPlate = function beta10SetPlate(id) {
-    const plate = pccBeta10PlateById(id);
-    this._studioBuildPlate = plate.id;
-    this._beta10PlateDropdownOpen = false;
-
-    if (this._activeJob) {
-      this._activeJob.profile_context = this._activeJob.profile_context || {};
-      this._activeJob.profile_context.build_plate = {
-        id: plate.id,
-        name: plate.name,
-        short: plate.short,
-        label: plate.label,
-        surface: plate.surface
-      };
-      this._activeJob.profile_context.build_plate_id = plate.id;
-      this._activeJob.build_plate = plate.name;
-      this._activeJob.build_plate_id = plate.id;
-
-      try { this.scheduleActiveJobSave?.(); } catch (_error) {}
-    }
-
-    this._status = `Druckplatte gewählt: ${plate.name}.`;
-    this.beta10RenderSelector();
-    this.beta10ApplyBuildplateVisual();
-  };
-
-  PCC_BETA10_STUDIO_CLASS.prototype.beta10EnsureStyle = function beta10EnsureStyle() {
-    const root = this.shadowRoot;
-    if (!root || root.querySelector("#pcc-beta10-buildplate-style")) return;
-
-    const style = document.createElement("style");
-    style.id = "pcc-beta10-buildplate-style";
-    style.textContent = `
-      .pcc-beta10-selector{
-        margin:10px 0 14px;
-        padding:0;
-        border:0;
-        background:transparent;
-        position:relative;
-        overflow:visible;
-      }
-      .pcc-beta10-selector h3{
-        margin:0 0 7px;
-        font-size:14px;
-        font-weight:800;
-        color:var(--primary-text-color,#fff);
-      }
-      .pcc-beta10-row{
-        display:grid;
-        grid-template-columns:1.06fr 1fr .92fr .98fr;
-        gap:7px;
-        align-items:stretch;
-        overflow:visible;
-      }
-      .pcc-beta10-device-card,
-      .pcc-beta10-plate-card,
-      .pcc-beta10-sync-card,
-      .pcc-beta10-object-card{
-        min-height:88px;
-        border:1px solid #d7d7d7;
-        border-radius:9px;
-        background:linear-gradient(180deg,#ffffff,#f5f5f5);
-        color:#111;
-        display:grid;
-        align-content:center;
-        justify-items:center;
-        gap:4px;
-        padding:7px;
-        box-shadow:0 1px 2px rgba(0,0,0,.18);
-        cursor:pointer;
-        font-size:12px;
-        line-height:1.15;
-        position:relative;
-        overflow:hidden;
-      }
-      .pcc-beta10-device-card.active,
-      .pcc-beta10-plate-card.active,
-      .pcc-beta10-object-card.active{
-        outline:2px solid #14c86f;
-        outline-offset:-2px;
-      }
-      .pcc-beta10-device-card.active::after,
-      .pcc-beta10-plate-card.active::after,
-      .pcc-beta10-object-card.active::after{
-        content:"";
-        position:absolute;
-        top:0;
-        right:0;
-        border-left:18px solid transparent;
-        border-top:18px solid #13c76b;
-      }
-      .pcc-beta10-printer-thumb{
-        width:46px;
-        height:42px;
-        display:block;
-        position:relative;
-        border-radius:5px;
-        border:1px solid #ddd;
-        background:linear-gradient(180deg,#fff,#ececec);
-      }
-      .pcc-beta10-printer-thumb::before{
-        content:"";
-        position:absolute;
-        left:10px;
-        right:10px;
-        top:8px;
-        height:24px;
-        border:2px solid #555;
-        border-bottom:6px solid #555;
-        border-radius:2px;
-      }
-      .pcc-beta10-printer-thumb::after{
-        content:"";
-        position:absolute;
-        left:16px;
-        top:3px;
-        width:13px;
-        height:8px;
-        border:1px solid #777;
-        background:#fafafa;
-      }
-      .pcc-beta10-sync-icon{
-        font-size:30px;
-        color:#111;
-        line-height:30px;
-      }
-      .pcc-beta10-object-icon{
-        width:44px;
-        height:40px;
-        border:1px solid rgba(0,0,0,.25);
-        border-radius:6px;
-        background:linear-gradient(135deg,#eaf8ff,#b7d8e8);
-        color:#111;
-        display:grid;
-        place-items:center;
-        font-size:26px;
-        font-weight:900;
-        box-shadow:inset 0 0 14px rgba(0,0,0,.18);
-      }
-      .pcc-beta10-plate-thumb,
-      .pcc-beta10-option-thumb{
-        display:block;
-        position:relative;
-        overflow:hidden;
-        border-radius:4px;
-        border:1px solid rgba(0,0,0,.25);
-        box-shadow:inset 0 0 14px rgba(0,0,0,.22);
-      }
-      .pcc-beta10-plate-thumb{width:44px;height:40px;}
-      .pcc-beta10-option-thumb{width:40px;height:32px;}
-      .pcc-beta10-thumb-grid{
-        position:absolute;
-        inset:0;
-        background-image:
-          linear-gradient(rgba(255,255,255,.30) 1px,transparent 1px),
-          linear-gradient(90deg,rgba(255,255,255,.30) 1px,transparent 1px);
-        background-size:7px 7px;
-      }
-      .pcc-beta10-plate-cool{background:linear-gradient(135deg,#536470,#262c32);}
-      .pcc-beta10-plate-engineering{background:linear-gradient(135deg,#787d82,#303336);}
-      .pcc-beta10-plate-smooth{background:linear-gradient(135deg,#313436,#151719);}
-      .pcc-beta10-plate-textured{background-color:#b89652;background-image:radial-gradient(circle at 6px 6px,rgba(255,255,255,.42) 1px,transparent 2px);}
-      .pcc-beta10-plate-supertack{background:linear-gradient(135deg,#3e503b,#171f16);}
-      .pcc-beta10-caret{
-        position:absolute;
-        left:8px;
-        bottom:6px;
-        color:#707070;
-        font-size:13px;
-      }
-      .pcc-beta10-plate-dropdown,
-      .pcc-beta10-object-dropdown{
-        position:absolute;
-        z-index:2147482500;
-        top:101px;
-        width:342px;
-        background:#fff;
-        color:#111;
-        border:1px solid #c9c9c9;
-        box-shadow:0 14px 34px rgba(0,0,0,.34);
-        padding:4px 0;
-      }
-      .pcc-beta10-plate-dropdown{left:calc(25% + 4px);}
-      .pcc-beta10-object-dropdown{right:0;width:290px;}
-      .pcc-beta10-plate-dropdown[hidden],
-      .pcc-beta10-object-dropdown[hidden]{
-        display:none!important;
-      }
-      .pcc-beta10-plate-option,
-      .pcc-beta10-object-option{
-        display:grid;
-        grid-template-columns:24px 44px 1fr;
-        gap:8px;
-        align-items:center;
-        width:100%;
-        min-height:44px;
-        border:0;
-        background:#fff;
-        color:#111;
-        text-align:left;
-        padding:5px 10px;
-        cursor:pointer;
-        font-size:14px;
-      }
-      .pcc-beta10-plate-option:hover,
-      .pcc-beta10-object-option:hover{
-        background:#e9fff1;
-      }
-      .pcc-beta10-plate-option.active{
-        background:#dcffe8;
-      }
-      .pcc-beta10-check{
-        color:#10b85f;
-        font-weight:900;
-        font-size:18px;
-        text-align:center;
-      }
-      .pcc-beta10-option-text b{
-        display:block;
-        font-weight:500;
-        line-height:1.15;
-      }
-      .pcc-beta10-option-text small{
-        display:block;
-        color:#666;
-        font-size:11px;
-        margin-top:2px;
-      }
-
-      .buildplate.pcc-beta10-buildplate{
-        position:relative!important;
-        overflow:hidden!important;
-        border:3px solid #3b3f40!important;
-        border-radius:18px!important;
-        background-image:none!important;
-        background:#2f3334!important;
-        box-shadow:
-          inset 0 0 0 2px rgba(255,255,255,.04),
-          inset 0 0 70px rgba(0,0,0,.35),
-          0 16px 42px rgba(0,0,0,.42)!important;
-      }
-      .buildplate.pcc-beta10-buildplate::before,
-      .buildplate.pcc-beta10-buildplate::after{
-        display:none!important;
-      }
-      .buildplate.pcc-beta10-buildplate .pcc-beta8-grid-major,
-      .buildplate.pcc-beta10-buildplate .pcc-beta8-grid-minor,
-      .buildplate.pcc-beta10-buildplate .pcc-beta9-buildplate-skin::before{
-        display:none!important;
-      }
-      .pcc-beta10-buildplate-skin{
-        position:absolute;
-        inset:0;
-        z-index:0;
-        pointer-events:none;
-        border-radius:inherit;
-        overflow:hidden;
-      }
-      .buildplate.pcc-beta10-surface-cool{background:#32393d!important;}
-      .buildplate.pcc-beta10-surface-engineering{background:#393d40!important;}
-      .buildplate.pcc-beta10-surface-smooth{background:#303334!important;}
-      .buildplate.pcc-beta10-surface-textured{background:#3a3324!important;}
-      .buildplate.pcc-beta10-surface-supertack{background:#293228!important;}
-      .buildplate.pcc-beta10-surface-textured .pcc-beta10-buildplate-skin::after{
-        content:"";
-        position:absolute;
-        inset:0;
-        background-image:radial-gradient(circle at 10px 10px,rgba(255,224,150,.20) 1px,transparent 2px);
-        background-size:18px 18px;
-      }
-      .buildplate.pcc-beta10-surface-cool .pcc-beta10-buildplate-skin::after{
-        content:"";
-        position:absolute;
-        inset:0;
-        background:linear-gradient(135deg,rgba(130,215,255,.10),transparent 58%);
-      }
-      .buildplate.pcc-beta10-surface-supertack .pcc-beta10-buildplate-skin::after{
-        content:"";
-        position:absolute;
-        inset:0;
-        background:linear-gradient(135deg,rgba(110,190,95,.12),transparent 58%);
-      }
-      .pcc-beta10-side-logo{
-        position:absolute;
-        left:48px;
-        top:75px;
-        writing-mode:vertical-rl;
-        transform:rotate(180deg);
-        font-size:22px;
-        font-weight:900;
-        letter-spacing:.5px;
-        color:rgba(232,236,236,.62);
-        text-shadow:0 1px 2px rgba(0,0,0,.55);
-        z-index:2;
-      }
-      .pcc-beta10-front-strip{
-        position:absolute;
-        left:35%;
-        right:7%;
-        bottom:11px;
-        height:23px;
-        border-radius:4px;
-        background:linear-gradient(90deg,rgba(218,222,222,.96),rgba(160,166,166,.92));
-        color:#555;
-        display:flex;
-        align-items:center;
-        justify-content:space-around;
-        gap:8px;
-        font-size:11px;
-        font-weight:800;
-        box-shadow:0 -1px 0 rgba(255,255,255,.55) inset;
-        z-index:3;
-      }
-      .pcc-beta10-front-badge{font-size:9px;color:#777;}
-      .pcc-beta10-plate-number{
-        position:absolute;
-        right:17px;
-        bottom:29px;
-        color:#08c965;
-        font-size:34px;
-        font-weight:1000;
-        letter-spacing:1px;
-        z-index:3;
-      }
-      .pcc-beta10-handle-top{
-        position:absolute;
-        top:12px;
-        left:50%;
-        width:190px;
-        height:28px;
-        margin-left:-95px;
-        border-radius:0 0 17px 17px;
-        background:#242829;
-        border:2px solid rgba(225,230,230,.32);
-        border-top:0;
-        z-index:3;
-      }
-      .pcc-beta10-handle-top::after{
-        content:"";
-        position:absolute;
-        left:42px;
-        right:42px;
-        top:9px;
-        height:4px;
-        background:rgba(230,235,235,.88);
-        border-radius:999px;
-      }
-      .pcc-beta10-corner-cut{
-        position:absolute;
-        bottom:0;
-        width:94px;
-        height:34px;
-        background:#151718;
-        border-top:2px solid rgba(220,225,225,.4);
-        z-index:3;
-      }
-      .pcc-beta10-corner-cut.left{left:0;clip-path:polygon(0 100%,100% 100%,70% 0,0 0);}
-      .pcc-beta10-corner-cut.right{right:0;clip-path:polygon(0 100%,100% 100%,100% 0,30% 0);}
-
-      .pcc-beta10-axis-cursor{
-        position:absolute;
-        width:58px;
-        height:58px;
-        z-index:60;
-        pointer-events:none;
-        transform:translate(-8px,-50px);
-      }
-      .pcc-beta10-axis-cursor[hidden]{display:none!important;}
-      .pcc-beta10-axis-cursor .x{
-        position:absolute;
-        left:10px;
-        top:29px;
-        width:38px;
-        height:2px;
-        background:#ff3b30;
-      }
-      .pcc-beta10-axis-cursor .x::after{
-        content:"X";
-        position:absolute;
-        right:-11px;
-        top:-8px;
-        color:#ff3b30;
-        font-weight:900;
-        font-size:12px;
-      }
-      .pcc-beta10-axis-cursor .y{
-        position:absolute;
-        left:10px;
-        top:29px;
-        width:2px;
-        height:38px;
-        background:#34c759;
-        transform:rotate(180deg);
-        transform-origin:top;
-      }
-      .pcc-beta10-axis-cursor .y::after{
-        content:"Y";
-        position:absolute;
-        left:-5px;
-        bottom:-16px;
-        color:#34c759;
-        font-weight:900;
-        font-size:12px;
-      }
-      .pcc-beta10-axis-cursor .z{
-        position:absolute;
-        left:10px;
-        top:29px;
-        width:2px;
-        height:30px;
-        background:#0a84ff;
-        transform:rotate(-35deg);
-        transform-origin:top;
-      }
-      .pcc-beta10-axis-cursor .z::after{
-        content:"Z";
-        position:absolute;
-        left:-4px;
-        bottom:-15px;
-        color:#0a84ff;
-        font-weight:900;
-        font-size:12px;
-      }
-      .pcc-beta10-coordinate-hud{
-        position:absolute;
-        right:16px;
-        bottom:16px;
-        z-index:70;
-        min-width:180px;
-        padding:7px 9px;
-        border:1px solid rgba(0,210,255,.55);
-        border-radius:9px;
-        background:rgba(4,16,20,.84);
-        box-shadow:0 8px 22px rgba(0,0,0,.35);
-        color:#eafcff;
-        font-size:12px;
-        font-weight:800;
-        pointer-events:none;
-      }
-      .pcc-beta10-coordinate-hud[hidden]{display:none!important;}
-      .pcc-beta10-coordinate-hud span{display:inline-block;margin-right:9px;}
-      .pcc-beta10-coordinate-hud .x{color:#ff7b72;}
-      .pcc-beta10-coordinate-hud .y{color:#7ee787;}
-      .pcc-beta10-coordinate-hud .z{color:#79c0ff;}
-
-      .buildplate.pcc-beta10-empty .model,
-      .buildplate.pcc-beta10-empty .model-label,
-      .buildplate.pcc-beta10-empty .studio-mesh-canvas,
-      .buildplate.pcc-beta10-empty .studio-model-image{
-        display:none!important;
-      }
-      .buildplate.pcc-beta10-has-object .model{
-        display:block!important;
-        z-index:25!important;
-      }
-      .buildplate.pcc-beta10-has-object .model-label{
-        display:block!important;
-        z-index:26!important;
-      }
-      .model.pcc-beta10-primitive-cube,
-      .model.pcc-beta10-primitive-square{
-        border-radius:7px!important;
-        background:linear-gradient(135deg,#18b7d6,#087a98)!important;
-        box-shadow:inset 0 0 0 2px rgba(255,255,255,.22),0 14px 30px rgba(0,0,0,.38)!important;
-      }
-      .model.pcc-beta10-primitive-rectangle{
-        width:90px!important;
-        height:42px!important;
-        border-radius:7px!important;
-        background:linear-gradient(135deg,#18b7d6,#087a98)!important;
-      }
-      .model.pcc-beta10-primitive-cylinder{
-        border-radius:999px!important;
-        background:radial-gradient(circle at 34% 28%,#5de4ff,#0790b4 58%,#05637e)!important;
-      }
-      .model.pcc-beta10-primitive-sphere{
-        border-radius:999px!important;
-        background:radial-gradient(circle at 32% 26%,#8ff0ff,#0aa6c6 52%,#05637e)!important;
-      }
-    `;
-    root.appendChild(style);
-  };
-
-  PCC_BETA10_STUDIO_CLASS.prototype.beta10RenderSelector = function beta10RenderSelector() {
-    const root = this.shadowRoot;
-    if (!root) return;
-
-    this.beta10EnsureStyle();
-
-    const panels = [...root.querySelectorAll(".panel")];
-    const leftPanel = panels[0];
-    if (!leftPanel) return;
-
-    leftPanel.querySelectorAll(
-      ".pcc-beta10-selector,.pcc-beta9-plate-selector,.pcc-beta8-plate-selector,.beta7-buildplate-deck,.beta6-buildplate-switcher,.beta5-buildplate-switcher"
-    ).forEach((node) => node.remove());
-
-    const plate = this.beta10CurrentPlate();
-
-    const selector = document.createElement("section");
-    selector.className = "pcc-beta10-selector";
-    selector.innerHTML = `
-      <h3>Druckplatte</h3>
-      <div class="pcc-beta10-row">
-        <button class="pcc-beta10-device-card active" type="button" title="Aktiver Drucker">
-          <span class="pcc-beta10-printer-thumb"></span>
-          <span>Bambu Lab A1</span>
-        </button>
-
-        <button class="pcc-beta10-plate-card active" type="button" data-beta10-toggle-plate title="Druckplatte auswählen">
-          <span class="pcc-beta10-plate-thumb ${pccBeta10PlateClass(plate)}">
-            <span class="pcc-beta10-thumb-grid"></span>
-          </span>
-          <span>${pccBeta10Esc(plate.short)}</span>
-          <span class="pcc-beta10-caret">⌄</span>
-        </button>
-
-        <button class="pcc-beta10-sync-card" type="button" title="Sync Infos">
-          <span class="pcc-beta10-sync-icon">↻</span>
-          <span>Sync Infos</span>
-        </button>
-
-        <button class="pcc-beta10-object-card active" type="button" data-beta10-toggle-object title="Einfaches Objekt hinzufügen">
-          <span class="pcc-beta10-object-icon">＋</span>
-          <span>Objekt</span>
-          <span class="pcc-beta10-caret">⌄</span>
-        </button>
-      </div>
-
-      <div class="pcc-beta10-plate-dropdown" ${this._beta10PlateDropdownOpen ? "" : "hidden"}>
-        ${PCC_BETA10_BUILD_PLATES.map((item) => `
-          <button class="pcc-beta10-plate-option ${item.id === plate.id ? "active" : ""}" type="button" data-beta10-plate="${pccBeta10Esc(item.id)}">
-            <span class="pcc-beta10-check">${item.id === plate.id ? "✓" : ""}</span>
-            <span class="pcc-beta10-option-thumb ${pccBeta10PlateClass(item)}">
-              <span class="pcc-beta10-thumb-grid"></span>
-            </span>
-            <span class="pcc-beta10-option-text">
-              <b>${pccBeta10Esc(item.name)}</b>
-              <small>${pccBeta10Esc(item.label)}</small>
-            </span>
-          </button>
-        `).join("")}
-      </div>
-
-      <div class="pcc-beta10-object-dropdown" ${this._beta10ObjectDropdownOpen ? "" : "hidden"}>
-        ${PCC_BETA10_PRIMITIVES.map((item) => `
-          <button class="pcc-beta10-object-option" type="button" data-beta10-primitive="${pccBeta10Esc(item.id)}">
-            <span class="pcc-beta10-check"></span>
-            <span class="pcc-beta10-object-icon">${pccBeta10Esc(item.icon)}</span>
-            <span class="pcc-beta10-option-text">
-              <b>${pccBeta10Esc(item.name)}</b>
-              <small>Einfaches Studio-Objekt hinzufügen</small>
-            </span>
-          </button>
-        `).join("")}
-      </div>
-    `;
-
-    const oldHeading = [...leftPanel.querySelectorAll("h3")].find((h3) => String(h3.textContent || "").trim() === "Druckplatte");
-    if (oldHeading) oldHeading.insertAdjacentElement("afterend", selector);
-    else leftPanel.insertBefore(selector, leftPanel.firstChild);
-
-    selector.querySelector("[data-beta10-toggle-plate]")?.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      this._beta10PlateDropdownOpen = !this._beta10PlateDropdownOpen;
-      this._beta10ObjectDropdownOpen = false;
-      this.beta10RenderSelector();
-    });
-
-    selector.querySelector("[data-beta10-toggle-object]")?.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      this._beta10ObjectDropdownOpen = !this._beta10ObjectDropdownOpen;
-      this._beta10PlateDropdownOpen = false;
-      this.beta10RenderSelector();
-    });
-
-    for (const button of [...selector.querySelectorAll("[data-beta10-plate]")]) {
-      button.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        this.beta10SetPlate(button.dataset.beta10Plate);
-      });
-    }
-
-    for (const button of [...selector.querySelectorAll("[data-beta10-primitive]")]) {
-      button.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        this._beta10ObjectDropdownOpen = false;
-        this.beta10AddPrimitive(button.dataset.beta10Primitive);
-      });
-    }
-
-    if (!this._beta10OutsideCloseBound) {
-      this._beta10OutsideCloseBound = true;
-      root.addEventListener("pointerdown", (event) => {
-        if (event.target?.closest?.(".pcc-beta10-selector")) return;
-        if (!this._beta10PlateDropdownOpen && !this._beta10ObjectDropdownOpen) return;
-        this._beta10PlateDropdownOpen = false;
-        this._beta10ObjectDropdownOpen = false;
-        root.querySelectorAll(".pcc-beta10-plate-dropdown,.pcc-beta10-object-dropdown").forEach((node) => node.setAttribute("hidden", ""));
-      }, {capture:false});
-    }
-  };
-
-  PCC_BETA10_STUDIO_CLASS.prototype.beta10ApplyBuildplateVisual = function beta10ApplyBuildplateVisual() {
-    const root = this.shadowRoot;
-    if (!root) return;
-
-    this.beta10EnsureStyle();
-
-    const plate = this.beta10CurrentPlate();
-    const buildplate = root.querySelector(".buildplate");
-    if (!buildplate) return;
-
-    buildplate.classList.remove(
-      "pcc-beta8-buildplate", "pcc-beta9-buildplate", "pcc-beta10-buildplate",
-      "pcc-beta9-surface-cool", "pcc-beta9-surface-engineering", "pcc-beta9-surface-smooth", "pcc-beta9-surface-textured", "pcc-beta9-surface-supertack",
-      "pcc-beta10-surface-cool", "pcc-beta10-surface-engineering", "pcc-beta10-surface-smooth", "pcc-beta10-surface-textured", "pcc-beta10-surface-supertack",
-      "pcc-beta10-empty", "pcc-beta10-has-object"
-    );
-
-    buildplate.classList.add("pcc-beta10-buildplate", `pcc-beta10-surface-${plate.surface}`);
-    buildplate.classList.add(this.beta10HasActiveModel() ? "pcc-beta10-has-object" : "pcc-beta10-empty");
-    buildplate.dataset.beta10Plate = plate.id;
-
-    const label = root.querySelector(".plate-label");
-    if (label) label.textContent = `Buildplate – ${plate.name}`;
-
-    buildplate.querySelectorAll(":scope > .pcc-beta8-buildplate-skin,:scope > .pcc-beta9-buildplate-skin,:scope > .pcc-beta10-buildplate-skin").forEach((node) => node.remove());
-
-    const skin = document.createElement("div");
-    skin.className = "pcc-beta10-buildplate-skin";
-    skin.innerHTML = `
-      <div class="pcc-beta10-side-logo">${pccBeta10Esc(plate.logo)}</div>
-      <div class="pcc-beta10-front-strip">
-        <span>▦</span>
-        <span>${pccBeta10Esc(plate.footer)}</span>
-        <span class="pcc-beta10-front-badge">${pccBeta10Esc(plate.badge)}</span>
-      </div>
-      <div class="pcc-beta10-plate-number">01</div>
-      <div class="pcc-beta10-handle-top"></div>
-      <div class="pcc-beta10-corner-cut left"></div>
-      <div class="pcc-beta10-corner-cut right"></div>
-    `;
-    buildplate.insertBefore(skin, buildplate.firstChild);
-
-    this.beta10ApplyPrimitiveVisual();
-    this.beta10InstallCoordinateOverlay();
-    this.beta10SyncEmptyModelState();
-  };
-
-  PCC_BETA10_STUDIO_CLASS.prototype.beta10InstallCoordinateOverlay = function beta10InstallCoordinateOverlay() {
-    const root = this.shadowRoot;
-    const buildplate = root?.querySelector?.(".buildplate");
-    if (!root || !buildplate) return;
-
-    let axis = buildplate.querySelector(".pcc-beta10-axis-cursor");
-    if (!axis) {
-      axis = document.createElement("div");
-      axis.className = "pcc-beta10-axis-cursor";
-      axis.setAttribute("hidden", "");
-      axis.innerHTML = `<span class="x"></span><span class="y"></span><span class="z"></span>`;
-      buildplate.appendChild(axis);
-    }
-
-    let hud = buildplate.querySelector(".pcc-beta10-coordinate-hud");
-    if (!hud) {
-      hud = document.createElement("div");
-      hud.className = "pcc-beta10-coordinate-hud";
-      hud.setAttribute("hidden", "");
-      hud.innerHTML = `<span class="x">X 0.0</span><span class="y">Y 0.0</span><span class="z">Z 0.0</span>`;
-      buildplate.appendChild(hud);
-    }
-
-    if (this._beta10CoordBound) return;
-    this._beta10CoordBound = true;
-
-    buildplate.addEventListener("pointermove", (event) => {
-      const rect = buildplate.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-
-      const px = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
-      const py = Math.max(0, Math.min(rect.height, event.clientY - rect.top));
-
-      const mmX = ((px / rect.width) * 256) - 128;
-      const mmY = (((rect.height - py) / rect.height) * 256) - 128;
-      const mmZ = Number(this._transform?.z || this._activeJob?.transform?.z || 0);
-
-      const currentAxis = buildplate.querySelector(".pcc-beta10-axis-cursor");
-      const currentHud = buildplate.querySelector(".pcc-beta10-coordinate-hud");
-
-      if (currentAxis) {
-        currentAxis.style.left = `${px}px`;
-        currentAxis.style.top = `${py}px`;
-        currentAxis.removeAttribute("hidden");
-      }
-
-      if (currentHud) {
-        currentHud.innerHTML = `
-          <span class="x">X ${mmX.toFixed(1)}</span>
-          <span class="y">Y ${mmY.toFixed(1)}</span>
-          <span class="z">Z ${mmZ.toFixed(1)}</span>
-        `;
-        currentHud.removeAttribute("hidden");
-      }
-    });
-
-    buildplate.addEventListener("pointerleave", () => {
-      buildplate.querySelector(".pcc-beta10-axis-cursor")?.setAttribute("hidden", "");
-      buildplate.querySelector(".pcc-beta10-coordinate-hud")?.setAttribute("hidden", "");
-    });
-  };
-
-  PCC_BETA10_STUDIO_CLASS.prototype.beta10SyncEmptyModelState = function beta10SyncEmptyModelState() {
-    const root = this.shadowRoot;
-    if (!root) return;
-
-    const hasModel = this.beta10HasActiveModel();
-    const buildplate = root.querySelector(".buildplate");
-    if (buildplate) {
-      buildplate.classList.toggle("pcc-beta10-empty", !hasModel);
-      buildplate.classList.toggle("pcc-beta10-has-object", hasModel);
-    }
-
-    const model = root.querySelector(".model");
-    const label = root.querySelector(".model-label");
-    const mesh = root.querySelector(".studio-mesh-canvas");
-    const image = root.querySelector(".studio-model-image");
-
-    for (const node of [model, label, mesh, image]) {
-      if (!node) continue;
-      if (!hasModel) node.style.display = "none";
-      else node.style.display = "";
-    }
-
-    if (!hasModel && label) label.textContent = "";
-  };
-
-  PCC_BETA10_STUDIO_CLASS.prototype.beta10ApplyPrimitiveVisual = function beta10ApplyPrimitiveVisual() {
-    const root = this.shadowRoot;
-    if (!root) return;
-
-    const model = root.querySelector(".model");
-    const label = root.querySelector(".model-label");
-    if (!model) return;
-
-    model.classList.remove(
-      "pcc-beta10-primitive-cube",
-      "pcc-beta10-primitive-cylinder",
-      "pcc-beta10-primitive-rectangle",
-      "pcc-beta10-primitive-square",
-      "pcc-beta10-primitive-sphere"
-    );
-
-    const kind = this._activeJob?.primitive_kind || this._activeJob?.model?.primitive_kind || "";
-    if (!kind) return;
-
-    const primitive = pccBeta10PrimitiveById(kind);
-    model.classList.add(`pcc-beta10-primitive-${primitive.shape}`);
-
-    if (label) label.textContent = primitive.name;
-  };
-
-  PCC_BETA10_STUDIO_CLASS.prototype.beta10AddPrimitive = async function beta10AddPrimitive(kind) {
-    const primitive = pccBeta10PrimitiveById(kind);
-    const plate = this.beta10CurrentPlate();
-    const now = new Date().toISOString();
-
-    const plan = {
-      version: STUDIO_VERSION,
-      schema: "printer-control-center.v5.beta10.primitive",
-      source: "primitive",
-      origin: "primitive",
-      serial: String(this._config?.serial || this._activeJob?.serial || ""),
-      created_at: now,
-      updated_at: now,
-      modelName: primitive.name,
-      file_name: primitive.name,
-      filename: primitive.name,
-      file_path: `primitive://${primitive.id}`,
-      path: `primitive://${primitive.id}`,
-      primitive_kind: primitive.id,
-      model: {
-        name: primitive.name,
-        source: "primitive",
-        path: `primitive://${primitive.id}`,
-        primitive_kind: primitive.id
-      },
-      build_plate: plate.name,
-      build_plate_id: plate.id,
-      transform: defaultTransform(),
-      profile_context: {
-        ...(this.buildProfileContext?.() || this.defaultProfileContext?.() || {}),
-        build_plate: {id:plate.id, name:plate.name, short:plate.short, label:plate.label, surface:plate.surface},
-        build_plate_id: plate.id
-      },
-      real_slicing_enabled: false,
-      direct_print_enabled: false,
-      status: "prepared",
-      stage: "primitive",
-      message: "Einfaches Studio-Objekt lokal hinzugefügt. Echtes Slicen und Direktdruck bleiben deaktiviert."
-    };
-
-    let job = plan;
-
-    try {
-      const response = await this.ws({
-        type: "printer_control_center/studio_jobs/create",
-        serial: plan.serial,
-        plan
-      });
-      job = response?.job || response || plan;
-    } catch (_error) {
-      job = {
-        ...plan,
-        id: `primitive-${primitive.id}-${Date.now()}`
-      };
-    }
-
-    this._jobs = [job];
-    this._jobsLoaded = true;
-    this._activeJob = job;
-    this._activeJobId = job.id || "";
-    this._transform = {...defaultTransform()};
-    this._studioMesh = null;
-    this._studioMeshJobId = "";
-    this._studioMeshUrl = "";
-    this._studioModelImageUrl = "";
-    this._lastDryRun = null;
-    this._lastStudioPlan = null;
-    this._status = `Einfaches Objekt hinzugefügt: ${primitive.name}.`;
-    this.render();
-  };
-
-  PCC_BETA10_STUDIO_CLASS.prototype.deleteActiveJob = async function deleteActiveJob() {
-    const hadActive = Boolean(this._activeJob || this._activeJobId || (Array.isArray(this._jobs) && this._jobs.length));
-
-    try {
-      await this.ws({type:"printer_control_center/studio_jobs/clear"});
-    } catch (_error) {}
-
-    this._jobs = [];
-    this._jobsLoaded = true;
-    this._activeJob = null;
-    this._activeJobId = "";
-    this._transform = defaultTransform();
-    this._studioMesh = null;
-    this._studioMeshJobId = "";
-    this._studioMeshUrl = "";
-    this._studioModelImageUrl = "";
-    this._lastDryRun = null;
-    this._lastStudioPlan = null;
-    this._beta10PlateDropdownOpen = false;
-    this._beta10ObjectDropdownOpen = false;
-    this._status = hadActive ? "Studio-Objekt entfernt. Die Buildplate ist leer." : "Kein Studio-Objekt geladen.";
-
-    this.render();
-  };
-
-  PCC_BETA10_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
-    this.beta10EnsureStyle();
-    this.beta10RenderSelector();
-    this.beta10ApplyBuildplateVisual();
-
-    try {
-      if (typeof pccBeta7SanitizeRoot === "function") pccBeta7SanitizeRoot(this.shadowRoot);
-    } catch (_error) {}
-  };
-
-
-  const PCC_BETA11_PRIMITIVES = [
-    {id:"cube", name:"Würfel", shape:"cube"},
-    {id:"cylinder", name:"Zylinder", shape:"cylinder"},
-    {id:"rectangle", name:"Rechteck", shape:"rectangle"},
-    {id:"square", name:"Quadrat", shape:"square"},
-    {id:"sphere", name:"Kugel", shape:"sphere"}
-  ];
-
-  function pccBeta11Esc(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    }[char]));
-  }
-
-  function pccBeta11PrimitiveById(id) {
-    const wanted = String(id || "").trim();
-    return PCC_BETA11_PRIMITIVES.find((item) => item.id === wanted) || PCC_BETA11_PRIMITIVES[0];
-  }
-
-  const PCC_BETA11_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
-  const PCC_BETA11_PREV_CLEANUP = PCC_BETA11_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
-
-  PCC_BETA11_STUDIO_CLASS.prototype.beta11PrimitiveKind = function beta11PrimitiveKind() {
-    return String(
-      this._activeJob?.primitive_kind ||
-      this._activeJob?.model?.primitive_kind ||
-      this._activeJob?.primitive?.kind ||
-      ""
-    ).trim();
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.beta11HasActiveModel = function beta11HasActiveModel() {
-    const job = this._activeJob || null;
-    if (!job) return false;
-
-    const source = String(job.source || job.origin || job.model?.source || "").trim();
-    const primitive = this.beta11PrimitiveKind();
-    if (source === "primitive" || primitive) return true;
-
-    const name = String(job.modelName || job.file_name || job.filename || job.name || job.model?.name || "").trim();
-    const path = String(job.file_path || job.path || job.model?.path || "").trim();
-
-    if (path && /\.(3mf|stl|obj)$/i.test(path)) return true;
-    if (name && /\.(3mf|stl|obj)$/i.test(name)) return true;
-
-    return false;
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.beta11EnsureStyle = function beta11EnsureStyle() {
-    const root = this.shadowRoot;
-    if (!root || root.querySelector("#pcc-beta11-studio-fix-style")) return;
-
-    const style = document.createElement("style");
-    style.id = "pcc-beta11-studio-fix-style";
-    style.textContent = `
-      .pcc-beta11-primitive-canvas{
-        position:absolute;
-        left:50%;
-        top:50%;
-        width:220px;
-        height:170px;
-        transform:translate(-50%,-54%);
-        z-index:42;
-        pointer-events:auto;
-        filter:drop-shadow(0 20px 28px rgba(0,0,0,.46));
-      }
-      .buildplate.pcc-beta10-empty .pcc-beta11-primitive-canvas,
-      .buildplate.pcc-beta11-empty .pcc-beta11-primitive-canvas{
-        display:none!important;
-      }
-      .buildplate.pcc-beta11-primitive-active .model{
-        opacity:0!important;
-        background:transparent!important;
-        box-shadow:none!important;
-        border:0!important;
-      }
-      .buildplate.pcc-beta11-primitive-active .studio-mesh-canvas,
-      .buildplate.pcc-beta11-primitive-active .studio-model-image{
-        display:none!important;
-      }
-      .buildplate.pcc-beta11-empty .model,
-      .buildplate.pcc-beta11-empty .model-label,
-      .buildplate.pcc-beta11-empty .studio-mesh-canvas,
-      .buildplate.pcc-beta11-empty .studio-model-image{
-        display:none!important;
-      }
-      .pcc-beta11-hidden-top-action{
-        display:none!important;
-      }
-    `;
-    root.appendChild(style);
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.beta11CleanTopNavigation = function beta11CleanTopNavigation() {
-    const root = this.shadowRoot;
-    if (!root) return;
-
-    const removeTexts = new Set([
-      "Verschieben",
-      "Drehen",
-      "Skalieren",
-      "Zoom -",
-      "Zoom+",
-      "Zoom +",
-      "Rot -45",
-      "Rot +45",
-      "Scale -",
-      "Scale +",
-      "Spiegel X",
-      "Spiegel Y",
-      "Spiegel Z",
-      "Zerr X -",
-      "Zerr X +",
-      "Zerr Y -",
-      "Zerr Y +",
-      "Raster",
-      "Duplizieren",
-      "Zentrieren",
-      "Flach legen"
-    ]);
-
-    const removeActions = new Set([
-      "move",
-      "rotate",
-      "scale",
-      "zoom-out",
-      "zoom-in",
-      "rotate-left",
-      "rotate-right",
-      "scale-down",
-      "scale-up",
-      "mirror-x",
-      "mirror-y",
-      "mirror-z",
-      "skew-x-down",
-      "skew-x-up",
-      "skew-y-down",
-      "skew-y-up",
-      "snap-grid",
-      "duplicate",
-      "center",
-      "lay-flat"
-    ]);
-
-    const hostRect = this.getBoundingClientRect?.() || {top:0};
-
-    for (const button of [...root.querySelectorAll("button")]) {
-      const text = String(button.textContent || "").replace(/\s+/g, " ").trim();
-      const action = String(button.dataset?.action || "").trim();
-      const rect = button.getBoundingClientRect?.();
-      const topDelta = rect ? (rect.top - hostRect.top) : 9999;
-
-      const inTopNavigation =
-        topDelta >= -10 &&
-        topDelta < 115 &&
-        !button.closest(".panel:nth-of-type(3)") &&
-        !button.closest(".studio-context") &&
-        !button.closest(".pcc-beta10-selector");
-
-      if (inTopNavigation && (removeTexts.has(text) || removeActions.has(action))) {
-        button.classList.add("pcc-beta11-hidden-top-action");
-        button.setAttribute("aria-hidden", "true");
-        button.tabIndex = -1;
-      }
-    }
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.beta11CleanObjectObjectText = function beta11CleanObjectObjectText() {
-    const root = this.shadowRoot;
-    if (!root) return;
-
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    const toClean = [];
-
-    while (walker.nextNode()) {
-      const node = walker.currentNode;
-      if (String(node.nodeValue || "").includes("[object Object]")) {
-        toClean.push(node);
-      }
-    }
-
-    for (const node of toClean) {
-      node.nodeValue = String(node.nodeValue || "").replaceAll("[object Object]", "").trim();
-    }
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.beta11BuildMesh = function beta11BuildMesh(kind) {
-    const primitive = pccBeta11PrimitiveById(kind);
-    const shape = primitive.shape;
-
-    if (shape === "sphere") {
-      const verts = [];
-      const faces = [];
-      const lat = 12;
-      const lon = 18;
-      const r = 38;
-
-      for (let i = 0; i <= lat; i++) {
-        const theta = Math.PI * i / lat;
-        for (let j = 0; j <= lon; j++) {
-          const phi = 2 * Math.PI * j / lon;
-          verts.push([
-            r * Math.sin(theta) * Math.cos(phi),
-            r * Math.cos(theta),
-            r * Math.sin(theta) * Math.sin(phi)
-          ]);
-        }
-      }
-
-      for (let i = 0; i < lat; i++) {
-        for (let j = 0; j < lon; j++) {
-          const a = i * (lon + 1) + j;
-          const b = a + lon + 1;
-          faces.push([a, b, a + 1]);
-          faces.push([b, b + 1, a + 1]);
-        }
-      }
-
-      return {verts, faces, name:primitive.name};
-    }
-
-    if (shape === "cylinder") {
-      const verts = [];
-      const faces = [];
-      const n = 28;
-      const r = 34;
-      const h = 56;
-
-      for (let z of [-h/2, h/2]) {
-        for (let i = 0; i < n; i++) {
-          const a = 2 * Math.PI * i / n;
-          verts.push([r * Math.cos(a), z, r * Math.sin(a)]);
-        }
-      }
-
-      const bottomCenter = verts.length;
-      verts.push([0, -h/2, 0]);
-      const topCenter = verts.length;
-      verts.push([0, h/2, 0]);
-
-      for (let i = 0; i < n; i++) {
-        const ni = (i + 1) % n;
-        faces.push([i, ni, n + i]);
-        faces.push([ni, n + ni, n + i]);
-        faces.push([bottomCenter, ni, i]);
-        faces.push([topCenter, n + i, n + ni]);
-      }
-
-      return {verts, faces, name:primitive.name};
-    }
-
-    const dims = {
-      cube: [70, 70, 70],
-      square: [74, 12, 74],
-      rectangle: [110, 14, 58]
-    }[shape] || [70, 70, 70];
-
-    const [w, h, d] = dims;
-    const x = w / 2;
-    const y = h / 2;
-    const z = d / 2;
-
-    const verts = [
-      [-x,-y,-z],[ x,-y,-z],[ x, y,-z],[-x, y,-z],
-      [-x,-y, z],[ x,-y, z],[ x, y, z],[-x, y, z]
-    ];
-
-    const faces = [
-      [0,1,2],[0,2,3],
-      [4,6,5],[4,7,6],
-      [0,4,5],[0,5,1],
-      [1,5,6],[1,6,2],
-      [2,6,7],[2,7,3],
-      [3,7,4],[3,4,0]
-    ];
-
-    return {verts, faces, name:primitive.name};
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.beta11ProjectMesh = function beta11ProjectMesh(mesh, width, height) {
-    const rz = 0.58;
-    const rx = -0.72;
-    const ry = 0.22;
-    const scale = Math.min(width, height) / 210;
-
-    const sinZ = Math.sin(rz), cosZ = Math.cos(rz);
-    const sinX = Math.sin(rx), cosX = Math.cos(rx);
-    const sinY = Math.sin(ry), cosY = Math.cos(ry);
-
-    return mesh.verts.map(([x0, y0, z0]) => {
-      let x = x0, y = y0, z = z0;
-
-      let x1 = x * cosY + z * sinY;
-      let z1 = -x * sinY + z * cosY;
-      x = x1; z = z1;
-
-      let y1 = y * cosX - z * sinX;
-      z1 = y * sinX + z * cosX;
-      y = y1; z = z1;
-
-      x1 = x * cosZ - y * sinZ;
-      y1 = x * sinZ + y * cosZ;
-      x = x1; y = y1;
-
-      const perspective = 1 / (1 + (z + 110) / 420);
-      return {
-        x: width / 2 + x * scale * perspective,
-        y: height / 2 + y * scale * perspective,
-        z
-      };
-    });
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.beta11RenderPrimitiveMesh = function beta11RenderPrimitiveMesh() {
-    const root = this.shadowRoot;
-    const buildplate = root?.querySelector?.(".buildplate");
-    if (!root || !buildplate) return;
-
-    let canvas = buildplate.querySelector(".pcc-beta11-primitive-canvas");
-    const kind = this.beta11PrimitiveKind();
-
-    if (!kind || !this.beta11HasActiveModel()) {
-      if (canvas) canvas.remove();
-      return;
-    }
-
-    if (!canvas) {
-      canvas = document.createElement("canvas");
-      canvas.className = "pcc-beta11-primitive-canvas";
-      canvas.width = 440;
-      canvas.height = 340;
-      buildplate.appendChild(canvas);
-    }
-
-    const primitive = pccBeta11PrimitiveById(kind);
-    canvas.dataset.primitive = primitive.id;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const w = canvas.width;
-    const h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
-
-    const mesh = this.beta11BuildMesh(primitive.id);
-    const points = this.beta11ProjectMesh(mesh, w, h);
-
-    const faceData = mesh.faces.map((face) => {
-      const avgZ = face.reduce((sum, idx) => sum + points[idx].z, 0) / face.length;
-      return {face, avgZ};
-    }).sort((a, b) => a.avgZ - b.avgZ);
-
-    const fillBase = [
-      "rgba(0, 186, 220, .92)",
-      "rgba(0, 142, 180, .94)",
-      "rgba(25, 216, 245, .88)",
-      "rgba(0, 112, 150, .96)"
-    ];
-
-    for (let i = 0; i < faceData.length; i++) {
-      const {face, avgZ} = faceData[i];
-      const shade = Math.max(0.42, Math.min(1, (avgZ + 85) / 170));
-      const color = fillBase[i % fillBase.length];
-
-      ctx.beginPath();
-      const p0 = points[face[0]];
-      ctx.moveTo(p0.x, p0.y);
-      for (let k = 1; k < face.length; k++) {
-        const p = points[face[k]];
-        ctx.lineTo(p.x, p.y);
-      }
-      ctx.closePath();
-      ctx.fillStyle = color;
-      ctx.globalAlpha = shade;
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = "rgba(210,250,255,.22)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-
-    const label = root.querySelector(".model-label");
-    if (label) label.textContent = primitive.name;
-
-    const model = root.querySelector(".model");
-    if (model) {
-      model.style.opacity = "0";
-      model.style.background = "transparent";
-      model.style.boxShadow = "none";
-    }
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.beta11SyncEmptyState = function beta11SyncEmptyState() {
-    const root = this.shadowRoot;
-    const buildplate = root?.querySelector?.(".buildplate");
-    if (!root || !buildplate) return;
-
-    const hasModel = this.beta11HasActiveModel();
-    const primitive = this.beta11PrimitiveKind();
-
-    buildplate.classList.toggle("pcc-beta11-empty", !hasModel);
-    buildplate.classList.toggle("pcc-beta11-primitive-active", Boolean(hasModel && primitive));
-
-    const label = root.querySelector(".model-label");
-    const model = root.querySelector(".model");
-    const mesh = root.querySelector(".studio-mesh-canvas");
-    const image = root.querySelector(".studio-model-image");
-
-    if (!hasModel) {
-      if (label) {
-        label.textContent = "";
-        label.style.display = "none";
-      }
-      for (const node of [model, mesh, image]) {
-        if (node) node.style.display = "none";
-      }
-      buildplate.querySelector(".pcc-beta11-primitive-canvas")?.remove();
-      return;
-    }
-
-    if (primitive) {
-      if (label) label.style.display = "";
-      if (model) model.style.display = "";
-      if (mesh) mesh.style.display = "none";
-      if (image) image.style.display = "none";
-      this.beta11RenderPrimitiveMesh();
-    }
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.beta11AddPrimitive = async function beta11AddPrimitive(kind) {
-    const primitive = pccBeta11PrimitiveById(kind);
-    const plate = this.beta10CurrentPlate?.() || this.beta9CurrentPlate?.() || {id:"smooth_pei_high_temp", name:"Smooth PEI Plate / High Temp Plate", short:"Smooth PEI / High Temp", surface:"smooth"};
-    const now = new Date().toISOString();
-    const serial = String(this._config?.serial || this._activeJob?.serial || "");
-
-    try {
-      await this.ws({type:"printer_control_center/studio_jobs/clear"});
-    } catch (_error) {}
-
-    const transform = {...defaultTransform(), x: 0, y: 0, z: 0, scale: 100, rotX: 0, rotY: 0, rotZ: 0};
-
-    const plan = {
-      id: `primitive-${primitive.id}-${Date.now()}`,
-      version: STUDIO_VERSION,
-      schema: "printer-control-center.v5.beta11.primitive_mesh",
-      source: "primitive",
-      origin: "primitive",
-      serial,
-      created_at: now,
-      updated_at: now,
-      modelName: primitive.name,
-      file_name: primitive.name,
-      filename: primitive.name,
-      file_path: `primitive://${primitive.id}`,
-      path: `primitive://${primitive.id}`,
-      primitive_kind: primitive.id,
-      primitive_mesh: true,
-      model: {
-        name: primitive.name,
-        source: "primitive",
-        path: `primitive://${primitive.id}`,
-        primitive_kind: primitive.id,
-        primitive_mesh: true
-      },
-      build_plate: plate.name,
-      build_plate_id: plate.id,
-      transform,
-      profile_context: {
-        ...(this.buildProfileContext?.() || this.defaultProfileContext?.() || {}),
-        build_plate: {id:plate.id, name:plate.name, short:plate.short, surface:plate.surface},
-        build_plate_id: plate.id
-      },
-      real_slicing_enabled: false,
-      direct_print_enabled: false,
-      status: "prepared",
-      stage: "primitive_mesh",
-      message: "Echtes lokales Primitive-Mesh im Studio erzeugt. Echtes Slicen und Direktdruck bleiben deaktiviert."
-    };
-
-    let job = plan;
-
-    try {
-      const response = await this.ws({
-        type: "printer_control_center/studio_jobs/create",
-        serial,
-        plan
-      });
-      job = response?.job || response || plan;
-    } catch (_error) {
-      job = plan;
-    }
-
-    this._jobs = [job];
-    this._jobsLoaded = true;
-    this._activeJob = job;
-    this._activeJobId = job.id || "";
-    this._transform = {...transform};
-    this._studioMesh = null;
-    this._studioMeshJobId = "";
-    this._studioMeshUrl = "";
-    this._studioModelImageUrl = "";
-    this._lastDryRun = null;
-    this._lastStudioPlan = null;
-    this._beta10PlateDropdownOpen = false;
-    this._beta10ObjectDropdownOpen = false;
-    this._status = `Echtes Primitive-Mesh hinzugefügt: ${primitive.name}.`;
-
-    this.render();
-
-    window.setTimeout(() => {
-      this.beta11CleanupAfterRender?.();
-    }, 0);
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.deleteActiveJob = async function deleteActiveJob() {
-    try {
-      await this.ws({type:"printer_control_center/studio_jobs/clear"});
-    } catch (_error) {}
-
-    this._jobs = [];
-    this._jobsLoaded = true;
-    this._activeJob = null;
-    this._activeJobId = "";
-    this._transform = defaultTransform();
-    this._studioMesh = null;
-    this._studioMeshJobId = "";
-    this._studioMeshUrl = "";
-    this._studioModelImageUrl = "";
-    this._lastDryRun = null;
-    this._lastStudioPlan = null;
-    this._beta10PlateDropdownOpen = false;
-    this._beta10ObjectDropdownOpen = false;
-    this._status = "Studio-Objekt entfernt. Die Buildplate ist leer.";
-
-    this.render();
-
-    window.setTimeout(() => {
-      this.beta11CleanupAfterRender?.();
-    }, 0);
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.beta11CleanupAfterRender = function beta11CleanupAfterRender() {
-    this.beta11EnsureStyle();
-    this.beta11CleanTopNavigation();
-    this.beta11CleanObjectObjectText();
-    this.beta10RenderSelector?.();
-    this.beta10ApplyBuildplateVisual?.();
-    this.beta11SyncEmptyState();
-
-    try {
-      if (typeof pccBeta7SanitizeRoot === "function") pccBeta7SanitizeRoot(this.shadowRoot);
-    } catch (_error) {}
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
-    try {
-      if (typeof PCC_BETA11_PREV_CLEANUP === "function") {
-        PCC_BETA11_PREV_CLEANUP.call(this);
-      }
-    } catch (_error) {}
-
-    this.beta11CleanupAfterRender();
-
-    window.setTimeout(() => {
-      this.beta11CleanupAfterRender?.();
-    }, 50);
-  };
-
-  PCC_BETA11_STUDIO_CLASS.prototype.beta10AddPrimitive = function beta10AddPrimitive(kind) {
-    return this.beta11AddPrimitive(kind);
-  };
-
-
-  const PCC_BETA13_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
-
-  PCC_BETA13_STUDIO_CLASS.prototype.beta13EnsureStyle = function beta13EnsureStyle() {
-    const root = this.shadowRoot;
-    if (!root || root.querySelector("#pcc-beta13-recovery-style")) return;
-
-    const style = document.createElement("style");
-    style.id = "pcc-beta13-recovery-style";
-    style.textContent = `
-      .pcc-beta13-stable .pcc-beta10-selector,
-      .pcc-beta13-stable .pcc-beta9-plate-selector,
-      .pcc-beta13-stable .pcc-beta8-plate-selector{
-        contain:layout style;
-      }
-      .pcc-beta13-stable .buildplate{
-        contain:layout paint style;
-        transform:translateZ(0);
-      }
-      .pcc-beta13-hidden-duplicate,
-      .pcc-beta13-hidden-stale{
-        display:none!important;
-      }
-    `;
-    root.appendChild(style);
-  };
-
-  PCC_BETA13_STUDIO_CLASS.prototype.beta13JobSignature = function beta13JobSignature() {
-    const job = this._activeJob || {};
-    const transform = this._transform || job.transform || {};
-    const plate =
-      this._studioBuildPlate ||
-      job?.profile_context?.build_plate?.id ||
-      job?.profile_context?.build_plate_id ||
-      job?.build_plate_id ||
-      "";
-
-    return JSON.stringify({
-      id: job.id || "",
-      source: job.source || job.origin || job?.model?.source || "",
-      primitive: job.primitive_kind || job?.model?.primitive_kind || "",
-      path: job.file_path || job.path || job?.model?.path || "",
-      name: job.modelName || job.file_name || job.filename || job.name || job?.model?.name || "",
-      plate,
-      x: Number(transform.x || 0),
-      y: Number(transform.y || 0),
-      z: Number(transform.z || 0),
-      rz: Number(transform.rotZ || transform.rotateZ || 0),
-      s: Number(transform.scale || 100)
-    });
-  };
-
-  PCC_BETA13_STUDIO_CLASS.prototype.beta13RemoveDuplicateSelectors = function beta13RemoveDuplicateSelectors() {
-    const root = this.shadowRoot;
-    if (!root) return;
-
-    const selectors = [
-      ...root.querySelectorAll(".pcc-beta10-selector,.pcc-beta9-plate-selector,.pcc-beta8-plate-selector,.beta7-buildplate-deck,.beta6-buildplate-switcher,.beta5-buildplate-switcher")
-    ];
-
-    if (!selectors.length) return;
-
-    const preferred =
-      selectors.find((node) => node.classList.contains("pcc-beta10-selector")) ||
-      selectors.find((node) => node.classList.contains("pcc-beta9-plate-selector")) ||
-      selectors[0];
-
-    for (const node of selectors) {
-      if (node !== preferred) node.remove();
-    }
-  };
-
-  PCC_BETA13_STUDIO_CLASS.prototype.beta13RenderSelectorOnce = function beta13RenderSelectorOnce(force=false) {
-    const root = this.shadowRoot;
-    if (!root) return;
-
-    this.beta13RemoveDuplicateSelectors();
-
-    const hasSelector = Boolean(root.querySelector(".pcc-beta10-selector,.pcc-beta9-plate-selector,.pcc-beta8-plate-selector"));
-    const plate =
-      this._studioBuildPlate ||
-      this._activeJob?.profile_context?.build_plate?.id ||
-      this._activeJob?.profile_context?.build_plate_id ||
-      this._activeJob?.build_plate_id ||
-      "";
-
-    const key = JSON.stringify({
-      hasSelector,
-      plate,
-      plateOpen: Boolean(this._beta10PlateDropdownOpen),
-      objectOpen: Boolean(this._beta10ObjectDropdownOpen)
-    });
-
-    if (!force && hasSelector && this._beta13SelectorKey === key) return;
-    this._beta13SelectorKey = key;
-
-    if (typeof this.beta10RenderSelector === "function") {
-      this.beta10RenderSelector();
-    } else if (typeof this.beta9InstallSelector === "function") {
-      this.beta9InstallSelector();
-    }
-
-    this.beta13RemoveDuplicateSelectors();
-  };
-
-  PCC_BETA13_STUDIO_CLASS.prototype.beta13ApplyBuildplateOnce = function(force=false) {
-    const root = this.shadowRoot;
-    const buildplate = root?.querySelector?.(".buildplate");
-    if (!root || !buildplate) return;
-
-    const plate =
-      this._studioBuildPlate ||
-      this._activeJob?.profile_context?.build_plate?.id ||
-      this._activeJob?.profile_context?.build_plate_id ||
-      this._activeJob?.build_plate_id ||
-      "smooth_pei_high_temp";
-
-    const key = `${plate}|${Boolean(this._activeJob?.id)}|${this._activeJob?.primitive_kind || this._activeJob?.model?.primitive_kind || ""}`;
-
-    if (!force && buildplate.dataset.beta13BuildplateKey === key && buildplate.querySelector(".pcc-beta10-buildplate-skin,.pcc-beta9-buildplate-skin")) {
-      return;
-    }
-
-    buildplate.dataset.beta13BuildplateKey = key;
-
-    if (typeof this.beta10ApplyBuildplateVisual === "function") {
-      this.beta10ApplyBuildplateVisual();
-    } else if (typeof this.beta9ApplyBuildplateVisual === "function") {
-      this.beta9ApplyBuildplateVisual();
-    }
-  };
-
-  PCC_BETA13_STUDIO_CLASS.prototype.beta13CleanTopNavigation = function beta13CleanTopNavigation() {
-    if (typeof this.beta11CleanTopNavigation === "function") {
-      this.beta11CleanTopNavigation();
-    }
-  };
-
-  PCC_BETA13_STUDIO_CLASS.prototype.beta13CleanTextArtefacts = function beta13CleanTextArtefacts() {
-    const root = this.shadowRoot;
-    if (!root) return;
-
-    if (typeof this.beta11CleanObjectObjectText === "function") {
-      this.beta11CleanObjectObjectText();
-    }
-
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    const nodes = [];
-    while (walker.nextNode()) {
-      const node = walker.currentNode;
-      const text = String(node.nodeValue || "");
-      if (text.includes("[object Object]")) nodes.push(node);
-    }
-    for (const node of nodes) {
-      node.nodeValue = String(node.nodeValue || "").replaceAll("[object Object]", "").trim();
-    }
-  };
-
-  PCC_BETA13_STUDIO_CLASS.prototype.beta13SyncEmptyAndPrimitive = function beta13SyncEmptyAndPrimitive() {
-    if (typeof this.beta11SyncEmptyState === "function") {
-      this.beta11SyncEmptyState();
-    }
-  };
-
-  PCC_BETA13_STUDIO_CLASS.prototype.beta13ExclusivePrimitiveJobs = function beta13ExclusivePrimitiveJobs() {
-    if (!Array.isArray(this._jobs)) return;
-
-    const active = this._activeJob || null;
-    const activeIsPrimitive =
-      String(active?.source || active?.origin || active?.model?.source || "") === "primitive" ||
-      Boolean(active?.primitive_kind || active?.model?.primitive_kind);
-
-    if (activeIsPrimitive) {
-      this._jobs = [active];
-      return;
-    }
-
-    const primitive = this._jobs.find((job) =>
-      String(job.source || job.origin || job?.model?.source || "") === "primitive" ||
-      Boolean(job.primitive_kind || job?.model?.primitive_kind)
-    );
-
-    if (primitive && (!active || String(active.source || active.origin || active?.model?.source || "") !== "archive")) {
-      this._jobs = [primitive];
-      this._activeJob = primitive;
-      this._activeJobId = primitive.id || "";
-    }
-  };
-
-  PCC_BETA13_STUDIO_CLASS.prototype.beta13StableCleanup = function beta13StableCleanup(force=false) {
-    const root = this.shadowRoot;
-    if (!root) return;
-
-    root.host?.classList?.add?.("pcc-beta13-stable");
-
-    this.beta13EnsureStyle();
-    this.beta13ExclusivePrimitiveJobs();
-
-    const sig = this.beta13JobSignature();
-    if (!force && this._beta13LastSig === sig && this._beta13CleanupDone) {
-      this.beta13CleanTopNavigation();
-      this.beta13CleanTextArtefacts();
-      return;
-    }
-
-    this._beta13LastSig = sig;
-    this._beta13CleanupDone = true;
-
-    this.beta13RenderSelectorOnce(force);
-    this.beta13ApplyBuildplateOnce(force);
-    this.beta13CleanTopNavigation();
-    this.beta13CleanTextArtefacts();
-    this.beta13SyncEmptyAndPrimitive();
-
-    try {
-      if (typeof pccBeta7SanitizeRoot === "function") pccBeta7SanitizeRoot(this.shadowRoot);
-    } catch (_error) {}
-  };
-
-  PCC_BETA13_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
-    if (this._beta13CleanupQueued) return;
-    this._beta13CleanupQueued = true;
-
-    window.requestAnimationFrame(() => {
-      this._beta13CleanupQueued = false;
-      this.beta13StableCleanup(false);
-    });
-  };
-
   if (!customElements.get("printer-control-center-studio-card")) {
     customElements.define("printer-control-center-studio-card", PrinterControlCenterStudioCard);
   }
@@ -12143,7 +10439,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta13 Recovery Stable Studio UI removes the beta12 overlay regression, restores beta11 runtime base and stabilizes selector/buildplate cleanup without hass setter overrides."
+      description: "v5 beta14 Camera Renderpath Recovery with stable Bambu-style plate dropdown and visible textured buildplate rendering."
     });
   }
 })();

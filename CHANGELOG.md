@@ -1,3 +1,30 @@
+## 5.0.0-beta36 - Studio import render, toolbar menu and right-drag fix
+
+### Deutsch
+- Behält die sichtbare Studio-Basis.
+- Entfernt den zweiten Workflow-Button „Importieren“ aus der Studio-Leiste; der obere Icon-Import bleibt aktiv.
+- Stabilisiert die kompakte Toolbar: wiederholte Aktionen in einem Menü schließen das Menü nicht mehr nach wenigen Klicks.
+- Übernimmt Import-Felder wie Preview, STL-/Mesh-/Geometrie- und Modellpfade aus dem gewählten Galerie-/Archiv-Objekt in den aktiven Studio-Job.
+- Setzt den importierten Job aktiv auf die Buildplate und hält ihn sichtbar.
+- Nutzt bei fehlendem Mesh einen sichtbaren Preview-/Objekt-Fallback direkt auf der Buildplate, statt nur den Job unten links einzutragen.
+- Entfernt das CAD-Studio-Rechtsklickmenü erneut und hart.
+- Rechtsklick-Halten und Ziehen bewegt das aktive Objekt; Linksklick-Halten und Ziehen dreht es.
+- Keine Kamera-, Dashboard-, Backend-, Host- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Keeps the visible Studio base.
+- Removes the second workflow “Importieren” button from the Studio bar while keeping the top icon import active.
+- Stabilizes the compact toolbar: repeated actions in a menu no longer close the menu after a few clicks.
+- Carries import fields such as preview, STL/mesh/geometry and model paths from the selected gallery/archive item into the active Studio job.
+- Places the imported job actively onto the buildplate and keeps it visible.
+- Uses a visible preview/object fallback on the buildplate when mesh loading is not available, instead of only listing the job in the lower-left job list.
+- Removes the CAD Studio right-click context menu again and aggressively.
+- Right-button hold and drag moves the active object; left-button hold and drag rotates it.
+- No camera, dashboard, backend, host or connection changes.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta35 - Studio import popup and right-drag fix
 
 ### Deutsch

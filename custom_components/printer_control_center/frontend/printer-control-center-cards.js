@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta14*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta15*/
 (() => {
-  const VERSION = "5.0.0-beta14";
+  const VERSION = "5.0.0-beta15";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -191,7 +191,7 @@
     ["Native Live-Kamera", "Native live camera"],
     ["Native Kamera-Snapshot", "Native camera snapshot"],
     ["Modellvorschau", "Model preview"],
-    ["Native Live-Kamera startet â€¦", "Starting native live camera â€¦"],
+    ["Native Live-Kamera startet …", "Starting native live camera …"],
     ["Das 3D-Printer Control Center verbindet Home Assistant direkt mit TCP 6000. Keine externen Dienste erforderlich.", "3D-Printer Control Center connects Home Assistant directly to TCP 6000. No external services are required."],
     ["3D-Printer Control Center Live-Kamera", "3D-Printer Control Center live camera"],
     ["3D-Printer Control Center Kamera-Stream", "3D-Printer Control Center camera stream"],
@@ -2251,16 +2251,145 @@ function pccV5CameraDecisionText(hass, map, config, entityId) {
     return `${path}${sep}token=${encodeURIComponent(token)}`;
   }
 
-function cameraProxy(hass, map, config) {
-    const entityId = (
-      String(config?.camera_entity || "").trim()
-      || map.nativeCamera
-      || autoEntity(hass, "camera", map.prefix, ["native_live_camera", "chamber", "camera", "kamera"])
-    );
+function pccV5CameraString(value) {
+    return String(value === undefined || value === null ? "" : value).trim();
+  }
 
+  function pccV5CameraAttrText(state) {
+    const at = state?.attributes || {};
+    return [
+      state?.state,
+      at.friendly_name,
+      at.entity_picture,
+      at.access_token,
+      at.camera_mode,
+      at.camera_transport,
+      at.camera_label,
+      at.camera_port,
+      at.rtsp_transport,
+      at.rtsp_port,
+      at.transport,
+      at.requires_lan_liveview,
+      at.camera_available,
+      at.camera_connected
+    ].map((value) => pccV5CameraString(value).toLowerCase()).join(" ");
+  }
+
+  function pccV5CameraEntityScore(hass, entityId, state, map, config) {
+    const id = pccV5CameraString(entityId).toLowerCase();
+    const name = pccV5CameraString(state?.attributes?.friendly_name).toLowerCase();
+    const status = pccV5CameraString(state?.state).toLowerCase();
+    const prefix = pccV5CameraString(map?.prefix).toLowerCase();
+    const configured = pccV5CameraString(config?.camera_entity).toLowerCase();
+
+    if (!id.startsWith("camera.")) return -10000;
+
+    let score = 0;
+
+    if (configured && id === configured) score += 10000;
+    if (map?.nativeCamera && id === pccV5CameraString(map.nativeCamera).toLowerCase()) score += 9000;
+
+    if (id.includes("native_live_camera")) score += 500;
+    if (id.includes("native")) score += 220;
+    if (id.includes("live")) score += 180;
+    if (id.includes("chamber")) score += 140;
+    if (id.includes("bambu")) score += 120;
+    if (id.includes("printer")) score += 80;
+    if (id.includes("camera")) score += 40;
+
+    if (name.includes("native live")) score += 250;
+    if (name.includes("live camera")) score += 220;
+    if (name.includes("chamber")) score += 120;
+    if (name.includes("bambu")) score += 100;
+    if (name.includes("camera") || name.includes("kamera")) score += 60;
+
+    if (prefix && id.includes(prefix)) score += 180;
+
+    if (state?.attributes?.entity_picture) score += 180;
+    if (state?.attributes?.access_token) score += 120;
+
+    if (status === "streaming") score += 140;
+    if (status === "idle") score += 50;
+    if (status === "on") score += 40;
+
+    if (status === "unavailable" || status === "unknown" || status === "none") score -= 900;
+
+    return score;
+  }
+
+  function pccV5SelectBestCameraEntity(hass, map, config) {
+    const configured = pccV5CameraString(config?.camera_entity);
+    if (configured && hass?.states?.[configured]) return configured;
+
+    const mapped = pccV5CameraString(map?.nativeCamera);
+    if (mapped && hass?.states?.[mapped]) return mapped;
+
+    if (!hass?.states) return configured || mapped || "";
+
+    const candidates = Object.entries(hass.states)
+      .filter(([entityId]) => String(entityId).startsWith("camera."))
+      .map(([entityId, state]) => ({
+        entityId,
+        score: pccV5CameraEntityScore(hass, entityId, state, map, config)
+      }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score);
+
+    return candidates[0]?.entityId || configured || mapped || "";
+  }
+
+  function pccV5CameraDecisionText(hass, map, config, entityId) {
     const at = attrs(hass, entityId);
-    const token = String(at.access_token || "").trim();
-    const entityPicture = String(at.entity_picture || "").trim();
+    const state = hass?.states?.[entityId];
+
+    return [
+      config?.camera_entity,
+      config?.camera_url,
+      config?.camera_mode,
+      config?.camera_transport,
+      stateValue(hass, map?.cameraMode),
+      stateValue(hass, map?.cameraTransport),
+      stateValue(hass, map?.cameraPort),
+      pccV5CameraAttrText(state),
+      at.camera_mode,
+      at.camera_transport,
+      at.camera_label,
+      at.camera_port,
+      at.rtsp_transport,
+      at.rtsp_port,
+      at.transport,
+      at.entity_picture,
+      entityId
+    ].map((value) => pccV5CameraString(value).toLowerCase()).join(" ");
+  }
+
+  function pccV5CameraIsSnapshotOnly(hass, map, config, entityId) {
+    const text = pccV5CameraDecisionText(hass, map, config, entityId);
+
+    if (text.includes("rtsps")) return true;
+    if (text.includes("rtsp")) return true;
+    if (text.includes("camera_port 322")) return true;
+    if (text.includes("rtsp_port 322")) return true;
+    if (text.includes("tcp 322")) return true;
+    if (text.includes(":322")) return true;
+    if (text.includes("requires_lan_liveview true")) return true;
+
+    return false;
+  }
+
+  function pccV5CameraUrlWithToken(path, token) {
+    if (!path) return "";
+    if (!token) return path;
+    const sep = path.includes("?") ? "&" : "?";
+    return `${path}${sep}token=${encodeURIComponent(token)}`;
+  }
+
+function cameraProxy(hass, map, config) {
+    const entityId = pccV5SelectBestCameraEntity(hass, map, config);
+    const state = entityId ? hass?.states?.[entityId] : null;
+    const at = state?.attributes || attrs(hass, entityId);
+    const token = pccV5CameraString(at.access_token);
+    const entityPicture = pccV5CameraString(at.entity_picture);
 
     const still = entityPicture
       || (entityId ? pccV5CameraUrlWithToken(`/api/camera_proxy/${entityId}`, token) : "");
@@ -2271,25 +2400,42 @@ function cameraProxy(hass, map, config) {
       ? `/api/camera_proxy_stream/${entityId}?token=${encodeURIComponent(token)}&interval=0.8`
       : "";
 
-    return { entityId, token, still, stream, snapshotOnly };
+    return {
+      entityId,
+      token,
+      still,
+      stream,
+      snapshotOnly,
+      available: Boolean(entityId && (still || stream)),
+      state: pccV5CameraString(state?.state)
+    };
   }
 
 
+
 function mediaSource(hass, map, config, cameraVisible, online, status) {
-    const previewEntity = config?.preview_entity || autoEntity(hass, "image", map.prefix, ["cover_image", "titelbild", "model_preview", "bild_wahlen"]);
-    const overrideUrl = String(config?.camera_url || "").trim();
     const native = cameraProxy(hass, map, config);
+    const overrideUrl = pccV5CameraString(config?.camera_url);
+    const previewEntity = config?.preview_entity || autoEntity(hass, "image", map.prefix, ["cover_image", "titelbild", "model_preview", "bild_wahlen"]);
 
-    if (!online) return { src: DEFAULT_OFFLINE, label: "Drucker offline", mode: "offline" };
+    const nativeCameraSource = overrideUrl || native.stream || native.still;
 
-    if (cameraVisible) {
-      if (overrideUrl) return { src: overrideUrl, label: "Live-Kamera", mode: "live" };
-      if (native.stream) return { src: native.stream, label: "Native Live-Kamera", mode: "live" };
-      if (native.still) return { src: native.still, label: native.snapshotOnly ? "Native Kamera-Snapshot" : "Native Live-Kamera", mode: "live" };
+    if (nativeCameraSource) {
+      return {
+        src: nativeCameraSource,
+        label: native.snapshotOnly ? "Native Kamera-Snapshot" : "Native Live-Kamera",
+        mode: "live",
+        entityId: native.entityId,
+        snapshotOnly: native.snapshotOnly
+      };
+    }
+
+    if (!online) {
+      return { src: DEFAULT_OFFLINE, label: "Drucker offline", mode: "offline", entityId: native.entityId };
     }
 
     if (previewEntity && attrs(hass, previewEntity).entity_picture) {
-      return { src: attrs(hass, previewEntity).entity_picture, label: "Modellvorschau", mode: "preview" };
+      return { src: attrs(hass, previewEntity).entity_picture, label: "Modellvorschau", mode: "preview", entityId: native.entityId };
     }
 
     const printing = ["running", "pause", "printing", "prepare"].includes(String(status).toLowerCase());
@@ -2297,8 +2443,10 @@ function mediaSource(hass, map, config, cameraVisible, online, status) {
       src: printing ? DEFAULT_PREVIEW : DEFAULT_IDLE,
       label: printing ? "Modellvorschau" : "Kein aktiver Druckauftrag",
       mode: printing ? "preview" : "idle",
+      entityId: native.entityId
     };
   }
+
 
 
 function mediaHtml(hass, map, config, cameraVisible, online, status) {
@@ -2306,12 +2454,22 @@ function mediaHtml(hass, map, config, cameraVisible, online, status) {
     const task = stateValue(hass, map.task, "Kein aktiver Druckauftrag");
     const native = cameraProxy(hass, map, config);
 
-    if (online && cameraVisible && !source.src) {
+    if (source.mode === "live" && source.src) {
       return `
-        <div class="media-empty">
+        <div class="media media-live" data-pcc-camera-entity="${esc(native.entityId || "")}" data-pcc-camera-mode="${esc(native.snapshotOnly ? "snapshot" : "live")}">
+          <img src="${esc(source.src)}" alt="${esc(source.label)}">
+          <span class="media-label">${esc(source.label)}${native.entityId ? ` · ${esc(native.entityId)}` : ""}</span>
+          <button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">↗</button>
+        </div>
+      `;
+    }
+
+    if (native.entityId && !source.src) {
+      return `
+        <div class="media-empty" data-pcc-camera-entity="${esc(native.entityId)}">
           <div>
-            <strong>Native Live-Kamera startet …</strong>
-            <small>Das 3D-Printer Control Center wartet auf das Home-Assistant-Kamerabild.</small>
+            <strong>Native Live-Kamera gefunden</strong>
+            <small>${esc(native.entityId)} liefert noch kein Bild über Home Assistant.</small>
           </div>
         </div>
       `;
@@ -2328,12 +2486,13 @@ function mediaHtml(hass, map, config, cameraVisible, online, status) {
   }
 
 
+
 function openCameraPopup(hass, map, config) {
     const native = cameraProxy(hass, map, config);
     const source = native.stream || native.still;
     if (!source) return;
 
-    const title = esc(`3D-Printer Control Center Kamera · ${stateValue(hass, map.serial, map.prefix)}`);
+    const title = esc(`3D-Printer Control Center Kamera · ${native.entityId || stateValue(hass, map.serial, map.prefix)}`);
     const sourceHtml = esc(source);
     const popup = window.open("", `printer-control-center-camera-${map.prefix}`, "width=1280,height=820,resizable=yes,scrollbars=no");
     if (!popup) return;
@@ -2366,6 +2525,7 @@ function openCameraPopup(hass, map, config) {
 </html>`);
     popup.document.close();
   }
+
 
 
   function commonStub() {
@@ -2569,7 +2729,7 @@ function openCameraPopup(hass, map, config) {
         <div class="toolbar">
           <button data-action="light">💡 Licht</button>
           <button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button>
-          <button data-action="camera-popout">â†— Großansicht</button>
+          <button data-action="camera-popout">↗ Großansicht</button>
           ${printControlButtons(status)}
           <button data-action="refresh">â†» Aktualisieren</button>
         </div>`;
@@ -2692,7 +2852,7 @@ function openCameraPopup(hass, map, config) {
   }
   class ControlsCard extends BaseCard {
     static getConfigElement(){return editorFor("controls")} static getStubConfig(){return {...commonStub(),title:"Steuerung"}}
-    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const status=stateValue(this._hass,m.printStatus,"idle");this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="light">💡 Licht</button><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— Großansicht</button>${printControlButtons(status)}<button data-action="refresh">â†» Aktualisieren</button></div>`);this.bind(m)}
+    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const status=stateValue(this._hass,m.printStatus,"idle");this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="light">💡 Licht</button><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">↗ Großansicht</button>${printControlButtons(status)}<button data-action="refresh">â†» Aktualisieren</button></div>`);this.bind(m)}
   }
   class AmsCard extends BaseCard {
     static getConfigElement(){return editorFor("ams")} static getStubConfig(){return {...commonStub(),title:"AMS"}}
@@ -2708,7 +2868,7 @@ function openCameraPopup(hass, map, config) {
   }
   class MediaCard extends BaseCard {
     static getConfigElement(){return editorFor("media")} static getStubConfig(){return {...commonStub(),title:"Kamera / Modellvorschau",card_size:"l"}}
-    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const o=isPrinterOnline(this._hass,m),s=stateValue(this._hass,m.printStatus);this.shadowRoot.innerHTML=frame(this._config,`<div class="row between"><h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— Großansicht</button></div></div>${mediaHtml(this._hass,m,this._config,this.cameraVisible(),o,s)}`)}
+    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const o=isPrinterOnline(this._hass,m),s=stateValue(this._hass,m.printStatus);this.shadowRoot.innerHTML=frame(this._config,`<div class="row between"><h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">↗ Großansicht</button></div></div>${mediaHtml(this._hass,m,this._config,this.cameraVisible(),o,s)}`)}
   }
   class BrandCard extends BaseCard {
     static getConfigElement(){return editorFor("brand")} static getStubConfig(){return commonStub()}
@@ -4858,7 +5018,7 @@ function openCameraPopup(hass, map, config) {
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta14",
+        version: "5.0.0-beta15",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4882,7 +5042,7 @@ function openCameraPopup(hass, map, config) {
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta14";
+  const STUDIO_VERSION = "5.0.0-beta15";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -4928,7 +5088,7 @@ function openCameraPopup(hass, map, config) {
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta14 Camera Renderpath Recovery bereit. Die Druckplattenauswahl wird jetzt im ShadowRoot als Bambu-Studio-Kachel mit stabilem Dropdown gerendert; die Buildplate übernimmt sichtbar Oberfläche, Kontur, Grid, Logo und Frontleiste.";
+      this._status = "beta15 Camera Source Authority bereit. Die Druckplattenauswahl wird jetzt im ShadowRoot als Bambu-Studio-Kachel mit stabilem Dropdown gerendert; die Buildplate übernimmt sichtbar Oberfläche, Kontur, Grid, Logo und Frontleiste.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -6490,7 +6650,7 @@ function openCameraPopup(hass, map, config) {
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta14 Camera Renderpath Recovery</div>
+                  <div class="plate-label">Buildplate - beta15 Camera Source Authority</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   ${this._studioModelImageUrl ? html`
@@ -10439,7 +10599,7 @@ function openCameraPopup(hass, map, config) {
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta14 Camera Renderpath Recovery with stable Bambu-style plate dropdown and visible textured buildplate rendering."
+      description: "v5 beta15 Camera Source Authority with stable Bambu-style plate dropdown and visible textured buildplate rendering."
     });
   }
 })();

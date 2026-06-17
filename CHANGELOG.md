@@ -1,3 +1,26 @@
+## 5.0.0-beta15 - Camera Source Authority
+
+### English
+- Keeps the good beta9 Studio buildplate selector/runtime as active base.
+- Makes the native Home Assistant camera entity the primary media source when a usable `camera.*` entity exists.
+- Camera rendering is no longer blocked by the printer online sensor or by the old camera-visible default.
+- Adds robust generic camera entity scoring so `camera.*_native_live_camera` is found even when the printer prefix mapping differs.
+- Uses `entity_picture`, `/api/camera_proxy/...` and `/api/camera_proxy_stream/...` through the existing render path.
+- Keeps transport/port-based snapshot fallback for RTSP/RTSPS/TCP 322 style cameras.
+- No model-specific X1 workplace logic, no overlay camera injection and no Studio/Bett runtime changes.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Behält die gute beta9-Studio-Buildplate-/Selector-Laufzeit als aktive Basis.
+- Macht die native Home-Assistant-Kamera-Entity zur primären Medienquelle, sobald eine nutzbare `camera.*`-Entity vorhanden ist.
+- Kameraanzeige wird nicht mehr durch den Drucker-Online-Sensor oder den alten Camera-Visible-Default blockiert.
+- Robuste generische Kamera-Entity-Bewertung ergänzt, damit `camera.*_native_live_camera` auch bei abweichendem Prefix-Mapping gefunden wird.
+- Nutzt `entity_picture`, `/api/camera_proxy/...` und `/api/camera_proxy_stream/...` über den vorhandenen Renderpfad.
+- Behält Transport-/Port-basierten Snapshot-Fallback für RTSP/RTSPS/TCP-322-Kameras.
+- Keine X1-Arbeitsplatz-Sonderlogik, keine Overlay-Kamera-Injection und keine Studio-/Bett-Laufzeitänderung.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta14 - Camera Renderpath Recovery
 
 ### English

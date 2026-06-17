@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta29*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta30*/
 (() => {
-  const VERSION = "5.0.0-beta29";
+  const VERSION = "5.0.0-beta30";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta29",
+        version: "5.0.0-beta30",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta29";
+  const STUDIO_VERSION = "5.0.0-beta30";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -14139,6 +14139,790 @@ const PCC_BETA29_STUDIO_CLASS = customElements.get("printer-control-center-studi
         this.beta27PromoteImportAssistant?.();
         this.beta28PolishImportPopup?.();
         this.beta29PolishImportPopup?.();
+      });
+    }
+  };
+
+const PCC_BETA30_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA30_PREV_OPEN_IMPORT = PCC_BETA30_STUDIO_CLASS.prototype.openBeta7ImportAssistant;
+  const PCC_BETA30_PREV_IMPORT_PLAN = PCC_BETA30_STUDIO_CLASS.prototype.beta7ImportPlan;
+  const PCC_BETA30_PREV_ENSURE_MESH = PCC_BETA30_STUDIO_CLASS.prototype.ensureStudioMeshLoaded;
+  const PCC_BETA30_PREV_RENDER_MESH = PCC_BETA30_STUDIO_CLASS.prototype.renderMeshCanvas;
+
+  function pccBeta30Icon(name) {
+    const common = 'viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+    const icons = {
+      import:'<path d="M4 17v3h16v-3"/><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/>',
+      cube:'<path d="M12 2 4 6v12l8 4 8-4V6z"/><path d="M12 22V10"/><path d="M4 6l8 4 8-4"/>',
+      move:'<path d="M12 2v20"/><path d="M2 12h20"/><path d="m8 6 4-4 4 4"/><path d="m8 18 4 4 4-4"/><path d="m6 8-4 4 4 4"/><path d="m18 8 4 4-4 4"/>',
+      rotate:'<path d="M4 12a8 8 0 0 1 13.7-5.7"/><path d="M18 3v5h-5"/><path d="M20 12a8 8 0 0 1-13.7 5.7"/><path d="M6 21v-5h5"/>',
+      scale:'<path d="M5 19 19 5"/><path d="M9 5h10v10"/><path d="M5 9v10h10"/>',
+      mirror:'<path d="M12 3v18"/><path d="M4 7h5v10H4z"/><path d="M20 7h-5v10h5z"/>',
+      view:'<circle cx="10" cy="10" r="6"/><path d="M14.5 14.5 21 21"/><path d="M10 7v6"/><path d="M7 10h6"/>',
+      color:'<path d="M4 14 14 4l6 6-10 10H4z"/><path d="M13 5l6 6"/><path d="M4 20h6"/>',
+      trash:'<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M8 10v9"/><path d="M16 10v9"/><path d="M6 7l1 14h10l1-14"/>',
+      reload:'<path d="M20 6v6h-6"/><path d="M4 18v-6h6"/><path d="M19 12a7 7 0 0 0-12-5l-3 3"/><path d="M5 12a7 7 0 0 0 12 5l3-3"/>',
+      center:'<circle cx="12" cy="12" r="7"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/>'
+    };
+    return `<svg ${common}>${icons[name] || icons.cube}</svg>`;
+  }
+
+  function pccBeta30Action(action, icon, label) {
+    return `<button class="pcc-beta30-menu-action" data-beta30-action="${action}" title="${label}">${pccBeta30Icon(icon)}<span>${label}</span></button>`;
+  }
+
+  function pccBeta30Transform(instance) {
+    instance._transform = {...defaultTransform(), ...(instance._transform || {})};
+    return instance._transform;
+  }
+
+  function pccBeta30PrimitiveKind(job) {
+    return String(job?.primitive?.kind || job?.primitive_kind || job?.model?.primitive_kind || job?.model?.primitive || "")
+      .trim()
+      .replace(/^primitive-/, "")
+      .replace(/-/g, "_");
+  }
+
+  function pccBeta30IsPrimitive(job) {
+    const source = String(job?.source || job?.origin || job?.model?.source || "").trim();
+    return source === "primitive" || Boolean(pccBeta30PrimitiveKind(job));
+  }
+
+  PCC_BETA30_STUDIO_CLASS.prototype.beta30EnsureStyle = function beta30EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta30-studio-ui-squash-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta30-studio-ui-squash-style";
+    style.textContent = `
+      .studio-shell{position:relative!important;}
+
+      .pcc-beta22-top-toolbar,
+      .pcc-beta23-top-toolbar,
+      .pcc-beta26-toolbar,
+      .pcc-beta28-toolbar{
+        display:none!important;
+      }
+
+      .pcc-beta30-toolbar{
+        position:sticky;
+        top:0;
+        z-index:780;
+        height:32px;
+        min-height:32px;
+        display:flex;
+        align-items:center;
+        gap:0;
+        margin:0 0 6px;
+        padding:0;
+        border-top:1px solid rgba(255,255,255,.15);
+        border-bottom:1px solid rgba(0,169,214,.48);
+        background:linear-gradient(180deg,rgba(45,48,52,.98),rgba(20,24,28,.98));
+        box-shadow:0 8px 20px rgba(0,0,0,.28);
+        overflow:visible;
+      }
+
+      .pcc-beta30-import{
+        height:31px;
+        min-width:78px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:6px;
+        padding:0 8px;
+        border:0;
+        border-right:1px solid rgba(255,255,255,.16);
+        border-radius:0;
+        background:rgba(0,118,150,.26);
+        color:#fff;
+        font-size:11px;
+        font-weight:800;
+        cursor:pointer;
+      }
+
+      .pcc-beta30-menu-wrap{
+        position:relative;
+        flex:0 0 auto;
+        border-right:1px solid rgba(255,255,255,.16);
+      }
+
+      .pcc-beta30-main{
+        width:32px;
+        height:31px;
+        display:grid;
+        place-items:center;
+        border:0;
+        border-radius:0;
+        background:rgba(255,255,255,.045);
+        color:rgba(255,255,255,.86);
+        cursor:pointer;
+        padding:0;
+      }
+
+      .pcc-beta30-main:hover,
+      .pcc-beta30-main.active,
+      .pcc-beta30-import:hover{
+        background:rgba(0,169,214,.20);
+        color:#fff;
+      }
+
+      .pcc-beta30-menu-body{
+        position:absolute;
+        top:32px;
+        left:0;
+        z-index:860;
+        min-width:168px;
+        max-width:230px;
+        max-height:260px;
+        overflow:auto;
+        padding:5px;
+        display:none;
+        grid-template-columns:1fr;
+        gap:3px;
+        border:1px solid rgba(0,169,214,.58);
+        background:rgba(14,19,24,.99);
+        box-shadow:0 16px 36px rgba(0,0,0,.44);
+      }
+
+      .pcc-beta30-menu-wrap.open > .pcc-beta30-menu-body{
+        display:grid;
+      }
+
+      .pcc-beta30-menu-action{
+        min-height:28px;
+        display:grid;
+        grid-template-columns:22px 1fr;
+        gap:6px;
+        align-items:center;
+        padding:3px 7px;
+        border:1px solid transparent;
+        border-radius:0;
+        background:transparent;
+        color:rgba(255,255,255,.90);
+        font-size:12px;
+        line-height:1.2;
+        text-align:left;
+        cursor:pointer;
+        white-space:nowrap;
+      }
+
+      .pcc-beta30-menu-action:hover{
+        border-color:rgba(0,169,214,.56);
+        background:rgba(0,169,214,.14);
+      }
+
+      .pcc-beta30-delete{
+        color:rgba(255,210,210,.95);
+      }
+
+      .pcc-beta30-delete:hover{
+        background:rgba(210,50,50,.24)!important;
+      }
+
+      .pcc-beta30-color-row{
+        display:flex;
+        gap:5px;
+        flex-wrap:wrap;
+        width:168px;
+      }
+
+      .pcc-beta30-color{
+        width:28px;
+        height:24px;
+        border:1px solid rgba(255,255,255,.28);
+        border-radius:0;
+        padding:0;
+        background:transparent;
+      }
+
+      .pcc-beta30-swatch{
+        width:22px;
+        height:22px;
+        border:1px solid rgba(255,255,255,.28);
+        border-radius:0;
+        cursor:pointer;
+      }
+
+      .pcc-beta30-swatch.active{
+        outline:2px solid rgba(0,235,255,.82);
+        outline-offset:1px;
+      }
+
+      .pcc-beta27-import-modal{
+        position:absolute!important;
+        inset:40px auto auto 50%!important;
+        transform:translateX(-50%)!important;
+        width:min(620px,calc(100% - 30px))!important;
+        height:auto!important;
+        max-height:min(56vh,480px)!important;
+        z-index:820!important;
+        display:block!important;
+        padding:0!important;
+        margin:0!important;
+        background:transparent!important;
+        border:0!important;
+        backdrop-filter:none!important;
+      }
+
+      .pcc-beta27-import-dialog{
+        width:100%!important;
+        max-height:min(56vh,480px)!important;
+        overflow:auto!important;
+        padding:10px!important;
+        border:1px solid rgba(0,169,214,.70)!important;
+        border-radius:8px!important;
+        background:linear-gradient(180deg,rgba(13,20,25,.99),rgba(5,10,14,.99))!important;
+        box-shadow:0 18px 42px rgba(0,0,0,.58)!important;
+      }
+
+      .pcc-beta27-import-close{
+        position:absolute!important;
+        right:8px!important;
+        top:8px!important;
+        width:28px!important;
+        height:26px!important;
+        border-radius:5px!important;
+        padding:0!important;
+      }
+
+      .pcc-beta27-import-dialog h1,
+      .pcc-beta27-import-dialog h2,
+      .pcc-beta27-import-dialog h3{
+        font-size:17px!important;
+        margin:0 36px 8px 0!important;
+        line-height:1.2!important;
+      }
+
+      .pcc-beta27-import-dialog p,
+      .pcc-beta27-import-dialog div,
+      .pcc-beta27-import-dialog span,
+      .pcc-beta27-import-dialog label{
+        font-size:12px!important;
+        line-height:1.28!important;
+      }
+
+      .pcc-beta27-import-dialog button{
+        min-height:26px!important;
+        padding:3px 8px!important;
+        border-radius:6px!important;
+        font-size:12px!important;
+        line-height:1.2!important;
+      }
+
+      .pcc-beta27-import-dialog input,
+      .pcc-beta27-import-dialog select{
+        min-height:26px!important;
+        border-radius:6px!important;
+        font-size:12px!important;
+      }
+
+      .pcc-beta30-import-grid{
+        display:grid!important;
+        grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important;
+        gap:6px!important;
+      }
+
+      .buildplate .studio-mesh-canvas{
+        cursor:grab!important;
+      }
+
+      .buildplate.pcc-beta30-dragging .studio-mesh-canvas{
+        cursor:grabbing!important;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.beta30ToolbarHtml = function beta30ToolbarHtml() {
+    const color = this.beta22ObjectColor?.() || "#00a9d6";
+    const colors = ["#00a9d6","#f44336","#ff9800","#ffeb3b","#4caf50","#2196f3","#9c27b0","#ffffff","#111111"];
+    const swatches = colors.map((value) => `<button class="pcc-beta30-swatch ${value.toLowerCase() === color.toLowerCase() ? "active" : ""}" data-beta30-color="${value}" title="${value}" style="background:${value}"></button>`).join("");
+
+    return `
+      <div class="pcc-beta30-toolbar" aria-label="Studio Werkzeugleiste">
+        <button class="pcc-beta30-import" data-beta30-action="open-import" title="Galerie/Archiv importieren">${pccBeta30Icon("import")}<span>Import</span></button>
+
+        <div class="pcc-beta30-menu-wrap">
+          <button class="pcc-beta30-main" data-beta30-menu="primitive" title="Primitive">${pccBeta30Icon("cube")}</button>
+          <div class="pcc-beta30-menu-body">
+            ${pccBeta30Action("primitive-cube","cube","Würfel")}
+            ${pccBeta30Action("primitive-cuboid","cube","Quader")}
+            ${pccBeta30Action("primitive-cylinder","cube","Zylinder")}
+            ${pccBeta30Action("primitive-first-layer","cube","First Layer")}
+          </div>
+        </div>
+
+        <div class="pcc-beta30-menu-wrap">
+          <button class="pcc-beta30-main" data-beta30-menu="move" title="Verschieben">${pccBeta30Icon("move")}</button>
+          <div class="pcc-beta30-menu-body">
+            ${pccBeta30Action("move-left","move","Links")}
+            ${pccBeta30Action("move-right","move","Rechts")}
+            ${pccBeta30Action("move-up","move","Nach hinten")}
+            ${pccBeta30Action("move-down","move","Nach vorne")}
+            ${pccBeta30Action("z-up","move","Z höher")}
+            ${pccBeta30Action("z-down","move","Z tiefer")}
+            ${pccBeta30Action("center","center","Zentrieren")}
+          </div>
+        </div>
+
+        <div class="pcc-beta30-menu-wrap">
+          <button class="pcc-beta30-main" data-beta30-menu="rotate" title="Drehen">${pccBeta30Icon("rotate")}</button>
+          <div class="pcc-beta30-menu-body">
+            ${pccBeta30Action("rot-x","rotate","Rot X +15°")}
+            ${pccBeta30Action("rot-y","rotate","Rot Y +15°")}
+            ${pccBeta30Action("rot-z","rotate","Rot Z +15°")}
+            ${pccBeta30Action("lay-flat","rotate","Flach legen")}
+          </div>
+        </div>
+
+        <div class="pcc-beta30-menu-wrap">
+          <button class="pcc-beta30-main" data-beta30-menu="scale" title="Skalieren">${pccBeta30Icon("scale")}</button>
+          <div class="pcc-beta30-menu-body">
+            ${pccBeta30Action("scale-down","scale","Kleiner")}
+            ${pccBeta30Action("scale-up","scale","Größer")}
+            ${pccBeta30Action("stretch-x-up","scale","Breite +")}
+            ${pccBeta30Action("stretch-y-up","scale","Länge +")}
+            ${pccBeta30Action("stretch-z-up","scale","Höhe +")}
+          </div>
+        </div>
+
+        <div class="pcc-beta30-menu-wrap">
+          <button class="pcc-beta30-main" data-beta30-menu="mirror" title="Spiegeln/Zerren">${pccBeta30Icon("mirror")}</button>
+          <div class="pcc-beta30-menu-body">
+            ${pccBeta30Action("mirror-x","mirror","Spiegel X")}
+            ${pccBeta30Action("mirror-y","mirror","Spiegel Y")}
+            ${pccBeta30Action("mirror-z","mirror","Spiegel Z")}
+            ${pccBeta30Action("skew-x","mirror","Zerr X +5°")}
+            ${pccBeta30Action("skew-y","mirror","Zerr Y +5°")}
+          </div>
+        </div>
+
+        <div class="pcc-beta30-menu-wrap">
+          <button class="pcc-beta30-main" data-beta30-menu="view" title="Ansicht">${pccBeta30Icon("view")}</button>
+          <div class="pcc-beta30-menu-body">
+            ${pccBeta30Action("zoom-out","view","Zoom -")}
+            ${pccBeta30Action("zoom-in","view","Zoom +")}
+            ${pccBeta30Action("reload-model","reload","Modell neu laden")}
+            ${pccBeta30Action("reset","view","Reset")}
+          </div>
+        </div>
+
+        <div class="pcc-beta30-menu-wrap">
+          <button class="pcc-beta30-main" data-beta30-menu="color" title="Farbe">${pccBeta30Icon("color")}</button>
+          <div class="pcc-beta30-menu-body">
+            <div class="pcc-beta30-color-row">
+              <input class="pcc-beta30-color" type="color" value="${color}" title="Objekt einfärben">
+              ${swatches}
+            </div>
+          </div>
+        </div>
+
+        <button class="pcc-beta30-main pcc-beta30-delete" data-beta30-action="delete" title="Löschen">${pccBeta30Icon("trash")}</button>
+      </div>
+    `;
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.beta30InstallToolbar = function beta30InstallToolbar() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".pcc-beta22-top-toolbar,.pcc-beta23-top-toolbar,.pcc-beta26-toolbar,.pcc-beta28-toolbar").forEach((node) => node.remove());
+
+    const shell = root.querySelector(".studio-shell") || root.querySelector(".studio-grid")?.parentElement || root.querySelector(".buildplate")?.parentElement;
+    if (!shell) return;
+
+    let toolbar = root.querySelector(".pcc-beta30-toolbar");
+    if (!toolbar) {
+      const wrap = document.createElement("div");
+      wrap.innerHTML = this.beta30ToolbarHtml().trim();
+      toolbar = wrap.firstElementChild;
+      shell.insertBefore(toolbar, shell.firstElementChild);
+    }
+
+    this.beta30SyncColor();
+
+    if (toolbar.dataset.beta30Bound === "1") return;
+    toolbar.dataset.beta30Bound = "1";
+
+    toolbar.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+    }, {capture:true});
+
+    toolbar.addEventListener("click", (event) => {
+      const menuButton = event.target?.closest?.("[data-beta30-menu]");
+      if (menuButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta30ToggleMenu(menuButton.closest(".pcc-beta30-menu-wrap"));
+        return;
+      }
+
+      const colorButton = event.target?.closest?.("[data-beta30-color]");
+      if (colorButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta22SetObjectColor?.(colorButton.dataset.beta30Color);
+        this.beta30SyncColor();
+        this.queueMeshRender?.();
+        return;
+      }
+
+      const actionButton = event.target?.closest?.("[data-beta30-action]");
+      if (actionButton) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const action = String(actionButton.dataset.beta30Action || "");
+        const keepOpen = !["open-import","delete","primitive-cube","primitive-cuboid","primitive-cylinder","primitive-first-layer"].includes(action);
+        if (!keepOpen) this.beta30CloseMenus();
+
+        this.beta30ApplyAction(action);
+      }
+    }, {capture:true});
+
+    toolbar.addEventListener("input", (event) => {
+      const input = event.target?.closest?.(".pcc-beta30-color");
+      if (!input) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.beta22SetObjectColor?.(input.value);
+      this.beta30SyncColor();
+      this.queueMeshRender?.();
+    }, {capture:true});
+
+    root.addEventListener("pointerdown", (event) => {
+      if (event.target?.closest?.(".pcc-beta30-toolbar")) return;
+      if (event.target?.closest?.(".pcc-beta27-import-modal")) return;
+      if (event.target?.closest?.(".buildplate")) return;
+      this.beta30CloseMenus();
+    }, {capture:true});
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.beta30ToggleMenu = function beta30ToggleMenu(wrap) {
+    if (!wrap) return;
+    const wasOpen = wrap.classList.contains("open");
+    this.beta30CloseMenus();
+    if (!wasOpen) {
+      wrap.classList.add("open");
+      wrap.querySelector(".pcc-beta30-main")?.classList.add("active");
+    }
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.beta30CloseMenus = function beta30CloseMenus() {
+    this.shadowRoot?.querySelectorAll(".pcc-beta30-menu-wrap.open").forEach((wrap) => {
+      wrap.classList.remove("open");
+      wrap.querySelector(".pcc-beta30-main")?.classList.remove("active");
+    });
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.beta30ApplyAction = function beta30ApplyAction(action) {
+    const text = String(action || "");
+
+    if (text === "open-import") {
+      this.openBeta7ImportAssistant?.();
+      return;
+    }
+
+    if (text.startsWith("primitive-")) {
+      this.beta21SetPrimitiveActive?.(text.replace("primitive-", ""));
+      return;
+    }
+
+    if (text === "delete") {
+      this.deleteActiveJob?.();
+      return;
+    }
+
+    if (text === "reload-model") {
+      this._pccBeta30MeshFailedKey = "";
+      this.ensureStudioMeshLoaded?.(true);
+      return;
+    }
+
+    this.beta22ApplyToolbarAction?.(text);
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.beta30SyncColor = function beta30SyncColor() {
+    const toolbar = this.shadowRoot?.querySelector(".pcc-beta30-toolbar");
+    if (!toolbar) return;
+
+    const color = this.beta22ObjectColor?.() || "#00a9d6";
+    const input = toolbar.querySelector(".pcc-beta30-color");
+    if (input && input.value.toLowerCase() !== color.toLowerCase()) input.value = color;
+
+    toolbar.querySelectorAll("[data-beta30-color]").forEach((button) => {
+      button.classList.toggle("active", String(button.dataset.beta30Color).toLowerCase() === color.toLowerCase());
+    });
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.beta30EnsurePrimitiveMesh = function beta30EnsurePrimitiveMesh() {
+    if (!pccBeta30IsPrimitive(this._activeJob)) return false;
+
+    const kind = pccBeta30PrimitiveKind(this._activeJob) || "cube";
+    const mesh = typeof pccBeta20PrimitiveMesh === "function" ? pccBeta20PrimitiveMesh(kind) : null;
+    if (!mesh?.triangles?.length) return false;
+
+    this._studioMesh = mesh;
+    this._studioMeshJobId = String(this._activeJob?.id || `primitive://${kind}`);
+    this._studioMeshUrl = "";
+    this._studioMeshError = "";
+    this._studioModelImageUrl = "";
+    return true;
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.queueMeshRender = function beta30QueueMeshRender() {
+    this._pccBeta30CanvasDirty = true;
+    if (this._pccBeta30RenderFrame) return;
+
+    this._pccBeta30RenderFrame = requestAnimationFrame(() => {
+      this._pccBeta30RenderFrame = 0;
+      if (!this._pccBeta30CanvasDirty) return;
+      this._pccBeta30CanvasDirty = false;
+      this.renderMeshCanvas?.();
+    });
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.renderMeshCanvas = function beta30RenderMeshCanvas() {
+    if (this._pccBeta30Rendering) return;
+    this._pccBeta30Rendering = true;
+
+    try {
+      this.beta30EnsurePrimitiveMesh();
+
+      if (typeof PCC_BETA30_PREV_RENDER_MESH === "function") {
+        PCC_BETA30_PREV_RENDER_MESH.call(this);
+      }
+
+      const buildplate = this.shadowRoot?.querySelector(".buildplate");
+      if (buildplate) buildplate.classList.add("pcc-beta30-single-frame");
+    } finally {
+      this._pccBeta30Rendering = false;
+    }
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.ensureStudioMeshLoaded = async function beta30EnsureStudioMeshLoaded(force=false) {
+    if (pccBeta30IsPrimitive(this._activeJob)) {
+      this.beta30EnsurePrimitiveMesh();
+      this.queueMeshRender?.();
+      return;
+    }
+
+    if (typeof PCC_BETA30_PREV_ENSURE_MESH === "function") {
+      await PCC_BETA30_PREV_ENSURE_MESH.call(this, force);
+    }
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.beta30BindMouse = function beta30BindMouse() {
+    const root = this.shadowRoot;
+    const buildplate = root?.querySelector(".buildplate");
+    const canvas = root?.querySelector(".studio-mesh-canvas");
+    if (!root || !buildplate || !canvas || buildplate.dataset.beta30MouseBound === "1") return;
+
+    buildplate.dataset.beta30MouseBound = "1";
+
+    const blockContext = (event) => {
+      if (!event.target?.closest?.(".buildplate")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this._studioContextMenu = null;
+    };
+
+    root.addEventListener("contextmenu", blockContext, {capture:true});
+    buildplate.addEventListener("contextmenu", blockContext, {capture:true});
+    canvas.addEventListener("contextmenu", blockContext, {capture:true});
+
+    const state = {active:false, button:-1, x:0, y:0};
+
+    const moveHandler = (event) => {
+      if (!state.active) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const dx = event.clientX - state.x;
+      const dy = event.clientY - state.y;
+      state.x = event.clientX;
+      state.y = event.clientY;
+
+      const t = pccBeta30Transform(this);
+
+      if (state.button === 0) {
+        t.rz = toNumber(t.rz, 0) + dx * 0.32;
+        t.rx = toNumber(t.rx, 0) - dy * 0.22;
+      } else if (state.button === 2) {
+        t.x = toNumber(t.x, 0) + dx;
+        t.y = toNumber(t.y, 0) + dy;
+      }
+
+      if (this._activeJob) this._activeJob.transform = {...t};
+      this.queueMeshRender?.();
+    };
+
+    const upHandler = (event) => {
+      if (!state.active) return;
+
+      event.preventDefault?.();
+      event.stopPropagation?.();
+
+      state.active = false;
+      state.button = -1;
+      buildplate.classList.remove("pcc-beta30-dragging");
+
+      window.removeEventListener("pointermove", moveHandler, true);
+      window.removeEventListener("pointerup", upHandler, true);
+      window.removeEventListener("pointercancel", upHandler, true);
+
+      try { canvas.releasePointerCapture(event.pointerId); } catch (_error) {}
+    };
+
+    canvas.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 && event.button !== 2) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      state.active = true;
+      state.button = event.button;
+      state.x = event.clientX;
+      state.y = event.clientY;
+
+      buildplate.classList.add("pcc-beta30-dragging");
+
+      try { canvas.setPointerCapture(event.pointerId); } catch (_error) {}
+
+      window.addEventListener("pointermove", moveHandler, true);
+      window.addEventListener("pointerup", upHandler, true);
+      window.addEventListener("pointercancel", upHandler, true);
+    }, {capture:true});
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.openBeta7ImportAssistant = function beta30OpenImportAssistant(...args) {
+    this._pccBeta30ImportOpen = true;
+    this._pccBeta27ImportOpen = true;
+
+    let result;
+    if (typeof PCC_BETA30_PREV_OPEN_IMPORT === "function") {
+      result = PCC_BETA30_PREV_OPEN_IMPORT.apply(this, args);
+    }
+
+    const promote = () => {
+      this.beta27PromoteImportAssistant?.();
+      this.beta30PolishImportPopup?.();
+    };
+
+    requestAnimationFrame(promote);
+    window.setTimeout(promote, 50);
+    window.setTimeout(promote, 160);
+    window.setTimeout(promote, 360);
+
+    return result;
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.beta30PolishImportPopup = function beta30PolishImportPopup() {
+    const root = this.shadowRoot;
+    const modal = root?.querySelector(".pcc-beta27-import-modal");
+    const dialog = root?.querySelector(".pcc-beta27-import-dialog");
+    if (!modal || !dialog) return;
+
+    modal.dataset.beta30Stable = "1";
+    dialog.dataset.beta30Stable = "1";
+
+    dialog.querySelectorAll("h1,h2,h3").forEach((heading) => {
+      if (String(heading.textContent || "").includes("Studio-Import")) heading.textContent = "Studio-Import";
+    });
+
+    dialog.querySelectorAll("button").forEach((button) => {
+      const txt = String(button.textContent || "").trim();
+      if (txt === "Auswahl ins Studio übernehmen") button.textContent = "Ins Studio übernehmen";
+      if (txt === "Eine Ebene hoch") button.textContent = "Hoch";
+      if (txt === "Aktualisieren") button.textContent = "Neu laden";
+    });
+
+    const folderArea = [...dialog.querySelectorAll("div,section")]
+      .find((node) => {
+        const text = String(node.textContent || "");
+        return text.includes("Bad Bad Ordner") || text.includes("Deko Deko Ordner") || text.includes("Drucker Drucker Ordner");
+      });
+
+    if (folderArea) folderArea.classList.add("pcc-beta30-import-grid");
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.beta7ImportPlan = async function beta30ImportPlan(plan) {
+    const beforeJobs = Array.isArray(this._jobs) ? [...this._jobs] : [];
+    const beforeActive = this._activeJob || null;
+
+    if (typeof PCC_BETA30_PREV_IMPORT_PLAN === "function") {
+      await PCC_BETA30_PREV_IMPORT_PLAN.call(this, plan);
+    }
+
+    const afterActive = this._activeJob || null;
+
+    this._pccBeta30PlateObjects = Array.isArray(this._pccBeta30PlateObjects) ? this._pccBeta30PlateObjects : [];
+
+    for (const job of [...beforeJobs, beforeActive, afterActive]) {
+      if (!job) continue;
+      const id = String(job.id || job.file_path || job.path || job.name || "");
+      if (!id) continue;
+      if (!this._pccBeta30PlateObjects.some((item) => String(item.id || item.file_path || item.path || item.name || "") === id)) {
+        this._pccBeta30PlateObjects.push(job);
+      }
+    }
+
+    if (Array.isArray(this._jobs)) {
+      const merged = [...this._jobs];
+      for (const job of this._pccBeta30PlateObjects) {
+        const id = String(job.id || job.file_path || job.path || job.name || "");
+        if (!id) continue;
+        if (!merged.some((item) => String(item.id || item.file_path || item.path || item.name || "") === id)) merged.push(job);
+      }
+      this._jobs = merged;
+    }
+
+    this._pccBeta30ImportOpen = true;
+    this._pccBeta27ImportOpen = true;
+
+    window.setTimeout(() => {
+      this.ensureStudioMeshLoaded?.(true);
+      this.beta30PolishImportPopup?.();
+    }, 0);
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.handleContextMenu = function beta30HandleContextMenu(event) {
+    if (event.target?.closest?.(".buildplate")) {
+      event.preventDefault();
+      event.stopPropagation();
+      this._studioContextMenu = null;
+    }
+  };
+
+  PCC_BETA30_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function beta30CleanupBetaStudioUi() {
+    this.beta30EnsureStyle();
+
+    try { this.beta9EnsureStyle?.(); } catch (_error) {}
+    try { this.beta9InstallSelector?.(); } catch (_error) {}
+    try { this.beta9ApplyBuildplateVisual?.(); } catch (_error) {}
+    try { this.beta20EnsureStyle?.(); } catch (_error) {}
+    try { this.beta20InjectPrimitivePanel?.(); } catch (_error) {}
+    try { this.beta21EnsureStyle?.(); } catch (_error) {}
+    try { this.beta21SyncBuildplateState?.(); } catch (_error) {}
+    try { this.beta22EnsureStyle?.(); } catch (_error) {}
+    try { this.beta22HideRightInspector?.(); } catch (_error) {}
+    try { this.beta22RemoveBottomMessages?.(); } catch (_error) {}
+
+    this.beta30InstallToolbar();
+    this.beta30BindMouse();
+
+    const root = this.shadowRoot;
+    root?.querySelectorAll(".pcc-beta22-top-toolbar,.pcc-beta23-top-toolbar,.pcc-beta26-toolbar,.pcc-beta28-toolbar,.context-menu,.pcc-context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
+
+    const buildplate = root?.querySelector(".buildplate");
+    if (buildplate) buildplate.classList.add("pcc-beta30-single-frame");
+
+    if (this._pccBeta30ImportOpen || root?.querySelector(".pcc-beta27-import-modal")) {
+      this._pccBeta30ImportOpen = true;
+      requestAnimationFrame(() => {
+        this.beta27PromoteImportAssistant?.();
+        this.beta30PolishImportPopup?.();
       });
     }
   };

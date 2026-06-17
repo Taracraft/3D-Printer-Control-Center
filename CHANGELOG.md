@@ -1,3 +1,28 @@
+## 5.0.0-beta30 - Studio UI squash
+
+### Deutsch
+- Behält die aktuelle Studio-Basis ohne Rollback.
+- Squasht die Studio-UI auf einen finalen deterministischen Cleanup-Pfad statt weiterer Korrektur über beta26/beta27/beta28/beta29.
+- Entfernt alte beta26/beta28 Toolbar-DOM-Reste aus dem aktiven Studio-DOM und nutzt nur noch eine beta30-Toolbar.
+- Stabilisiert Toolbar-Menüs: ein Menü gleichzeitig, wiederholte Aktionen bleiben im Menü.
+- Stabilisiert das kompakte Import-Popup im Studio-Frame.
+- Entfernt das CAD-Studio-Rechtsklickmenü und nutzt Rechtsklick-Ziehen zum Verschieben.
+- Stabilisiert Linksklick-Ziehen zum Drehen.
+- Keine Kamera-, Dashboard-, Backend- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Keeps the current Studio base without rollback.
+- Squashes the Studio UI into one final deterministic cleanup path instead of adding another correction layer over beta26/beta27/beta28/beta29.
+- Removes old beta26/beta28 toolbar DOM leftovers from the active Studio DOM and uses only one beta30 toolbar.
+- Stabilizes toolbar menus: one menu at a time and repeated actions stay inside the menu.
+- Stabilizes the compact in-frame import popup.
+- Removes the CAD Studio right-click context menu and uses right-drag for moving.
+- Stabilizes left-drag rotation.
+- No camera, dashboard, backend or connection changes.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta29 - Studio menu, import and mouse stability
 
 ### Deutsch

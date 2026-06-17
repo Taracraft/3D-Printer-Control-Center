@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta20*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta21*/
 (() => {
-  const VERSION = "5.0.0-beta20";
+  const VERSION = "5.0.0-beta21";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta20",
+        version: "5.0.0-beta21",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta20";
+  const STUDIO_VERSION = "5.0.0-beta21";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -10684,6 +10684,477 @@ const PCC_BETA20_STUDIO_CLASS = customElements.get("printer-control-center-studi
       return;
     }
     return PCC_BETA20_PREV_HANDLE_CLICK.call(this, event);
+  };
+
+const PCC_BETA21_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA21_PREV_CLEANUP = PCC_BETA21_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+  const PCC_BETA21_PREV_HANDLE_CLICK = PCC_BETA21_STUDIO_CLASS.prototype.handleClick;
+  const PCC_BETA21_PREV_APPLY_JOB = PCC_BETA21_STUDIO_CLASS.prototype.applyActiveJob;
+  const PCC_BETA21_PREV_LOAD_JOBS = PCC_BETA21_STUDIO_CLASS.prototype.loadStudioJobs;
+  const PCC_BETA21_PREV_DELETE_JOB = PCC_BETA21_STUDIO_CLASS.prototype.deleteActiveJob;
+  const PCC_BETA21_PREV_ENSURE_MESH = PCC_BETA21_STUDIO_CLASS.prototype.ensureStudioMeshLoaded;
+
+  function pccBeta21JobPrimitiveKind(job) {
+    return String(
+      job?.primitive?.kind ||
+      job?.primitive_kind ||
+      job?.model?.primitive_kind ||
+      job?.model?.primitive ||
+      ""
+    ).trim();
+  }
+
+  function pccBeta21IsPrimitiveJob(job) {
+    const source = String(job?.source || job?.origin || job?.model?.source || "").trim();
+    return source === "primitive" || Boolean(pccBeta21JobPrimitiveKind(job));
+  }
+
+  function pccBeta21ValidModelJob(job) {
+    if (!job) return false;
+    if (pccBeta21IsPrimitiveJob(job)) return true;
+    const path = String(job.file_path || job.path || job.model?.path || "").trim();
+    const name = String(job.modelName || job.file_name || job.filename || job.name || job.model?.name || "").trim();
+    if (path && /\.(3mf|stl|obj)$/i.test(path)) return true;
+    if (name && /\.(3mf|stl|obj)$/i.test(name)) return true;
+    return false;
+  }
+
+  function pccBeta21TriangleNormal(tri) {
+    const a = tri[0], b = tri[1], c = tri[2];
+    const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
+    const vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+    const nx = uy * vz - uz * vy;
+    const ny = uz * vx - ux * vz;
+    const nz = ux * vy - uy * vx;
+    const len = Math.hypot(nx, ny, nz) || 1;
+    return [nx / len, ny / len, nz / len];
+  }
+
+  function pccBeta21Shade(normal, depth) {
+    const light = [0.28, -0.44, 0.85];
+    const dot = Math.max(0, normal[0] * light[0] + normal[1] * light[1] + normal[2] * light[2]);
+    const shade = Math.max(72, Math.min(235, 82 + dot * 135 - depth * 18));
+    return {
+      fill: `rgba(${Math.round(shade * 0.45)}, ${Math.round(shade * 0.86)}, ${Math.round(shade)}, 0.88)`,
+      stroke: `rgba(0, 218, 255, ${0.22 + dot * 0.35})`
+    };
+  }
+
+  PCC_BETA21_STUDIO_CLASS.prototype.beta21EnsureStyle = function beta21EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta21-real-render-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta21-real-render-style";
+    style.textContent = `
+      .buildplate.pcc-beta21-empty .model,
+      .buildplate.pcc-beta21-empty .model-label,
+      .buildplate.pcc-beta21-empty .studio-mesh-canvas,
+      .buildplate.pcc-beta21-empty .studio-model-image,
+      .buildplate.pcc-beta21-primitive .studio-model-image,
+      .buildplate.pcc-beta21-mesh .studio-model-image{
+        display:none!important;
+      }
+
+      .buildplate.pcc-beta21-mesh .model,
+      .buildplate.pcc-beta21-primitive .model{
+        opacity:0!important;
+        border:0!important;
+        box-shadow:none!important;
+        background:transparent!important;
+        pointer-events:none!important;
+      }
+
+      .buildplate.pcc-beta21-mesh .studio-mesh-canvas,
+      .buildplate.pcc-beta21-primitive .studio-mesh-canvas{
+        display:block!important;
+        opacity:1!important;
+        z-index:28!important;
+        pointer-events:auto!important;
+      }
+
+      .buildplate.pcc-beta21-empty .pcc-beta20-render-badge{
+        display:none!important;
+      }
+
+      .pcc-beta21-empty-note{
+        position:absolute;
+        left:50%;
+        top:50%;
+        transform:translate(-50%,-50%);
+        z-index:32;
+        padding:10px 14px;
+        border:1px dashed rgba(255,255,255,.22);
+        border-radius:12px;
+        background:rgba(0,0,0,.32);
+        color:rgba(255,255,255,.74);
+        font-size:12px;
+        pointer-events:none;
+      }
+
+      .pcc-beta21-object-label{
+        position:absolute;
+        left:50%;
+        top:calc(50% + 118px);
+        transform:translateX(-50%);
+        z-index:33;
+        padding:4px 9px;
+        border-radius:999px;
+        background:rgba(0,0,0,.42);
+        border:1px solid rgba(0,169,214,.35);
+        color:rgba(255,255,255,.82);
+        font-size:11px;
+        max-width:70%;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        pointer-events:none;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA21_STUDIO_CLASS.prototype.beta21HardClearObjectState = function beta21HardClearObjectState(status="Buildplate ist leer.") {
+    this._activeJob = null;
+    this._activeJobId = "";
+    this._jobs = [];
+    this._jobsLoaded = true;
+    this._studioMesh = null;
+    this._studioMeshJobId = "";
+    this._studioMeshUrl = "";
+    this._studioMeshError = "";
+    this._studioMeshStatus = "Kein echtes Mesh geladen.";
+    this._studioModelImageUrl = "";
+    this._lastDryRun = null;
+    this._lastStudioPlan = null;
+    this._health = null;
+    this._transform = defaultTransform();
+    this._pccBeta21PrimitiveLocked = false;
+    this._pccBeta21LockedJobId = "";
+    this._status = status;
+  };
+
+  PCC_BETA21_STUDIO_CLASS.prototype.beta21SetPrimitiveActive = async function beta21SetPrimitiveActive(kind) {
+    const cleanKind = String(kind || "cube").replace(/^primitive-/, "").replace(/-/g, "_");
+    const spec = (typeof PCC_BETA20_PRIMITIVES === "object" ? PCC_BETA20_PRIMITIVES[cleanKind] : null) || {label:"Würfel"};
+    const mesh = typeof pccBeta20PrimitiveMesh === "function" ? pccBeta20PrimitiveMesh(cleanKind) : null;
+    if (!mesh?.triangles?.length) {
+      this._status = "Primitive konnte kein echtes Mesh erzeugen.";
+      this.render();
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const jobId = `primitive://${cleanKind}/${Date.now()}`;
+    const job = {
+      id: jobId,
+      version: STUDIO_VERSION,
+      schema: "printer-control-center.v5.beta21.primitive",
+      source: "primitive",
+      origin: "primitive",
+      serial: String(this._config?.serial || this._activeJob?.serial || ""),
+      created_at: now,
+      updated_at: now,
+      name: spec.label,
+      modelName: spec.label,
+      file_name: `${cleanKind}.primitive`,
+      filename: `${cleanKind}.primitive`,
+      file_path: jobId,
+      path: jobId,
+      primitive_kind: cleanKind,
+      primitive: {
+        kind: cleanKind,
+        label: spec.label,
+        width_mm: mesh.meta?.width_mm || 0,
+        depth_mm: mesh.meta?.depth_mm || 0,
+        height_mm: mesh.meta?.height_mm || 0
+      },
+      model: {
+        name: spec.label,
+        source: "primitive",
+        path: jobId,
+        primitive_kind: cleanKind
+      },
+      transform: {...defaultTransform()},
+      profile_context: this.buildProfileContext?.() || {},
+      real_slicing_enabled: false,
+      direct_print_enabled: false,
+      status: "prepared",
+      stage: "primitive"
+    };
+
+    try {
+      await this.ws?.({type:"printer_control_center/studio_jobs/clear"});
+    } catch (_error) {}
+
+    try {
+      const response = await this.ws?.({
+        type:"printer_control_center/studio_jobs/create",
+        serial: job.serial,
+        plan: job
+      });
+      const saved = response?.job || response || job;
+      Object.assign(job, saved, {
+        source:"primitive",
+        origin:"primitive",
+        primitive_kind: cleanKind,
+        primitive: job.primitive,
+        model: job.model,
+        transform: job.transform
+      });
+    } catch (_error) {}
+
+    this._pccBeta21PrimitiveLocked = true;
+    this._pccBeta21LockedJobId = String(job.id || jobId);
+    this._jobs = [job];
+    this._jobsLoaded = true;
+    this._activeJob = job;
+    this._activeJobId = String(job.id || jobId);
+    this._studioMesh = mesh;
+    this._studioMeshJobId = this._activeJobId;
+    this._studioMeshUrl = "";
+    this._studioMeshError = "";
+    this._studioModelImageUrl = "";
+    this._studioMeshStatus = `Echtes Primitive-Mesh aktiv: ${spec.label}.`;
+    this._transform = {...defaultTransform()};
+    this._lastDryRun = null;
+    this._lastStudioPlan = null;
+    this._health = null;
+    this._status = `${spec.label} aktiv. Alte Galerie-/Proxy-Objekte wurden entfernt.`;
+    this.render();
+  };
+
+  PCC_BETA21_STUDIO_CLASS.prototype.applyActiveJob = function beta21ApplyActiveJob(job, options={}) {
+    if (this._pccBeta21PrimitiveLocked && !pccBeta21IsPrimitiveJob(job)) {
+      return;
+    }
+
+    if (!pccBeta21ValidModelJob(job)) {
+      this.beta21HardClearObjectState("Ungültiger oder leerer Studio-Job entfernt.");
+      if (options?.render !== false) this.render();
+      return;
+    }
+
+    return PCC_BETA21_PREV_APPLY_JOB.call(this, job, options);
+  };
+
+  PCC_BETA21_STUDIO_CLASS.prototype.loadStudioJobs = async function beta21LoadStudioJobs(...args) {
+    if (this._pccBeta21PrimitiveLocked && this._activeJob && pccBeta21IsPrimitiveJob(this._activeJob)) {
+      this._jobs = [this._activeJob];
+      this._jobsLoaded = true;
+      return this._jobs;
+    }
+
+    const result = await PCC_BETA21_PREV_LOAD_JOBS.apply(this, args);
+
+    if (this._pccBeta21PrimitiveLocked && this._activeJob && pccBeta21IsPrimitiveJob(this._activeJob)) {
+      this._jobs = [this._activeJob];
+      return this._jobs;
+    }
+
+    if (!pccBeta21ValidModelJob(this._activeJob)) {
+      this.beta21HardClearObjectState("Kein gültiges Studio-Objekt geladen.");
+      this.render();
+    }
+
+    return result;
+  };
+
+  PCC_BETA21_STUDIO_CLASS.prototype.ensureStudioMeshLoaded = async function beta21EnsureStudioMeshLoaded(force=false) {
+    if (this._pccBeta21PrimitiveLocked && this._studioMesh?.triangles?.length) {
+      this._studioMeshStatus = "Primitive-Mesh bleibt aktiv; Galeriejob wird nicht zurückgeladen.";
+      this.queueMeshRender?.();
+      return;
+    }
+    return PCC_BETA21_PREV_ENSURE_MESH.call(this, force);
+  };
+
+  PCC_BETA21_STUDIO_CLASS.prototype.deleteActiveJob = async function beta21DeleteActiveJob() {
+    try {
+      await this.ws?.({type:"printer_control_center/studio_jobs/clear"});
+    } catch (_error) {}
+
+    this.beta21HardClearObjectState("Studio-Objekt entfernt. Die Buildplate ist leer.");
+    this.render();
+  };
+
+  PCC_BETA21_STUDIO_CLASS.prototype.beta21ProjectPointFactory = function beta21ProjectPointFactory(canvasWidth, canvasHeight, dpr) {
+    const mesh = this._studioMesh;
+    const t = this.clampTransform?.() || this._transform || defaultTransform();
+    const zoom = Math.max(0.25, Math.min(4, toNumber(this._viewZoom,1)));
+    const base = Math.min(canvasWidth, canvasHeight) * 0.35 * zoom * Math.max(0.05, toNumber(t.scale,100)/100);
+    const sx = Math.max(0.05, toNumber(t.sx,100)/100) * (Number(t.mx) === -1 ? -1 : 1);
+    const sy = Math.max(0.05, toNumber(t.sy,100)/100) * (Number(t.my) === -1 ? -1 : 1);
+    const sz = Math.max(0.05, toNumber(t.sz,100)/100) * (Number(t.mz) === -1 ? -1 : 1);
+    const rz = toNumber(t.rz,0) * Math.PI / 180;
+    const rx = (toNumber(t.rx,0) - 20) * Math.PI / 180;
+    const ry = (toNumber(t.ry,0) + 28) * Math.PI / 180;
+    const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
+    const cosX = Math.cos(rx), sinX = Math.sin(rx);
+    const cosY = Math.cos(ry), sinY = Math.sin(ry);
+    const ox = canvasWidth / 2 + toNumber(t.x,0) * dpr;
+    const oy = canvasHeight / 2 + toNumber(t.y,0) * dpr;
+
+    return (p) => {
+      let x = ((p[0] - mesh.center[0]) / mesh.size) * sx;
+      let y = ((p[1] - mesh.center[1]) / mesh.size) * sy;
+      let z = ((p[2] - mesh.center[2]) / mesh.size) * sz;
+
+      let x1 = x * cosZ - y * sinZ;
+      let y1 = x * sinZ + y * cosZ;
+      let z1 = z;
+
+      let y2 = y1 * cosX - z1 * sinX;
+      let z2 = y1 * sinX + z1 * cosX;
+      let x2 = x1;
+
+      let x3 = x2 * cosY + z2 * sinY;
+      let z3 = -x2 * sinY + z2 * cosY;
+      let y3 = y2;
+
+      const perspective = 1 / (1 + z3 * 0.20);
+      return {
+        x: ox + x3 * base * perspective,
+        y: oy + y3 * base * perspective - z3 * base * 0.38,
+        z: z3
+      };
+    };
+  };
+
+  PCC_BETA21_STUDIO_CLASS.prototype.renderMeshCanvas = function beta21RenderMeshCanvas() {
+    const canvas = this.shadowRoot?.querySelector(".studio-mesh-canvas");
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    const width = Math.max(320, Math.round(rect.width * dpr));
+    const height = Math.max(260, Math.round(rect.height * dpr));
+    if (canvas.width !== width) canvas.width = width;
+    if (canvas.height !== height) canvas.height = height;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0,0,width,height);
+
+    const mesh = this._studioMesh;
+    if (!mesh?.triangles?.length) return;
+
+    const project = this.beta21ProjectPointFactory(width, height, dpr);
+    const triangles = [];
+    const maxDraw = Math.min(mesh.triangles.length, 14000);
+    const step = Math.max(1, Math.ceil(mesh.triangles.length / maxDraw));
+
+    for (let i = 0; i < mesh.triangles.length; i += step) {
+      const tri = mesh.triangles[i];
+      const p = tri.map(project);
+      const avgZ = (p[0].z + p[1].z + p[2].z) / 3;
+      const normal = pccBeta21TriangleNormal(tri);
+      triangles.push({p, tri, avgZ, normal});
+    }
+
+    triangles.sort((a,b) => a.avgZ - b.avgZ);
+
+    ctx.save();
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+
+    for (const item of triangles) {
+      const shade = pccBeta21Shade(item.normal, item.avgZ);
+      ctx.beginPath();
+      ctx.moveTo(item.p[0].x, item.p[0].y);
+      ctx.lineTo(item.p[1].x, item.p[1].y);
+      ctx.lineTo(item.p[2].x, item.p[2].y);
+      ctx.closePath();
+      ctx.fillStyle = shade.fill;
+      ctx.fill();
+      ctx.strokeStyle = shade.stroke;
+      ctx.lineWidth = Math.max(0.7, 0.75 * dpr);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+
+    if (typeof this.beta20DrawRulers === "function") {
+      this.beta20DrawRulers(ctx, width, height, dpr);
+    }
+
+    const badge = this.shadowRoot?.querySelector(".pcc-beta20-render-badge");
+    if (badge && typeof pccBeta20Dimensions === "function" && typeof pccBeta20Mm === "function") {
+      const dims = pccBeta20Dimensions(mesh, this._transform || defaultTransform());
+      badge.textContent = `3D Mesh · ${mesh.triangles.length} Dreiecke · ${pccBeta20Mm(dims.width)} × ${pccBeta20Mm(dims.depth)} × ${pccBeta20Mm(dims.height)}`;
+    }
+  };
+
+  PCC_BETA21_STUDIO_CLASS.prototype.beta21SyncBuildplateState = function beta21SyncBuildplateState() {
+    const root = this.shadowRoot;
+    const buildplate = root?.querySelector(".buildplate");
+    if (!buildplate) return;
+
+    const hasMesh = Boolean(this._studioMesh?.triangles?.length);
+    const validJob = pccBeta21ValidModelJob(this._activeJob);
+    const primitive = pccBeta21IsPrimitiveJob(this._activeJob);
+
+    buildplate.classList.toggle("pcc-beta21-empty", !hasMesh || !validJob);
+    buildplate.classList.toggle("pcc-beta21-mesh", hasMesh && validJob && !primitive);
+    buildplate.classList.toggle("pcc-beta21-primitive", hasMesh && validJob && primitive);
+
+    const oldName = String(this._activeJob?.modelName || this._activeJob?.file_name || this._activeJob?.filename || this._activeJob?.name || this._activeJob?.model?.name || "").trim();
+    const labelText = hasMesh && validJob ? oldName : "";
+
+    let cleanLabel = buildplate.querySelector(".pcc-beta21-object-label");
+    if (labelText) {
+      if (!cleanLabel) {
+        cleanLabel = document.createElement("div");
+        cleanLabel.className = "pcc-beta21-object-label";
+        buildplate.appendChild(cleanLabel);
+      }
+      cleanLabel.textContent = labelText;
+    } else {
+      cleanLabel?.remove();
+    }
+
+    let empty = buildplate.querySelector(".pcc-beta21-empty-note");
+    if (!hasMesh || !validJob) {
+      if (!empty) {
+        empty = document.createElement("div");
+        empty.className = "pcc-beta21-empty-note";
+        buildplate.appendChild(empty);
+      }
+      empty.textContent = "Keine aktive Geometrie geladen";
+    } else {
+      empty?.remove();
+    }
+
+    const nativeLabel = root?.querySelector(".model-label");
+    if (nativeLabel) nativeLabel.textContent = "";
+  };
+
+  PCC_BETA21_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function beta21CleanupBetaStudioUi() {
+    try {
+      if (typeof PCC_BETA21_PREV_CLEANUP === "function") PCC_BETA21_PREV_CLEANUP.call(this);
+    } catch (_error) {}
+
+    this.beta21EnsureStyle();
+    this.beta21SyncBuildplateState();
+    this.queueMeshRender?.();
+  };
+
+  PCC_BETA21_STUDIO_CLASS.prototype.handleClick = function beta21HandleClick(event) {
+    const action = event.target?.dataset?.action;
+    if (String(action || "").startsWith("primitive-")) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.beta21SetPrimitiveActive(String(action).replace("primitive-",""));
+      return;
+    }
+    if (action === "delete") {
+      event.preventDefault();
+      event.stopPropagation();
+      this.deleteActiveJob();
+      return;
+    }
+    return PCC_BETA21_PREV_HANDLE_CLICK.call(this, event);
   };
 
   if (!customElements.get("printer-control-center-studio-card")) {

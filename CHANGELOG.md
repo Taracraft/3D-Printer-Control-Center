@@ -1,3 +1,26 @@
+## 5.0.0-beta21 - Real Studio rendering and phantom-state fix
+
+### English
+- Keeps the confirmed beta9 Bambu-style Studio buildplate selector as the active base.
+- Fixes primitive objects switching back to an old gallery job by locking primitive state and blocking stale non-primitive reloads.
+- Clears phantom/stale objects from the buildplate when no valid Studio object is active.
+- Replaces the Studio wireframe-only canvas path with filled shaded triangle rendering on the existing 2D canvas.
+- Keeps measurement rulers and red object-bound markers.
+- Keeps the existing STL/geometry mesh loading path for imported models.
+- No camera, dashboard or printer connection changes.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Behält die bestätigte beta9-Bambu-Studio-Druckplattenauswahl als aktive Basis.
+- Behebt das Zurückspringen von Primitiven auf alte Galerie-Jobs, indem Primitive exklusiv aktiv bleiben und alte Nicht-Primitive-Reloads blockiert werden.
+- Entfernt Phantom-/Altobjekte von der Buildplate, wenn kein gültiges Studio-Objekt aktiv ist.
+- Ersetzt die reine Drahtgitter-Canvas-Darstellung durch gefülltes, schattiertes Dreiecks-Rendering auf dem bestehenden 2D-Canvas.
+- Behält Maßlineale und rote Objektgrenzen-Marker.
+- Behält den vorhandenen STL-/Geometrie-Mesh-Ladepfad für importierte Modelle.
+- Keine Kamera-, Dashboard- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta20 - Studio 3D mesh primitives and rulers
 
 ### English

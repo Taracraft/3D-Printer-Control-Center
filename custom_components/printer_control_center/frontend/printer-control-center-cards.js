@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta31*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta32*/
 (() => {
-  const VERSION = "5.0.0-beta31";
+  const VERSION = "5.0.0-beta32";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta31",
+        version: "5.0.0-beta32",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta31";
+  const STUDIO_VERSION = "5.0.0-beta32";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -15138,8 +15138,8 @@ const PCC_BETA31_STUDIO_CLASS = customElements.get("printer-control-center-studi
 
     root.querySelectorAll(".studio-context,.beta4-floating-context,.pcc-context-menu,.context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
 
-    if (root.dataset.beta31ContextKilled === "1") return;
-    root.dataset.beta31ContextKilled = "1";
+    if (this._pccBeta31ContextKilled === true) return;
+    this._pccBeta31ContextKilled = true;
 
     const handler = (event) => {
       if (!event.target?.closest?.(".buildplate")) return;

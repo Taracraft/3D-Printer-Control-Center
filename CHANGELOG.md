@@ -1,3 +1,20 @@
+## 5.0.0-beta32 - Fix beta31 ShadowRoot context guard crash
+
+### Deutsch
+- Behebt den beta31-Startfehler `Cannot read properties of undefined (reading 'beta31ContextKilled')`.
+- Ursache war ein Zugriff auf `shadowRoot.dataset`; `ShadowRoot` besitzt kein `dataset`.
+- Der Kontextmenü-Guard nutzt jetzt eine Instanzvariable statt `root.dataset`.
+- Keine Kamera-, Dashboard-, Backend-, Import- oder Render-Änderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Fixes the beta31 startup error `Cannot read properties of undefined (reading 'beta31ContextKilled')`.
+- The cause was accessing `shadowRoot.dataset`; `ShadowRoot` does not provide `dataset`.
+- The context-menu guard now uses an instance variable instead of `root.dataset`.
+- No camera, dashboard, backend, import or render changes.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta31 - Studio final UI cleanup and import object button
 
 ### Deutsch

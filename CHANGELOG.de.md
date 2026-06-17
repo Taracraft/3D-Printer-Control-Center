@@ -1,3 +1,22 @@
+## 5.0.0-beta9 - Buildplate Selector Visual Fix
+
+### English
+- Fixed the Studio build plate selector visuals after the beta8 test.
+- Replaced the broken grey selector/list look with a Shadow DOM injected Bambu Studio style printer / plate / sync tile row.
+- The active plate tile now keeps a stable dropdown open until the user clicks outside it.
+- Added a white Bambu Studio style dropdown with checkmark, thumbnails and plate names.
+- Reworked the central Studio buildplate surface so the selected plate visibly changes the background, grid, border, side logo, front strip and plate number.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Optik der Studio-Druckplattenauswahl nach dem beta8-Test korrigiert.
+- Die kaputte graue Listen-/Buttonansicht wurde durch eine direkt im Shadow DOM injizierte Bambu-Studio-artige Drucker-/Platten-/Sync-Kachelzeile ersetzt.
+- Das Dropdown der aktiven Druckplatten-Kachel bleibt stabil offen, bis außerhalb geklickt wird.
+- Helles Bambu-Studio-ähnliches Dropdown mit Haken, Vorschaubild und Plattennamen ergänzt.
+- Die zentrale Studio-Buildplate ändert nun sichtbar Hintergrund, Grid, Kontur, Seitenlogo, Frontleiste und Plattennummer je nach ausgewählter Platte.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta8 - Bambu Studio Buildplate Selector
 
 ### English

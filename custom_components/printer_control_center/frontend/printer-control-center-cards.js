@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta8*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta9*/
 (() => {
-  const VERSION = "5.0.0-beta8";
+  const VERSION = "5.0.0-beta9";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta8",
+        version: "5.0.0-beta9",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta8";
+  const STUDIO_VERSION = "5.0.0-beta9";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -4881,7 +4881,7 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta8 Bambu Studio Buildplate Selector bereit. Druckplattenauswahl links arbeitet jetzt als Bambu-Studio-Kachel mit Dropdown; die Studio-Buildplate übernimmt Textur, Logo, Grid und Beschriftung der gewählten Platte.";
+      this._status = "beta9 Buildplate Selector Visual Fix bereit. Die Druckplattenauswahl wird jetzt im ShadowRoot als Bambu-Studio-Kachel mit stabilem Dropdown gerendert; die Buildplate übernimmt sichtbar Oberfläche, Kontur, Grid, Logo und Frontleiste.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -4944,7 +4944,7 @@
       this.ensureStudioMeshLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Beta8: Home Assistant pushes frequent hass updates.
+      // Beta9: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -6039,7 +6039,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta8: no full render on every keystroke.
+      // Beta9: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -6054,7 +6054,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta8: render is intentionally skipped while editing to avoid cursor jumps.
+      // Beta9: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -6443,7 +6443,7 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta8 Bambu Studio Buildplate Selector</div>
+                  <div class="plate-label">Buildplate - beta9 Buildplate Selector Visual Fix</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   ${this._studioModelImageUrl ? html`
@@ -9720,6 +9720,669 @@
     } catch (_error) {}
   };
 
+
+  const PCC_BETA9_BUILD_PLATES = [
+    {
+      id: "cool_plate",
+      name: "Cool Plate/PLA Plate",
+      short: "Cool Plate / PLA",
+      label: "Bambu Cool Plate / PLA Plate",
+      surface: "cool",
+      logo: "Bambu Cool Plate",
+      footer: "PLA / PETG",
+      badge: "COOL PLATE"
+    },
+    {
+      id: "engineering_plate",
+      name: "Engineering Plate",
+      short: "Engineering Plate",
+      label: "Bambu Engineering Plate",
+      surface: "engineering",
+      logo: "Bambu Engineering Plate",
+      footer: "ENGINEERING",
+      badge: "ENGINEERING"
+    },
+    {
+      id: "smooth_pei_high_temp",
+      name: "Smooth PEI Plate / High Temp Plate",
+      short: "Smooth PEI / High Temp",
+      label: "Bambu Smooth PEI Plate / High Temp Plate",
+      surface: "smooth",
+      logo: "Bambu Smooth PEI Plate / High Temp Plate",
+      footer: "PLA / PETG / ABS / TPU / PC",
+      badge: "HOT SURFACE"
+    },
+    {
+      id: "textured_pei",
+      name: "Textured PEI Plate",
+      short: "Textured PEI",
+      label: "Bambu Textured PEI Plate",
+      surface: "textured",
+      logo: "Bambu Textured PEI Plate",
+      footer: "PLA / PETG",
+      badge: "TEXTURED"
+    },
+    {
+      id: "bambu_cool_plate_supertack",
+      name: "Bambu Cool Plate SuperTack",
+      short: "Cool Plate SuperTack",
+      label: "Bambu Cool Plate SuperTack",
+      surface: "supertack",
+      logo: "Bambu Cool Plate (SuperTack)",
+      footer: "GLUE STICK CAN HELP",
+      badge: "SUPER TACK"
+    }
+  ];
+
+  function pccBeta9Esc(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[char]));
+  }
+
+  function pccBeta9PlateById(id) {
+    const wanted = String(id || "").trim();
+    return PCC_BETA9_BUILD_PLATES.find((plate) => plate.id === wanted) ||
+      PCC_BETA9_BUILD_PLATES.find((plate) => plate.id === "smooth_pei_high_temp") ||
+      PCC_BETA9_BUILD_PLATES[0];
+  }
+
+  function pccBeta9PlateClass(plate) {
+    return `pcc-beta9-plate-${String(plate?.surface || "smooth")}`;
+  }
+
+  const PCC_BETA9_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA9_PREV_CLEANUP = PCC_BETA9_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+
+  PCC_BETA9_STUDIO_CLASS.prototype.beta9CurrentPlate = function beta9CurrentPlate() {
+    const job = this._activeJob || {};
+    const profile = job.profile_context || {};
+
+    const id =
+      this._studioBuildPlate ||
+      profile?.build_plate?.id ||
+      profile?.build_plate_id ||
+      job?.build_plate_id ||
+      "smooth_pei_high_temp";
+
+    return pccBeta9PlateById(id);
+  };
+
+  PCC_BETA9_STUDIO_CLASS.prototype.beta9SetPlate = function beta9SetPlate(id) {
+    const plate = pccBeta9PlateById(id);
+    this._studioBuildPlate = plate.id;
+
+    if (this._activeJob) {
+      this._activeJob.profile_context = this._activeJob.profile_context || {};
+      this._activeJob.profile_context.build_plate = {
+        id: plate.id,
+        name: plate.name,
+        short: plate.short,
+        label: plate.label,
+        surface: plate.surface
+      };
+      this._activeJob.profile_context.build_plate_id = plate.id;
+      this._activeJob.build_plate = plate.name;
+      this._activeJob.build_plate_id = plate.id;
+
+      try {
+        this.scheduleActiveJobSave?.();
+      } catch (_error) {}
+    }
+
+    this._status = `Druckplatte gewählt: ${plate.name}.`;
+    this.beta9RenderPlateSelector();
+    this.beta9ApplyBuildplateVisual();
+  };
+
+  PCC_BETA9_STUDIO_CLASS.prototype.beta9EnsureStyle = function beta9EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta9-buildplate-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta9-buildplate-style";
+    style.textContent = `
+      .pcc-beta9-plate-selector{
+        margin:10px 0 14px;
+        padding:0;
+        border:0;
+        background:transparent;
+        position:relative;
+        overflow:visible;
+      }
+      .pcc-beta9-plate-selector h3{
+        margin:0 0 7px;
+        font-size:14px;
+        font-weight:800;
+        color:var(--primary-text-color,#fff);
+      }
+      .pcc-beta9-bambu-row{
+        display:grid;
+        grid-template-columns:1.14fr 1fr .92fr;
+        gap:7px;
+        align-items:stretch;
+        overflow:visible;
+      }
+      .pcc-beta9-device-card,
+      .pcc-beta9-active-plate-card,
+      .pcc-beta9-sync-card{
+        min-height:88px;
+        border:1px solid #d7d7d7;
+        border-radius:9px;
+        background:linear-gradient(180deg,#ffffff,#f5f5f5);
+        color:#111;
+        display:grid;
+        align-content:center;
+        justify-items:center;
+        gap:4px;
+        padding:7px;
+        box-shadow:0 1px 2px rgba(0,0,0,.18);
+        cursor:pointer;
+        font-size:12px;
+        line-height:1.15;
+        position:relative;
+        overflow:hidden;
+      }
+      .pcc-beta9-device-card.active,
+      .pcc-beta9-active-plate-card.active{
+        outline:2px solid #14c86f;
+        outline-offset:-2px;
+      }
+      .pcc-beta9-device-card.active::after,
+      .pcc-beta9-active-plate-card.active::after{
+        content:"";
+        position:absolute;
+        top:0;
+        right:0;
+        border-left:18px solid transparent;
+        border-top:18px solid #13c76b;
+      }
+      .pcc-beta9-printer-thumb{
+        width:46px;
+        height:42px;
+        display:block;
+        position:relative;
+        border-radius:5px;
+        border:1px solid #ddd;
+        background:linear-gradient(180deg,#fff,#ececec);
+      }
+      .pcc-beta9-printer-thumb::before{
+        content:"";
+        position:absolute;
+        left:10px;
+        right:10px;
+        top:8px;
+        height:24px;
+        border:2px solid #555;
+        border-bottom:6px solid #555;
+        border-radius:2px;
+      }
+      .pcc-beta9-printer-thumb::after{
+        content:"";
+        position:absolute;
+        left:16px;
+        top:3px;
+        width:13px;
+        height:8px;
+        border:1px solid #777;
+        background:#fafafa;
+      }
+      .pcc-beta9-active-plate-card{
+        grid-template-rows:42px auto;
+      }
+      .pcc-beta9-active-plate-label{
+        max-width:100%;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        font-size:12px;
+      }
+      .pcc-beta9-caret{
+        position:absolute;
+        left:8px;
+        bottom:6px;
+        color:#707070;
+        font-size:13px;
+      }
+      .pcc-beta9-sync-icon{
+        font-size:30px;
+        color:#111;
+        line-height:30px;
+      }
+      .pcc-beta9-sync-card span:last-child{
+        font-size:14px;
+        font-weight:700;
+      }
+      .pcc-beta9-plate-thumb,
+      .pcc-beta9-option-thumb{
+        display:block;
+        position:relative;
+        overflow:hidden;
+        border-radius:4px;
+        border:1px solid rgba(0,0,0,.25);
+        box-shadow:inset 0 0 14px rgba(0,0,0,.22);
+      }
+      .pcc-beta9-plate-thumb{
+        width:44px;
+        height:40px;
+      }
+      .pcc-beta9-option-thumb{
+        width:40px;
+        height:32px;
+      }
+      .pcc-beta9-thumb-grid{
+        position:absolute;
+        inset:0;
+        background-image:
+          linear-gradient(rgba(255,255,255,.30) 1px,transparent 1px),
+          linear-gradient(90deg,rgba(255,255,255,.30) 1px,transparent 1px);
+        background-size:7px 7px;
+      }
+      .pcc-beta9-plate-cool{
+        background:linear-gradient(135deg,#536470,#262c32);
+      }
+      .pcc-beta9-plate-engineering{
+        background:linear-gradient(135deg,#787d82,#303336);
+      }
+      .pcc-beta9-plate-smooth{
+        background:linear-gradient(135deg,#313436,#151719);
+      }
+      .pcc-beta9-plate-textured{
+        background-color:#b89652;
+        background-image:radial-gradient(circle at 6px 6px,rgba(255,255,255,.42) 1px,transparent 2px);
+      }
+      .pcc-beta9-plate-supertack{
+        background:linear-gradient(135deg,#3e503b,#171f16);
+      }
+      .pcc-beta9-plate-dropdown{
+        position:absolute;
+        z-index:2147482500;
+        left:calc(33% + 5px);
+        top:101px;
+        width:342px;
+        background:#fff;
+        color:#111;
+        border:1px solid #c9c9c9;
+        box-shadow:0 14px 34px rgba(0,0,0,.34);
+        padding:4px 0;
+      }
+      .pcc-beta9-plate-dropdown[hidden]{
+        display:none!important;
+      }
+      .pcc-beta9-plate-option{
+        display:grid;
+        grid-template-columns:24px 44px 1fr;
+        gap:8px;
+        align-items:center;
+        width:100%;
+        min-height:44px;
+        border:0;
+        background:#fff;
+        color:#111;
+        text-align:left;
+        padding:5px 10px;
+        cursor:pointer;
+        font-size:14px;
+      }
+      .pcc-beta9-plate-option:hover{
+        background:#e9fff1;
+      }
+      .pcc-beta9-plate-option.active{
+        background:#dcffe8;
+      }
+      .pcc-beta9-check{
+        color:#10b85f;
+        font-weight:900;
+        font-size:18px;
+        text-align:center;
+      }
+      .pcc-beta9-option-text b{
+        display:block;
+        font-weight:500;
+        line-height:1.15;
+      }
+      .pcc-beta9-option-text small{
+        display:block;
+        color:#666;
+        font-size:11px;
+        margin-top:2px;
+      }
+
+      .buildplate.pcc-beta9-buildplate{
+        position:relative!important;
+        overflow:hidden!important;
+        border:3px solid #3b3f40!important;
+        border-radius:18px!important;
+        background:#2f3334!important;
+        box-shadow:
+          inset 0 0 0 2px rgba(255,255,255,.04),
+          inset 0 0 70px rgba(0,0,0,.35),
+          0 16px 42px rgba(0,0,0,.42)!important;
+      }
+      .pcc-beta9-buildplate-skin{
+        position:absolute;
+        inset:0;
+        z-index:0;
+        pointer-events:none;
+        border-radius:inherit;
+        overflow:hidden;
+      }
+      .pcc-beta9-buildplate-skin::before{
+        content:"";
+        position:absolute;
+        inset:30px 38px 42px 38px;
+        background-image:
+          linear-gradient(rgba(230,235,235,.28) 2px,transparent 2px),
+          linear-gradient(90deg,rgba(230,235,235,.28) 2px,transparent 2px),
+          linear-gradient(rgba(230,235,235,.14) 1px,transparent 1px),
+          linear-gradient(90deg,rgba(230,235,235,.14) 1px,transparent 1px);
+        background-size:56px 56px,56px 56px,14px 14px,14px 14px;
+      }
+      .buildplate.pcc-beta9-surface-cool{
+        background:#32393d!important;
+      }
+      .buildplate.pcc-beta9-surface-engineering{
+        background:#393d40!important;
+      }
+      .buildplate.pcc-beta9-surface-smooth{
+        background:#303334!important;
+      }
+      .buildplate.pcc-beta9-surface-textured{
+        background:#3a3324!important;
+      }
+      .buildplate.pcc-beta9-surface-supertack{
+        background:#293228!important;
+      }
+      .buildplate.pcc-beta9-surface-textured .pcc-beta9-buildplate-skin::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        background-image:radial-gradient(circle at 10px 10px,rgba(255,224,150,.20) 1px,transparent 2px);
+        background-size:18px 18px;
+      }
+      .buildplate.pcc-beta9-surface-cool .pcc-beta9-buildplate-skin::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        background:linear-gradient(135deg,rgba(130,215,255,.10),transparent 58%);
+      }
+      .buildplate.pcc-beta9-surface-supertack .pcc-beta9-buildplate-skin::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        background:linear-gradient(135deg,rgba(110,190,95,.12),transparent 58%);
+      }
+      .pcc-beta9-side-logo{
+        position:absolute;
+        left:48px;
+        top:75px;
+        writing-mode:vertical-rl;
+        transform:rotate(180deg);
+        font-size:22px;
+        font-weight:900;
+        letter-spacing:.5px;
+        color:rgba(232,236,236,.62);
+        text-shadow:0 1px 2px rgba(0,0,0,.55);
+        z-index:2;
+      }
+      .pcc-beta9-front-strip{
+        position:absolute;
+        left:35%;
+        right:7%;
+        bottom:11px;
+        height:23px;
+        border-radius:4px;
+        background:linear-gradient(90deg,rgba(218,222,222,.96),rgba(160,166,166,.92));
+        color:#555;
+        display:flex;
+        align-items:center;
+        justify-content:space-around;
+        gap:8px;
+        font-size:11px;
+        font-weight:800;
+        box-shadow:0 -1px 0 rgba(255,255,255,.55) inset;
+        z-index:3;
+      }
+      .pcc-beta9-front-badge{
+        font-size:9px;
+        color:#777;
+      }
+      .pcc-beta9-plate-number{
+        position:absolute;
+        right:17px;
+        bottom:29px;
+        color:#08c965;
+        font-size:34px;
+        font-weight:1000;
+        letter-spacing:1px;
+        z-index:3;
+      }
+      .pcc-beta9-handle-top{
+        position:absolute;
+        top:12px;
+        left:50%;
+        width:190px;
+        height:28px;
+        margin-left:-95px;
+        border-radius:0 0 17px 17px;
+        background:#242829;
+        border:2px solid rgba(225,230,230,.32);
+        border-top:0;
+        z-index:3;
+      }
+      .pcc-beta9-handle-top::after{
+        content:"";
+        position:absolute;
+        left:42px;
+        right:42px;
+        top:9px;
+        height:4px;
+        background:rgba(230,235,235,.88);
+        border-radius:999px;
+      }
+      .pcc-beta9-corner-cut{
+        position:absolute;
+        bottom:0;
+        width:94px;
+        height:34px;
+        background:#151718;
+        border-top:2px solid rgba(220,225,225,.4);
+        z-index:3;
+      }
+      .pcc-beta9-corner-cut.left{
+        left:0;
+        clip-path:polygon(0 100%,100% 100%,70% 0,0 0);
+      }
+      .pcc-beta9-corner-cut.right{
+        right:0;
+        clip-path:polygon(0 100%,100% 100%,100% 0,30% 0);
+      }
+      .buildplate.pcc-beta9-buildplate .model,
+      .buildplate.pcc-beta9-buildplate .model-label,
+      .buildplate.pcc-beta9-buildplate .studio-mesh-canvas,
+      .buildplate.pcc-beta9-buildplate .studio-model-image{
+        z-index:20!important;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA9_STUDIO_CLASS.prototype.beta9InstallSelector = function beta9InstallSelector() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    this.beta9EnsureStyle();
+
+    const panels = [...root.querySelectorAll(".panel")];
+    const leftPanel = panels[0];
+    if (!leftPanel) return;
+
+    leftPanel.querySelectorAll(
+      ".pcc-beta9-plate-selector,.pcc-beta8-plate-selector,.beta7-buildplate-deck,.beta6-buildplate-switcher,.beta5-buildplate-switcher"
+    ).forEach((node) => node.remove());
+
+    const current = this.beta9CurrentPlate();
+
+    const selector = document.createElement("section");
+    selector.className = "pcc-beta9-plate-selector";
+    selector.innerHTML = `
+      <h3>Druckplatte</h3>
+      <div class="pcc-beta9-bambu-row">
+        <button class="pcc-beta9-device-card active" type="button" title="Aktiver Drucker">
+          <span class="pcc-beta9-printer-thumb"></span>
+          <span>Bambu Lab A1</span>
+        </button>
+
+        <button class="pcc-beta9-active-plate-card active" type="button" data-beta9-toggle-plate title="Druckplatte auswählen">
+          <span class="pcc-beta9-plate-thumb ${pccBeta9PlateClass(current)}">
+            <span class="pcc-beta9-thumb-grid"></span>
+          </span>
+          <span class="pcc-beta9-active-plate-label">${pccBeta9Esc(current.short)}</span>
+          <span class="pcc-beta9-caret">⌄</span>
+        </button>
+
+        <button class="pcc-beta9-sync-card" type="button" title="Sync Infos">
+          <span class="pcc-beta9-sync-icon">↻</span>
+          <span>Sync Infos</span>
+        </button>
+      </div>
+
+      <div class="pcc-beta9-plate-dropdown" hidden>
+        ${PCC_BETA9_BUILD_PLATES.map((plate) => `
+          <button class="pcc-beta9-plate-option ${plate.id === current.id ? "active" : ""}" type="button" data-beta9-plate="${pccBeta9Esc(plate.id)}">
+            <span class="pcc-beta9-check">${plate.id === current.id ? "✓" : ""}</span>
+            <span class="pcc-beta9-option-thumb ${pccBeta9PlateClass(plate)}">
+              <span class="pcc-beta9-thumb-grid"></span>
+            </span>
+            <span class="pcc-beta9-option-text">
+              <b>${pccBeta9Esc(plate.name)}</b>
+              <small>${pccBeta9Esc(plate.label)}</small>
+            </span>
+          </button>
+        `).join("")}
+      </div>
+    `;
+
+    const oldHeading = [...leftPanel.querySelectorAll("h3")].find((h3) => String(h3.textContent || "").trim() === "Druckplatte");
+    if (oldHeading) {
+      oldHeading.insertAdjacentElement("afterend", selector);
+    } else {
+      const firstHeading = leftPanel.querySelector("h3");
+      if (firstHeading?.nextSibling) leftPanel.insertBefore(selector, firstHeading.nextSibling);
+      else leftPanel.insertBefore(selector, leftPanel.firstChild);
+    }
+
+    const dropdown = selector.querySelector(".pcc-beta9-plate-dropdown");
+
+    selector.querySelector("[data-beta9-toggle-plate]")?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!dropdown) return;
+      if (dropdown.hasAttribute("hidden")) dropdown.removeAttribute("hidden");
+      else dropdown.setAttribute("hidden", "");
+    });
+
+    for (const button of [...selector.querySelectorAll("[data-beta9-plate]")]) {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta9SetPlate(button.dataset.beta9Plate);
+      });
+    }
+
+    if (!this._beta9PlateOutsideBound) {
+      this._beta9PlateOutsideBound = true;
+      root.addEventListener("pointerdown", (event) => {
+        if (event.target?.closest?.(".pcc-beta9-plate-selector")) return;
+        root.querySelectorAll(".pcc-beta9-plate-dropdown").forEach((node) => node.setAttribute("hidden", ""));
+      }, {capture:false});
+    }
+  };
+
+  PCC_BETA9_STUDIO_CLASS.prototype.beta9ApplyBuildplateVisual = function beta9ApplyBuildplateVisual() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    this.beta9EnsureStyle();
+
+    const plate = this.beta9CurrentPlate();
+    const buildplate = root.querySelector(".buildplate");
+    if (!buildplate) return;
+
+    buildplate.classList.remove(
+      "pcc-beta8-buildplate",
+      "pcc-beta9-buildplate",
+      "pcc-beta9-surface-cool",
+      "pcc-beta9-surface-engineering",
+      "pcc-beta9-surface-smooth",
+      "pcc-beta9-surface-textured",
+      "pcc-beta9-surface-supertack",
+      "pcc-beta8-plate-cool",
+      "pcc-beta8-plate-engineering",
+      "pcc-beta8-plate-smooth",
+      "pcc-beta8-plate-textured",
+      "pcc-beta8-plate-supertack"
+    );
+
+    buildplate.classList.add("pcc-beta9-buildplate", `pcc-beta9-surface-${plate.surface}`);
+    buildplate.dataset.beta9Plate = plate.id;
+
+    const label = root.querySelector(".plate-label");
+    if (label) label.textContent = `Buildplate – ${plate.name}`;
+
+    let skin = [...buildplate.children].find((node) => node.classList?.contains?.("pcc-beta9-buildplate-skin"));
+    if (!skin) {
+      buildplate.querySelectorAll(":scope > .pcc-beta8-buildplate-skin").forEach((node) => node.remove());
+      skin = document.createElement("div");
+      skin.className = "pcc-beta9-buildplate-skin";
+      buildplate.insertBefore(skin, buildplate.firstChild);
+    }
+
+    skin.innerHTML = `
+      <div class="pcc-beta9-side-logo">${pccBeta9Esc(plate.logo)}</div>
+      <div class="pcc-beta9-front-strip">
+        <span>▦</span>
+        <span>${pccBeta9Esc(plate.footer)}</span>
+        <span class="pcc-beta9-front-badge">${pccBeta9Esc(plate.badge)}</span>
+      </div>
+      <div class="pcc-beta9-plate-number">01</div>
+      <div class="pcc-beta9-handle-top"></div>
+      <div class="pcc-beta9-corner-cut left"></div>
+      <div class="pcc-beta9-corner-cut right"></div>
+    `;
+
+    const model = root.querySelector(".model");
+    if (model) model.style.zIndex = "20";
+
+    const labelNode = root.querySelector(".model-label");
+    if (labelNode) labelNode.style.zIndex = "21";
+
+    const mesh = root.querySelector(".studio-mesh-canvas");
+    if (mesh) mesh.style.zIndex = "22";
+
+    const image = root.querySelector(".studio-model-image");
+    if (image) image.style.zIndex = "23";
+  };
+
+  PCC_BETA9_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
+    try {
+      if (typeof PCC_BETA9_PREV_CLEANUP === "function") {
+        PCC_BETA9_PREV_CLEANUP.call(this);
+      }
+    } catch (_error) {}
+
+    this.beta9InstallSelector();
+    this.beta9ApplyBuildplateVisual();
+
+    try {
+      if (typeof pccBeta7SanitizeRoot === "function") pccBeta7SanitizeRoot(this.shadowRoot);
+    } catch (_error) {}
+  };
+
   if (!customElements.get("printer-control-center-studio-card")) {
     customElements.define("printer-control-center-studio-card", PrinterControlCenterStudioCard);
   }
@@ -9729,7 +10392,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta8 Bambu Studio Buildplate Selector with Bambu-style plate tile dropdown and live textured buildplate surface rendering."
+      description: "v5 beta9 Buildplate Selector Visual Fix with stable Bambu-style plate dropdown and visible textured buildplate rendering."
     });
   }
 })();

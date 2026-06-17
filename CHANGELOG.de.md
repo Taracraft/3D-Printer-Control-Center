@@ -1,4 +1,27 @@
-## 5.0.0-beta10 - Buildplate Interaction + Primitive Objects
+## 5.0.0-beta11 - Studio Navigation + Real Primitive Mesh
+
+### English
+- Fixed the top Studio navigation regression by hiding transform/edit buttons after every render.
+- Kept only workflow actions in the top navigation while transform/edit actions remain in the right inspector.
+- Added cleanup for visible `[object Object]` artefacts.
+- Reworked primitive object creation to clear the persistent Studio job store first and then create one exclusive active primitive job.
+- Replaced primitive proxy styling with a real generated mesh preview rendered into a dedicated canvas.
+- Added geometric mesh rendering for cube, cylinder, rectangle, square and sphere primitives.
+- Hardened Delete and empty-state cleanup so no stale object, label or filename remains on the buildplate.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Regression in der oberen Studio-Navigation korrigiert: Transform-/Bearbeitungsbuttons werden nach jedem Render oben ausgeblendet.
+- Oben bleiben nur Workflow-Aktionen; Bearbeitung bleibt rechts im Transform-Inspector.
+- Sichtbare `[object Object]`-Artefakte werden entfernt.
+- Primitive-Objekterstellung leert zuerst den persistenten Studio-Jobstore und erzeugt danach genau einen exklusiven aktiven Primitive-Job.
+- Primitive werden nicht mehr als Proxy-CSS-Objekt dargestellt, sondern als echtes berechnetes Mesh in einem eigenen Canvas gerendert.
+- Geometrisches Mesh-Rendering für Würfel, Zylinder, Rechteck, Quadrat und Kugel ergänzt.
+- Löschen und leerer Zustand wurden gehärtet, sodass keine alten Objekte, Labels oder Dateinamen auf der Buildplate stehen bleiben.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
+## 5.0.0-beta11 - Buildplate Interaction + Primitive Objects
 
 ### English
 - Kept the Bambu-style build plate dropdown open until the user clicks outside it.
@@ -23,7 +46,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta9 - Buildplate Selector Visual Fix
+## 5.0.0-beta11 - Buildplate Selector Visual Fix
 
 ### English
 - Fixed the Studio build plate selector visuals after the beta8 test.
@@ -42,7 +65,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta8 - Bambu Studio Buildplate Selector
+## 5.0.0-beta11 - Bambu Studio Buildplate Selector
 
 ### English
 - Reworked the Studio build plate selector to match the Bambu Studio interaction pattern more closely.
@@ -63,7 +86,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta7 - Morning Final Studio Polish
+## 5.0.0-beta11 - Morning Final Studio Polish
 
 ### English
 - Added a global visible-text UTF-8/mojibake sanitizer for Printer Control Center cards and open Shadow DOM roots.
@@ -88,7 +111,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta6 - Studio Import Buildplate Showcase
+## 5.0.0-beta11 - Studio Import Buildplate Showcase
 
 ### English
 - Added a dedicated Studio import popup behind the Import button.
@@ -115,7 +138,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta5 - Studio Navigation + Preview Handoff
+## 5.0.0-beta11 - Studio Navigation + Preview Handoff
 
 ### English
 - Cleaned the Studio top navigation by removing duplicate edit actions: Move, Rotate, Scale, Rot -45, Rot +45, Scale - and Scale +.
@@ -136,7 +159,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta4 - Context Menu + Model Image Fix
+## 5.0.0-beta11 - Context Menu + Model Image Fix
 
 ### English
 - Fixed the beta3 Studio startup failure caused by reading `dataset` from a ShadowRoot in the context-menu binding.
@@ -155,7 +178,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta3 - Studio UI Cleanup
+## 5.0.0-beta11 - Studio UI Cleanup
 
 ### English
 - Cleaned the Studio top navigation by removing edit actions that already exist in the right Transform inspector.
@@ -176,7 +199,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta2 - Studio Prototype Hotfix
+## 5.0.0-beta11 - Studio Prototype Hotfix
 
 ### English
 - Fixed the beta1 Studio startup failure where `cleanupBetaStudioUi` could be missing on the registered CustomElement prototype.
@@ -197,7 +220,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta1 - Studio Stabilization
+## 5.0.0-beta11 - Studio Stabilization
 
 ### English
 - Promoted the v5 Studio branch to beta after the alpha25 interactive control baseline.
@@ -220,7 +243,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-alpha25 - Interactive Control Fix + Mesh Viewer
+## 5.0.0-beta11 - Interactive Control Fix + Mesh Viewer
 
 ### English
 - Fixed the alpha24 interactive controls by adding actual method implementations instead of only event-listener call markers.
@@ -241,7 +264,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-alpha24 - Interactive Studio Control
+## 5.0.0-beta11 - Interactive Studio Control
 
 ### English
 - Added an interactive Studio control step on top of the alpha23 transform engine.
@@ -266,7 +289,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-alpha23 - Studio Transform Engine
+## 5.0.0-beta11 - Studio Transform Engine
 
 ### English
 - Added a larger Studio Transform Engine step after the alpha22 Beta Foundation handoff.
@@ -287,7 +310,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-alpha22 - Beta Foundation Gallery-to-Studio Workflow
+## 5.0.0-beta11 - Beta Foundation Gallery-to-Studio Workflow
 
 ### English
 - Added a larger Beta Foundation step for the v5 Studio workflow.
@@ -310,7 +333,7 @@
 
 # Änderungsprotokoll
 
-## 5.0.0-alpha21 - Konsolidiertes Studio-Dry-Run-/Profilbank-Release
+## 5.0.0-beta11 - Konsolidiertes Studio-Dry-Run-/Profilbank-Release
 
 ### Hinzugefügt
 - Isolierte Studio-Karte an die persistente Backend-Profilbank angebunden.
@@ -327,7 +350,7 @@
 - Echtes Slicen bleibt deaktiviert.
 - Direktdruck bleibt deaktiviert.
 
-## 5.0.0-alpha20.6 - Studio-Plan-Fallback für isolierten Dry-Run
+## 5.0.0-beta11.6 - Studio-Plan-Fallback für isolierten Dry-Run
 
 ### Behoben
 - Lokalen `studio_plan`-Fallback ergänzt, falls der isolierte Studio-Dry-Run kein Planobjekt zurückgibt.
@@ -338,7 +361,7 @@
 - Dieser Stand gehört weiterhin zum alpha20-Recovery-/Testfenster.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha20.5 - Isolierter Studio-Dry-Run-Plan
+## 5.0.0-beta11.5 - Isolierter Studio-Dry-Run-Plan
 
 ### Hinzugefügt
 - Backend-Dry-Run-Ausführung aus der isolierten Studio-Karte ergänzt.
@@ -350,7 +373,7 @@
 - Dieser Stand gehört weiterhin zum alpha20-Recovery-/Testfenster.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha20.4 - Studio-Frontend-Deduplizierung
+## 5.0.0-beta11.4 - Studio-Frontend-Deduplizierung
 
 ### Behoben
 - Doppelte isolierte Studio-Frontend-Blöcke aus dem alpha20.3-Recovery-Build entfernt.
@@ -361,7 +384,7 @@
 - Dies ist ein Cleanup-Hotfix für das alpha20-Recovery-/Testfenster.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha20.3 - Isolierter Studio-Frontend-Rebuild
+## 5.0.0-beta11.3 - Isolierter Studio-Frontend-Rebuild
 
 ### Hinzugefügt
 - alpha20.2-Platzhalter durch eine isolierte Studio-/CAD-Karte auf stabiler Frontendbasis ersetzt.
@@ -372,7 +395,7 @@
 - Dieser Stand gehört weiterhin zum alpha20-Recovery-/Testfenster.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha20.2 - Notfall-Frontend-Rollback
+## 5.0.0-beta11.2 - Notfall-Frontend-Rollback
 
 ### Behoben
 - Frontend-Ressource aus dem letzten stabilen v4.0.7-Frontendstand wiederhergestellt, damit Custom-Element-Registrierungen wieder funktionieren.
@@ -383,7 +406,7 @@
 - Dies ist ein Notfall-Hotfix für das Frontend-Laden im alpha20-Testfenster.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha20.1 - Init-Syntax-Hotfix
+## 5.0.0-beta11.1 - Init-Syntax-Hotfix
 
 ### Behoben
 - Formatierung von `__init__.py` nach dem alpha20-Testfenster repariert.
@@ -394,7 +417,7 @@
 - Dies ist ein Syntax-Hotfix für das alpha20-Testfenster, keine neue Feature-Alpha.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha20 - Studio-Health-Testfenster
+## 5.0.0-beta11 - Studio-Health-Testfenster
 
 ### Hinzugefügt
 - Studio-Health-Diagnosebackend für Profilbank, Studio-Plan, Dry-Run und Job-UI-Zustand ergänzt.
@@ -406,7 +429,7 @@
 - Diese Alpha ist als praktisches v5.20-Testfenster vorgesehen.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha19 - Studio-Job-UI liest studio_plan
+## 5.0.0-beta11 - Studio-Job-UI liest studio_plan
 
 ### Hinzugefügt
 - Studio-Job-Badges aus der gemeinsamen `studio_plan`-Struktur ergänzt.
@@ -418,7 +441,7 @@
 - Die Studio-UI verwendet `studio_plan` jetzt, sofern vorhanden, als primäre Planungs- und Statusquelle.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha18 - Persistente Studio-Job-Planstruktur
+## 5.0.0-beta11 - Persistente Studio-Job-Planstruktur
 
 ### Hinzugefügt
 - Gemeinsame `studio_plan`-Struktur für persistente Studio-Jobs ergänzt.
@@ -430,7 +453,7 @@
 - Die neue Planstruktur ist ein Planungs- und Validierungsgerüst für spätere Slicer-/Worker-Anbindung.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha17 - Dry-Run-Ergebnis im Studio-Jobpanel
+## 5.0.0-beta11 - Dry-Run-Ergebnis im Studio-Jobpanel
 
 ### Hinzugefügt
 - Sichtbares Dry-Run-Ergebnispanel für den Studio-Jobworkflow ergänzt.
@@ -442,7 +465,7 @@
 - Dieser Stand visualisiert ausschließlich Validierungs- und Planungsdaten.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha16 - Studio-Profilkontext für Dry-Run-Jobs
+## 5.0.0-beta11 - Studio-Profilkontext für Dry-Run-Jobs
 
 ### Hinzugefügt
 - Frontend-Übergabe des Profilkontexts für Studio-Dry-Run-Jobs ergänzt.
@@ -454,7 +477,7 @@
 - Der Dry-Run-Worker führt weiterhin nur Validierung aus.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha15 - Studio-Profilbank-UI-Anbindung
+## 5.0.0-beta11 - Studio-Profilbank-UI-Anbindung
 
 ### Hinzugefügt
 - Sichtbare Studio-UI-Anbindung für die persistente lokale Profilbank ergänzt.
@@ -466,7 +489,7 @@
 - Die UI verwendet die standalone lokale Profilbank aus alpha14.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha14 - Persistente Studio-Profilbank im Backend
+## 5.0.0-beta11 - Persistente Studio-Profilbank im Backend
 
 ### Hinzugefügt
 - Lokale persistente Studio-Profilbank im Backend über Home-Assistant-Storage ergänzt.
@@ -478,7 +501,7 @@
 - Die Profilbank ist lokal und standalone. Sie hängt nicht von ha-bambulab oder externen Bambu-Integrationen ab.
 - Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha13 - Dry-Run-UI-Binding-Fix
+## 5.0.0-beta11 - Dry-Run-UI-Binding-Fix
 
 ### Behoben
 - Robustes Event-Binding für den Studio-Dry-Run-Button ergänzt.
@@ -488,7 +511,7 @@
 ### Hinweise
 - Dieser Stand behebt die alpha12-UI-Binding-Warnung. Echtes Slicen und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha12 - Slicer-Worker-Dry-Run-Grundlage
+## 5.0.0-beta11 - Slicer-Worker-Dry-Run-Grundlage
 
 ### Hinzugefügt
 - Backend-Dry-Run-Worker-Grundlage zur Validierung von Studio-Slice-Jobs ergänzt, ohne einen echten Slicer auszuführen.
@@ -499,7 +522,7 @@
 ### Hinweise
 - Echtes Slicen und Direktdruck bleiben deaktiviert. Dieses Alpha bereitet den Backend-Ausführungspfad sicher für die spätere Worker-Integration vor.
 
-## 5.0.0-alpha11 - Alpha10-Testfenster-Diagnosefix
+## 5.0.0-beta11 - Alpha10-Testfenster-Diagnosefix
 
 ### Behoben
 - Sichergestellt, dass das Studio-Selbsttestpanel nach Studio-DOM-Aktualisierungen wirklich nachgerüstet wird.
@@ -509,7 +532,7 @@
 ### Hinweise
 - Dies ist ein Testfenster-Fix für den alpha10-Diagnosebuild. Echter Slicer-Lauf und Direktdruck bleiben weiterhin deaktiviert.
 
-## 5.0.0-alpha10 - Erstes v5-Studio-Testfenster mit Diagnose
+## 5.0.0-beta11 - Erstes v5-Studio-Testfenster mit Diagnose
 
 ### Hinzugefügt
 - Studio-Selbsttest-WebSocket-Kommando für das erste alpha10-Testfenster ergänzt.
@@ -523,7 +546,7 @@
 ### Hinweise
 - Echter Slicer-Lauf und Direktdruck bleiben weiterhin deaktiviert. Dieser Stand soll den ersten HA-Test strukturiert und diagnostizierbar machen.
 
-## 5.0.0-alpha9 - Backend-Job-Sync und Worker-Control-UI
+## 5.0.0-beta11 - Backend-Job-Sync und Worker-Control-UI
 
 ### Hinzugefügt
 - Studio-Jobliste wird gegen den persistenten Backend-Job-Speicher synchronisiert.
@@ -537,7 +560,7 @@
 ### Hinweise
 - Dieses Alpha startet noch keinen echten Slicer-Worker. Es bereitet Steuerung und Statusanzeige für das alpha10-Testfenster vor.
 
-## 5.0.0-alpha8 - Studio-WebSocket-Registrierung repariert
+## 5.0.0-beta11 - Studio-WebSocket-Registrierung repariert
 
 ### Hinzugefügt
 - Robuste Erkennung der Setup-Funktion für die Registrierung der v5-Studio-WebSocket-Kommandos ergänzt.
@@ -550,7 +573,7 @@
 ### Hinweise
 - Dieses Alpha führt weiterhin keinen echten Slicer aus. Es bereitet den Backend-Kommandoweg für das Testfenster alpha10 vor.
 
-## 5.0.0-alpha7 - Persistente Studio-Slice-Job-Backend-Grundlage
+## 5.0.0-beta11 - Persistente Studio-Slice-Job-Backend-Grundlage
 
 ### Hinzugefügt
 - Persistente Backend-Speicherung für v5-Studio-Slice-Jobs ergänzt.
@@ -563,7 +586,7 @@
 ### Hinweise
 - Dieses Alpha führt weiterhin keinen echten Slicer aus. Es erstellt die Backend-Job-/Statusstruktur für den späteren Slicer-Worker.
 
-## 5.0.0-alpha6 - Mobile Studio-Stabilität und Slice-Job-Grundlage
+## 5.0.0-beta11 - Mobile Studio-Stabilität und Slice-Job-Grundlage
 
 ### Hinzugefügt
 - Mobile Scroll- und Fokus-Erhaltung für den v5-Studio-/CAD-Manager ergänzt.
@@ -578,7 +601,7 @@
 ### Hinweise
 - Dieses Alpha führt noch keinen echten Slicer aus. Es bereitet das interne Job-/Statusmodell für die spätere Worker-Integration vor.
 
-## 5.0.0-alpha5 - Slicer-Profil- und Slice-Plan-Grundlage
+## 5.0.0-beta11 - Slicer-Profil- und Slice-Plan-Grundlage
 
 ### Hinzugefügt
 - Lokale Studio-Profilbank-Grundlage für Drucker, Druckplatten, Düsen, Filamente und Prozessprofile ergänzt.
@@ -593,7 +616,7 @@
 ### Hinweise
 - Dieses Alpha bereitet weiterhin nur Daten vor. Echtes Slicen und Direktdruck bleiben bis spätere Alpha-Schritte deaktiviert.
 
-## 5.0.0-alpha4 - Galerie-zu-Studio-Übergabe
+## 5.0.0-beta11 - Galerie-zu-Studio-Übergabe
 
 ### Hinzugefügt
 - Native Aktion „In Studio öffnen“ für Galerie-/Archivmodelle ergänzt.
@@ -609,7 +632,7 @@
 ### Hinweise
 - Dieses Alpha slicet und druckt noch nicht direkt. Es bereitet Modellübergabe und Transformationsstatus für die nächsten Slicer-/Profil-Schritte vor.
 
-## 5.0.0-alpha3 - v4-Standalone-Backend übernommen und Konflikt bereinigt
+## 5.0.0-beta11 - v4-Standalone-Backend übernommen und Konflikt bereinigt
 
 ### Hinzugefügt
 - Die v4.0.7-Standalone-Bambu-Backend-Basis wurde in den v5-Entwicklungsbranch übernommen.

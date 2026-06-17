@@ -1,4 +1,27 @@
-## 5.0.0-beta10 - Buildplate Interaction + Primitive Objects
+## 5.0.0-beta11 - Studio Navigation + Real Primitive Mesh
+
+### English
+- Fixed the top Studio navigation regression by hiding transform/edit buttons after every render.
+- Kept only workflow actions in the top navigation while transform/edit actions remain in the right inspector.
+- Added cleanup for visible `[object Object]` artefacts.
+- Reworked primitive object creation to clear the persistent Studio job store first and then create one exclusive active primitive job.
+- Replaced primitive proxy styling with a real generated mesh preview rendered into a dedicated canvas.
+- Added geometric mesh rendering for cube, cylinder, rectangle, square and sphere primitives.
+- Hardened Delete and empty-state cleanup so no stale object, label or filename remains on the buildplate.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Regression in der oberen Studio-Navigation korrigiert: Transform-/Bearbeitungsbuttons werden nach jedem Render oben ausgeblendet.
+- Oben bleiben nur Workflow-Aktionen; Bearbeitung bleibt rechts im Transform-Inspector.
+- Sichtbare `[object Object]`-Artefakte werden entfernt.
+- Primitive-Objekterstellung leert zuerst den persistenten Studio-Jobstore und erzeugt danach genau einen exklusiven aktiven Primitive-Job.
+- Primitive werden nicht mehr als Proxy-CSS-Objekt dargestellt, sondern als echtes berechnetes Mesh in einem eigenen Canvas gerendert.
+- Geometrisches Mesh-Rendering für Würfel, Zylinder, Rechteck, Quadrat und Kugel ergänzt.
+- Löschen und leerer Zustand wurden gehärtet, sodass keine alten Objekte, Labels oder Dateinamen auf der Buildplate stehen bleiben.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
+## 5.0.0-beta11 - Buildplate Interaction + Primitive Objects
 
 ### English
 - Kept the Bambu-style build plate dropdown open until the user clicks outside it.
@@ -23,7 +46,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta9 - Buildplate Selector Visual Fix
+## 5.0.0-beta11 - Buildplate Selector Visual Fix
 
 ### English
 - Fixed the Studio build plate selector visuals after the beta8 test.
@@ -42,7 +65,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta8 - Bambu Studio Buildplate Selector
+## 5.0.0-beta11 - Bambu Studio Buildplate Selector
 
 ### English
 - Reworked the Studio build plate selector to match the Bambu Studio interaction pattern more closely.
@@ -63,7 +86,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta7 - Morning Final Studio Polish
+## 5.0.0-beta11 - Morning Final Studio Polish
 
 ### English
 - Added a global visible-text UTF-8/mojibake sanitizer for Printer Control Center cards and open Shadow DOM roots.
@@ -88,7 +111,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta6 - Studio Import Buildplate Showcase
+## 5.0.0-beta11 - Studio Import Buildplate Showcase
 
 ### English
 - Added a dedicated Studio import popup behind the Import button.
@@ -115,7 +138,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta5 - Studio Navigation + Preview Handoff
+## 5.0.0-beta11 - Studio Navigation + Preview Handoff
 
 ### English
 - Cleaned the Studio top navigation by removing duplicate edit actions: Move, Rotate, Scale, Rot -45, Rot +45, Scale - and Scale +.
@@ -136,7 +159,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta4 - Context Menu + Model Image Fix
+## 5.0.0-beta11 - Context Menu + Model Image Fix
 
 ### English
 - Fixed the beta3 Studio startup failure caused by reading `dataset` from a ShadowRoot in the context-menu binding.
@@ -155,7 +178,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta3 - Studio UI Cleanup
+## 5.0.0-beta11 - Studio UI Cleanup
 
 ### English
 - Cleaned the Studio top navigation by removing edit actions that already exist in the right Transform inspector.
@@ -176,7 +199,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta2 - Studio Prototype Hotfix
+## 5.0.0-beta11 - Studio Prototype Hotfix
 
 ### English
 - Fixed the beta1 Studio startup failure where `cleanupBetaStudioUi` could be missing on the registered CustomElement prototype.
@@ -197,7 +220,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-beta1 - Studio Stabilization
+## 5.0.0-beta11 - Studio Stabilization
 
 ### English
 - Promoted the v5 Studio branch to beta after the alpha25 interactive control baseline.
@@ -220,7 +243,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-alpha25 - Interactive Control Fix + Mesh Viewer
+## 5.0.0-beta11 - Interactive Control Fix + Mesh Viewer
 
 ### English
 - Fixed the alpha24 interactive controls by adding actual method implementations instead of only event-listener call markers.
@@ -241,7 +264,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-alpha24 - Interactive Studio Control
+## 5.0.0-beta11 - Interactive Studio Control
 
 ### English
 - Added an interactive Studio control step on top of the alpha23 transform engine.
@@ -266,7 +289,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-alpha23 - Studio Transform Engine
+## 5.0.0-beta11 - Studio Transform Engine
 
 ### English
 - Added a larger Studio Transform Engine step after the alpha22 Beta Foundation handoff.
@@ -287,7 +310,7 @@
 - Echtes Slicen und Direktdruck bleiben deaktiviert.
 
 
-## 5.0.0-alpha22 - Beta Foundation Gallery-to-Studio Workflow
+## 5.0.0-beta11 - Beta Foundation Gallery-to-Studio Workflow
 
 ### English
 - Added a larger Beta Foundation step for the v5 Studio workflow.
@@ -310,7 +333,7 @@
 
 # Changelog
 
-## 5.0.0-alpha21 - Consolidated Studio Dry-Run/Profile release
+## 5.0.0-beta11 - Consolidated Studio Dry-Run/Profile release
 
 ### Added
 - Connected the isolated Studio card to the persistent backend profile bank.
@@ -327,7 +350,7 @@
 - Real slicing remains disabled.
 - Direct print remains disabled.
 
-## 5.0.0-alpha20.6 - Studio plan fallback for isolated Dry-Run
+## 5.0.0-beta11.6 - Studio plan fallback for isolated Dry-Run
 
 ### Fixed
 - Added a local `studio_plan` fallback when the isolated Studio Dry-Run result does not return a plan object.
@@ -338,7 +361,7 @@
 - This remains part of the alpha20 recovery/test window.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha20.5 - Isolated Studio Dry-Run plan UI
+## 5.0.0-beta11.5 - Isolated Studio Dry-Run plan UI
 
 ### Added
 - Added backend Dry-Run execution from the isolated Studio card.
@@ -350,7 +373,7 @@
 - This is still part of the alpha20 recovery/test window.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha20.4 - Studio frontend deduplication cleanup
+## 5.0.0-beta11.4 - Studio frontend deduplication cleanup
 
 ### Fixed
 - Removed duplicate isolated Studio frontend blocks from the alpha20.3 recovery build.
@@ -361,7 +384,7 @@
 - This is a cleanup hotfix for the alpha20 recovery/test window.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha20.3 - Isolated Studio frontend rebuild
+## 5.0.0-beta11.3 - Isolated Studio frontend rebuild
 
 ### Added
 - Replaced the alpha20.2 placeholder with an isolated Studio/CAD card on top of the stable frontend baseline.
@@ -372,7 +395,7 @@
 - This is still part of the alpha20 recovery/test window.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha20.2 - Emergency frontend rollback
+## 5.0.0-beta11.2 - Emergency frontend rollback
 
 ### Fixed
 - Restored the frontend resource from the last stable v4.0.7 frontend baseline to recover custom element registration.
@@ -383,7 +406,7 @@
 - This is an emergency frontend loading hotfix for the alpha20 test window.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha20.1 - Init syntax hotfix
+## 5.0.0-beta11.1 - Init syntax hotfix
 
 ### Fixed
 - Repaired `__init__.py` formatting after the alpha20 test-window build.
@@ -394,7 +417,7 @@
 - This is a syntax hotfix for the alpha20 test window, not a new feature alpha.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha20 - Studio health test window
+## 5.0.0-beta11 - Studio health test window
 
 ### Added
 - Added a Studio health diagnostics backend for profile bank, Studio plan, Dry-Run and job UI state.
@@ -406,7 +429,7 @@
 - This alpha is intended as the v5.20 practical test window.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha19 - Studio job UI reads studio_plan
+## 5.0.0-beta11 - Studio job UI reads studio_plan
 
 ### Added
 - Added Studio job badges derived from the shared `studio_plan` structure.
@@ -418,7 +441,7 @@
 - The Studio UI now treats `studio_plan` as the primary planning/status source where available.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha18 - Persistent Studio job plan structure
+## 5.0.0-beta11 - Persistent Studio job plan structure
 
 ### Added
 - Added a shared `studio_plan` structure for persistent Studio jobs.
@@ -430,7 +453,7 @@
 - The new plan structure is a planning and validation scaffold for later slicer/worker integration.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha17 - Dry-run result UI in Studio job panel
+## 5.0.0-beta11 - Dry-run result UI in Studio job panel
 
 ### Added
 - Added a visible Dry-Run result panel for the Studio job workflow.
@@ -442,7 +465,7 @@
 - This release only visualizes validation/planning data.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha16 - Studio profile context for dry-run jobs
+## 5.0.0-beta11 - Studio profile context for dry-run jobs
 
 ### Added
 - Added frontend profile-context handoff for Studio Dry-Run jobs.
@@ -454,7 +477,7 @@
 - The Dry-Run worker still performs validation only.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha15 - Studio profile bank UI binding
+## 5.0.0-beta11 - Studio profile bank UI binding
 
 ### Added
 - Added visible Studio UI binding for the persistent local profile bank.
@@ -466,7 +489,7 @@
 - The UI uses the standalone local profile bank introduced in alpha14.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha14 - Persistent Studio profile bank backend
+## 5.0.0-beta11 - Persistent Studio profile bank backend
 
 ### Added
 - Added a local persistent Studio profile bank backend using Home Assistant storage.
@@ -478,7 +501,7 @@
 - The profile bank is local and standalone. It does not depend on ha-bambulab or external Bambu integrations.
 - Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha13 - Dry-run UI binding fix
+## 5.0.0-beta11 - Dry-run UI binding fix
 
 ### Fixed
 - Added robust event binding for the Studio Dry-Run button.
@@ -488,7 +511,7 @@
 ### Notes
 - This fixes the alpha12 UI binding warning. Real slicing and direct printing remain disabled.
 
-## 5.0.0-alpha12 - Slicer worker dry-run scaffold
+## 5.0.0-beta11 - Slicer worker dry-run scaffold
 
 ### Added
 - Added a backend dry-run worker scaffold for validating Studio slice jobs without executing a real slicer.
@@ -499,7 +522,7 @@
 ### Notes
 - Real slicing and direct printing remain disabled. This alpha prepares the backend execution path safely for later worker integration.
 
-## 5.0.0-alpha11 - Alpha10 test-window diagnostics fix
+## 5.0.0-beta11 - Alpha10 test-window diagnostics fix
 
 ### Fixed
 - Ensured the Studio self-test panel is actually decorated after Studio DOM updates.
@@ -509,7 +532,7 @@
 ### Notes
 - This is a test-window fix for the alpha10 diagnostics build. Real slicer execution and direct printing remain disabled.
 
-## 5.0.0-alpha10 - First v5 Studio test-window diagnostics
+## 5.0.0-beta11 - First v5 Studio test-window diagnostics
 
 ### Added
 - Added a Studio self-test WebSocket command for the first alpha10 test window.
@@ -523,7 +546,7 @@
 ### Notes
 - Real slicer execution and direct printing are still disabled. This build is intended to make the first HA test structured and diagnosable.
 
-## 5.0.0-alpha9 - Backend job sync and worker-control UI
+## 5.0.0-beta11 - Backend job sync and worker-control UI
 
 ### Added
 - Added Studio job-list synchronization against the persistent backend job store.
@@ -537,7 +560,7 @@
 ### Notes
 - This alpha still does not start a real slicer worker. It prepares the control and status surface for the alpha10 test window.
 
-## 5.0.0-alpha8 - Studio WebSocket registration repair
+## 5.0.0-beta11 - Studio WebSocket registration repair
 
 ### Added
 - Added robust setup-function detection for registering the v5 Studio WebSocket commands.
@@ -550,7 +573,7 @@
 ### Notes
 - This alpha still avoids a real slicer execution. It prepares the backend command path for the alpha10 test window.
 
-## 5.0.0-alpha7 - Persistent Studio slice-job backend scaffold
+## 5.0.0-beta11 - Persistent Studio slice-job backend scaffold
 
 ### Added
 - Added a persistent backend slice-job store for the v5 Studio workflow.
@@ -563,7 +586,7 @@
 ### Notes
 - This alpha still does not execute a real slicer. It creates the backend job/status structure required for the later slicer worker.
 
-## 5.0.0-alpha6 - Mobile Studio stability and slice-job scaffold
+## 5.0.0-beta11 - Mobile Studio stability and slice-job scaffold
 
 ### Added
 - Added mobile scroll and focus preservation for the v5 Studio/CAD manager.
@@ -578,7 +601,7 @@
 ### Notes
 - This alpha still does not run a real slicer. It prepares the internal job/status model for later worker integration.
 
-## 5.0.0-alpha5 - Slicer profile and slice-plan scaffold
+## 5.0.0-beta11 - Slicer profile and slice-plan scaffold
 
 ### Added
 - Added local Studio profile-bank groundwork for printers, build plates, nozzles, filaments and process profiles.
@@ -593,7 +616,7 @@
 ### Notes
 - This alpha still prepares data only. Real slicing and direct printing remain disabled until later alpha steps.
 
-## 5.0.0-alpha4 - Gallery to Studio handoff
+## 5.0.0-beta11 - Gallery to Studio handoff
 
 ### Added
 - Added native "Open in Studio" actions for gallery/archive models.
@@ -609,7 +632,7 @@
 ### Notes
 - This alpha still does not slice or print directly. It prepares the model handoff and transform state needed for the next slicer/profile steps.
 
-## 5.0.0-alpha3 - v4 standalone backend sync and conflict recovery
+## 5.0.0-beta11 - v4 standalone backend sync and conflict recovery
 
 ### Added
 - Added the v4.0.7 standalone Bambu backend foundation to the v5 development branch.

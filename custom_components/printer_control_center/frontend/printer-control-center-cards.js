@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta100*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta11*/
 (() => {
-  const VERSION = "5.0.0-beta100";
+  const VERSION = "5.0.0-beta11";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta100",
+        version: "5.0.0-beta11",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta100";
+  const STUDIO_VERSION = "5.0.0-beta11";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -4881,7 +4881,7 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta10 Buildplate Interaction + Primitive Objects bereit. Bettmenü bleibt offen, Raster ist entfernt, XYZ-Mauskoordinaten sind aktiv, leere Buildplate zeigt kein altes Modell und einfache Objekte können hinzugefügt werden.";
+      this._status = "beta11 Studio Navigation + Real Primitive Mesh bereit. Obere Navigation ist bereinigt, Primitive werden exklusiv gespeichert und als echte Mesh-Geometrie im Canvas gerendert.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -4944,7 +4944,7 @@
       this.ensureStudioMeshLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Beta10: Home Assistant pushes frequent hass updates.
+      // Beta11: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -6039,7 +6039,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta10: no full render on every keystroke.
+      // Beta11: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -6054,7 +6054,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta10: render is intentionally skipped while editing to avoid cursor jumps.
+      // Beta11: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -6443,7 +6443,7 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta10 Buildplate Interaction + Primitive Objects</div>
+                  <div class="plate-label">Buildplate - beta11 Studio Navigation + Real Primitive Mesh</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   ${this._studioModelImageUrl ? html`
@@ -11328,6 +11328,583 @@
     } catch (_error) {}
   };
 
+
+  const PCC_BETA11_PRIMITIVES = [
+    {id:"cube", name:"Würfel", shape:"cube"},
+    {id:"cylinder", name:"Zylinder", shape:"cylinder"},
+    {id:"rectangle", name:"Rechteck", shape:"rectangle"},
+    {id:"square", name:"Quadrat", shape:"square"},
+    {id:"sphere", name:"Kugel", shape:"sphere"}
+  ];
+
+  function pccBeta11Esc(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[char]));
+  }
+
+  function pccBeta11PrimitiveById(id) {
+    const wanted = String(id || "").trim();
+    return PCC_BETA11_PRIMITIVES.find((item) => item.id === wanted) || PCC_BETA11_PRIMITIVES[0];
+  }
+
+  const PCC_BETA11_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA11_PREV_CLEANUP = PCC_BETA11_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+
+  PCC_BETA11_STUDIO_CLASS.prototype.beta11PrimitiveKind = function beta11PrimitiveKind() {
+    return String(
+      this._activeJob?.primitive_kind ||
+      this._activeJob?.model?.primitive_kind ||
+      this._activeJob?.primitive?.kind ||
+      ""
+    ).trim();
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.beta11HasActiveModel = function beta11HasActiveModel() {
+    const job = this._activeJob || null;
+    if (!job) return false;
+
+    const source = String(job.source || job.origin || job.model?.source || "").trim();
+    const primitive = this.beta11PrimitiveKind();
+    if (source === "primitive" || primitive) return true;
+
+    const name = String(job.modelName || job.file_name || job.filename || job.name || job.model?.name || "").trim();
+    const path = String(job.file_path || job.path || job.model?.path || "").trim();
+
+    if (path && /\.(3mf|stl|obj)$/i.test(path)) return true;
+    if (name && /\.(3mf|stl|obj)$/i.test(name)) return true;
+
+    return false;
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.beta11EnsureStyle = function beta11EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta11-studio-fix-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta11-studio-fix-style";
+    style.textContent = `
+      .pcc-beta11-primitive-canvas{
+        position:absolute;
+        left:50%;
+        top:50%;
+        width:220px;
+        height:170px;
+        transform:translate(-50%,-54%);
+        z-index:42;
+        pointer-events:auto;
+        filter:drop-shadow(0 20px 28px rgba(0,0,0,.46));
+      }
+      .buildplate.pcc-beta10-empty .pcc-beta11-primitive-canvas,
+      .buildplate.pcc-beta11-empty .pcc-beta11-primitive-canvas{
+        display:none!important;
+      }
+      .buildplate.pcc-beta11-primitive-active .model{
+        opacity:0!important;
+        background:transparent!important;
+        box-shadow:none!important;
+        border:0!important;
+      }
+      .buildplate.pcc-beta11-primitive-active .studio-mesh-canvas,
+      .buildplate.pcc-beta11-primitive-active .studio-model-image{
+        display:none!important;
+      }
+      .buildplate.pcc-beta11-empty .model,
+      .buildplate.pcc-beta11-empty .model-label,
+      .buildplate.pcc-beta11-empty .studio-mesh-canvas,
+      .buildplate.pcc-beta11-empty .studio-model-image{
+        display:none!important;
+      }
+      .pcc-beta11-hidden-top-action{
+        display:none!important;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.beta11CleanTopNavigation = function beta11CleanTopNavigation() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const removeTexts = new Set([
+      "Verschieben",
+      "Drehen",
+      "Skalieren",
+      "Zoom -",
+      "Zoom+",
+      "Zoom +",
+      "Rot -45",
+      "Rot +45",
+      "Scale -",
+      "Scale +",
+      "Spiegel X",
+      "Spiegel Y",
+      "Spiegel Z",
+      "Zerr X -",
+      "Zerr X +",
+      "Zerr Y -",
+      "Zerr Y +",
+      "Raster",
+      "Duplizieren",
+      "Zentrieren",
+      "Flach legen"
+    ]);
+
+    const removeActions = new Set([
+      "move",
+      "rotate",
+      "scale",
+      "zoom-out",
+      "zoom-in",
+      "rotate-left",
+      "rotate-right",
+      "scale-down",
+      "scale-up",
+      "mirror-x",
+      "mirror-y",
+      "mirror-z",
+      "skew-x-down",
+      "skew-x-up",
+      "skew-y-down",
+      "skew-y-up",
+      "snap-grid",
+      "duplicate",
+      "center",
+      "lay-flat"
+    ]);
+
+    const hostRect = this.getBoundingClientRect?.() || {top:0};
+
+    for (const button of [...root.querySelectorAll("button")]) {
+      const text = String(button.textContent || "").replace(/\s+/g, " ").trim();
+      const action = String(button.dataset?.action || "").trim();
+      const rect = button.getBoundingClientRect?.();
+      const topDelta = rect ? (rect.top - hostRect.top) : 9999;
+
+      const inTopNavigation =
+        topDelta >= -10 &&
+        topDelta < 115 &&
+        !button.closest(".panel:nth-of-type(3)") &&
+        !button.closest(".studio-context") &&
+        !button.closest(".pcc-beta10-selector");
+
+      if (inTopNavigation && (removeTexts.has(text) || removeActions.has(action))) {
+        button.classList.add("pcc-beta11-hidden-top-action");
+        button.setAttribute("aria-hidden", "true");
+        button.tabIndex = -1;
+      }
+    }
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.beta11CleanObjectObjectText = function beta11CleanObjectObjectText() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const toClean = [];
+
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (String(node.nodeValue || "").includes("[object Object]")) {
+        toClean.push(node);
+      }
+    }
+
+    for (const node of toClean) {
+      node.nodeValue = String(node.nodeValue || "").replaceAll("[object Object]", "").trim();
+    }
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.beta11BuildMesh = function beta11BuildMesh(kind) {
+    const primitive = pccBeta11PrimitiveById(kind);
+    const shape = primitive.shape;
+
+    if (shape === "sphere") {
+      const verts = [];
+      const faces = [];
+      const lat = 12;
+      const lon = 18;
+      const r = 38;
+
+      for (let i = 0; i <= lat; i++) {
+        const theta = Math.PI * i / lat;
+        for (let j = 0; j <= lon; j++) {
+          const phi = 2 * Math.PI * j / lon;
+          verts.push([
+            r * Math.sin(theta) * Math.cos(phi),
+            r * Math.cos(theta),
+            r * Math.sin(theta) * Math.sin(phi)
+          ]);
+        }
+      }
+
+      for (let i = 0; i < lat; i++) {
+        for (let j = 0; j < lon; j++) {
+          const a = i * (lon + 1) + j;
+          const b = a + lon + 1;
+          faces.push([a, b, a + 1]);
+          faces.push([b, b + 1, a + 1]);
+        }
+      }
+
+      return {verts, faces, name:primitive.name};
+    }
+
+    if (shape === "cylinder") {
+      const verts = [];
+      const faces = [];
+      const n = 28;
+      const r = 34;
+      const h = 56;
+
+      for (let z of [-h/2, h/2]) {
+        for (let i = 0; i < n; i++) {
+          const a = 2 * Math.PI * i / n;
+          verts.push([r * Math.cos(a), z, r * Math.sin(a)]);
+        }
+      }
+
+      const bottomCenter = verts.length;
+      verts.push([0, -h/2, 0]);
+      const topCenter = verts.length;
+      verts.push([0, h/2, 0]);
+
+      for (let i = 0; i < n; i++) {
+        const ni = (i + 1) % n;
+        faces.push([i, ni, n + i]);
+        faces.push([ni, n + ni, n + i]);
+        faces.push([bottomCenter, ni, i]);
+        faces.push([topCenter, n + i, n + ni]);
+      }
+
+      return {verts, faces, name:primitive.name};
+    }
+
+    const dims = {
+      cube: [70, 70, 70],
+      square: [74, 12, 74],
+      rectangle: [110, 14, 58]
+    }[shape] || [70, 70, 70];
+
+    const [w, h, d] = dims;
+    const x = w / 2;
+    const y = h / 2;
+    const z = d / 2;
+
+    const verts = [
+      [-x,-y,-z],[ x,-y,-z],[ x, y,-z],[-x, y,-z],
+      [-x,-y, z],[ x,-y, z],[ x, y, z],[-x, y, z]
+    ];
+
+    const faces = [
+      [0,1,2],[0,2,3],
+      [4,6,5],[4,7,6],
+      [0,4,5],[0,5,1],
+      [1,5,6],[1,6,2],
+      [2,6,7],[2,7,3],
+      [3,7,4],[3,4,0]
+    ];
+
+    return {verts, faces, name:primitive.name};
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.beta11ProjectMesh = function beta11ProjectMesh(mesh, width, height) {
+    const rz = 0.58;
+    const rx = -0.72;
+    const ry = 0.22;
+    const scale = Math.min(width, height) / 210;
+
+    const sinZ = Math.sin(rz), cosZ = Math.cos(rz);
+    const sinX = Math.sin(rx), cosX = Math.cos(rx);
+    const sinY = Math.sin(ry), cosY = Math.cos(ry);
+
+    return mesh.verts.map(([x0, y0, z0]) => {
+      let x = x0, y = y0, z = z0;
+
+      let x1 = x * cosY + z * sinY;
+      let z1 = -x * sinY + z * cosY;
+      x = x1; z = z1;
+
+      let y1 = y * cosX - z * sinX;
+      z1 = y * sinX + z * cosX;
+      y = y1; z = z1;
+
+      x1 = x * cosZ - y * sinZ;
+      y1 = x * sinZ + y * cosZ;
+      x = x1; y = y1;
+
+      const perspective = 1 / (1 + (z + 110) / 420);
+      return {
+        x: width / 2 + x * scale * perspective,
+        y: height / 2 + y * scale * perspective,
+        z
+      };
+    });
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.beta11RenderPrimitiveMesh = function beta11RenderPrimitiveMesh() {
+    const root = this.shadowRoot;
+    const buildplate = root?.querySelector?.(".buildplate");
+    if (!root || !buildplate) return;
+
+    let canvas = buildplate.querySelector(".pcc-beta11-primitive-canvas");
+    const kind = this.beta11PrimitiveKind();
+
+    if (!kind || !this.beta11HasActiveModel()) {
+      if (canvas) canvas.remove();
+      return;
+    }
+
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      canvas.className = "pcc-beta11-primitive-canvas";
+      canvas.width = 440;
+      canvas.height = 340;
+      buildplate.appendChild(canvas);
+    }
+
+    const primitive = pccBeta11PrimitiveById(kind);
+    canvas.dataset.primitive = primitive.id;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const mesh = this.beta11BuildMesh(primitive.id);
+    const points = this.beta11ProjectMesh(mesh, w, h);
+
+    const faceData = mesh.faces.map((face) => {
+      const avgZ = face.reduce((sum, idx) => sum + points[idx].z, 0) / face.length;
+      return {face, avgZ};
+    }).sort((a, b) => a.avgZ - b.avgZ);
+
+    const fillBase = [
+      "rgba(0, 186, 220, .92)",
+      "rgba(0, 142, 180, .94)",
+      "rgba(25, 216, 245, .88)",
+      "rgba(0, 112, 150, .96)"
+    ];
+
+    for (let i = 0; i < faceData.length; i++) {
+      const {face, avgZ} = faceData[i];
+      const shade = Math.max(0.42, Math.min(1, (avgZ + 85) / 170));
+      const color = fillBase[i % fillBase.length];
+
+      ctx.beginPath();
+      const p0 = points[face[0]];
+      ctx.moveTo(p0.x, p0.y);
+      for (let k = 1; k < face.length; k++) {
+        const p = points[face[k]];
+        ctx.lineTo(p.x, p.y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.globalAlpha = shade;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = "rgba(210,250,255,.22)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    const label = root.querySelector(".model-label");
+    if (label) label.textContent = primitive.name;
+
+    const model = root.querySelector(".model");
+    if (model) {
+      model.style.opacity = "0";
+      model.style.background = "transparent";
+      model.style.boxShadow = "none";
+    }
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.beta11SyncEmptyState = function beta11SyncEmptyState() {
+    const root = this.shadowRoot;
+    const buildplate = root?.querySelector?.(".buildplate");
+    if (!root || !buildplate) return;
+
+    const hasModel = this.beta11HasActiveModel();
+    const primitive = this.beta11PrimitiveKind();
+
+    buildplate.classList.toggle("pcc-beta11-empty", !hasModel);
+    buildplate.classList.toggle("pcc-beta11-primitive-active", Boolean(hasModel && primitive));
+
+    const label = root.querySelector(".model-label");
+    const model = root.querySelector(".model");
+    const mesh = root.querySelector(".studio-mesh-canvas");
+    const image = root.querySelector(".studio-model-image");
+
+    if (!hasModel) {
+      if (label) {
+        label.textContent = "";
+        label.style.display = "none";
+      }
+      for (const node of [model, mesh, image]) {
+        if (node) node.style.display = "none";
+      }
+      buildplate.querySelector(".pcc-beta11-primitive-canvas")?.remove();
+      return;
+    }
+
+    if (primitive) {
+      if (label) label.style.display = "";
+      if (model) model.style.display = "";
+      if (mesh) mesh.style.display = "none";
+      if (image) image.style.display = "none";
+      this.beta11RenderPrimitiveMesh();
+    }
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.beta11AddPrimitive = async function beta11AddPrimitive(kind) {
+    const primitive = pccBeta11PrimitiveById(kind);
+    const plate = this.beta10CurrentPlate?.() || this.beta9CurrentPlate?.() || {id:"smooth_pei_high_temp", name:"Smooth PEI Plate / High Temp Plate", short:"Smooth PEI / High Temp", surface:"smooth"};
+    const now = new Date().toISOString();
+    const serial = String(this._config?.serial || this._activeJob?.serial || "");
+
+    try {
+      await this.ws({type:"printer_control_center/studio_jobs/clear"});
+    } catch (_error) {}
+
+    const transform = {...defaultTransform(), x: 0, y: 0, z: 0, scale: 100, rotX: 0, rotY: 0, rotZ: 0};
+
+    const plan = {
+      id: `primitive-${primitive.id}-${Date.now()}`,
+      version: STUDIO_VERSION,
+      schema: "printer-control-center.v5.beta11.primitive_mesh",
+      source: "primitive",
+      origin: "primitive",
+      serial,
+      created_at: now,
+      updated_at: now,
+      modelName: primitive.name,
+      file_name: primitive.name,
+      filename: primitive.name,
+      file_path: `primitive://${primitive.id}`,
+      path: `primitive://${primitive.id}`,
+      primitive_kind: primitive.id,
+      primitive_mesh: true,
+      model: {
+        name: primitive.name,
+        source: "primitive",
+        path: `primitive://${primitive.id}`,
+        primitive_kind: primitive.id,
+        primitive_mesh: true
+      },
+      build_plate: plate.name,
+      build_plate_id: plate.id,
+      transform,
+      profile_context: {
+        ...(this.buildProfileContext?.() || this.defaultProfileContext?.() || {}),
+        build_plate: {id:plate.id, name:plate.name, short:plate.short, surface:plate.surface},
+        build_plate_id: plate.id
+      },
+      real_slicing_enabled: false,
+      direct_print_enabled: false,
+      status: "prepared",
+      stage: "primitive_mesh",
+      message: "Echtes lokales Primitive-Mesh im Studio erzeugt. Echtes Slicen und Direktdruck bleiben deaktiviert."
+    };
+
+    let job = plan;
+
+    try {
+      const response = await this.ws({
+        type: "printer_control_center/studio_jobs/create",
+        serial,
+        plan
+      });
+      job = response?.job || response || plan;
+    } catch (_error) {
+      job = plan;
+    }
+
+    this._jobs = [job];
+    this._jobsLoaded = true;
+    this._activeJob = job;
+    this._activeJobId = job.id || "";
+    this._transform = {...transform};
+    this._studioMesh = null;
+    this._studioMeshJobId = "";
+    this._studioMeshUrl = "";
+    this._studioModelImageUrl = "";
+    this._lastDryRun = null;
+    this._lastStudioPlan = null;
+    this._beta10PlateDropdownOpen = false;
+    this._beta10ObjectDropdownOpen = false;
+    this._status = `Echtes Primitive-Mesh hinzugefügt: ${primitive.name}.`;
+
+    this.render();
+
+    window.setTimeout(() => {
+      this.beta11CleanupAfterRender?.();
+    }, 0);
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.deleteActiveJob = async function deleteActiveJob() {
+    try {
+      await this.ws({type:"printer_control_center/studio_jobs/clear"});
+    } catch (_error) {}
+
+    this._jobs = [];
+    this._jobsLoaded = true;
+    this._activeJob = null;
+    this._activeJobId = "";
+    this._transform = defaultTransform();
+    this._studioMesh = null;
+    this._studioMeshJobId = "";
+    this._studioMeshUrl = "";
+    this._studioModelImageUrl = "";
+    this._lastDryRun = null;
+    this._lastStudioPlan = null;
+    this._beta10PlateDropdownOpen = false;
+    this._beta10ObjectDropdownOpen = false;
+    this._status = "Studio-Objekt entfernt. Die Buildplate ist leer.";
+
+    this.render();
+
+    window.setTimeout(() => {
+      this.beta11CleanupAfterRender?.();
+    }, 0);
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.beta11CleanupAfterRender = function beta11CleanupAfterRender() {
+    this.beta11EnsureStyle();
+    this.beta11CleanTopNavigation();
+    this.beta11CleanObjectObjectText();
+    this.beta10RenderSelector?.();
+    this.beta10ApplyBuildplateVisual?.();
+    this.beta11SyncEmptyState();
+
+    try {
+      if (typeof pccBeta7SanitizeRoot === "function") pccBeta7SanitizeRoot(this.shadowRoot);
+    } catch (_error) {}
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
+    try {
+      if (typeof PCC_BETA11_PREV_CLEANUP === "function") {
+        PCC_BETA11_PREV_CLEANUP.call(this);
+      }
+    } catch (_error) {}
+
+    this.beta11CleanupAfterRender();
+
+    window.setTimeout(() => {
+      this.beta11CleanupAfterRender?.();
+    }, 50);
+  };
+
+  PCC_BETA11_STUDIO_CLASS.prototype.beta10AddPrimitive = function beta10AddPrimitive(kind) {
+    return this.beta11AddPrimitive(kind);
+  };
+
   if (!customElements.get("printer-control-center-studio-card")) {
     customElements.define("printer-control-center-studio-card", PrinterControlCenterStudioCard);
   }
@@ -11337,7 +11914,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta10 Buildplate Interaction + Primitive Objects with persistent buildplate dropdown, no grid overlay, live XYZ coordinates, empty-state cleanup and primitive object creation."
+      description: "v5 beta11 Studio Navigation + Real Primitive Mesh with cleaned workflow navigation, exclusive primitive jobs, hard empty-state cleanup and real geometric primitive mesh rendering."
     });
   }
 })();

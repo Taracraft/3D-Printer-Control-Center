@@ -1,3 +1,22 @@
+## 5.0.0-beta33 - Emergency restore Studio view
+
+### Deutsch
+- Entfernt die kaputten beta31/beta32 Studio-Cleanup-Änderungen aus dem aktiven Code.
+- Stellt den letzten sichtbar ladenden Studio-Stand auf Basis beta30 wieder her.
+- Behebt damit die leere 3D-Studio-Seite nach beta31/beta32.
+- Keine Kamera-, Dashboard-, Backend-, Host- oder Verbindungsänderungen.
+- Kein beta24-Code wird wieder eingeführt.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Removes the broken beta31/beta32 Studio cleanup changes from active code.
+- Restores the last visibly loading Studio base from beta30.
+- Fixes the blank 3D Studio page after beta31/beta32.
+- No camera, dashboard, backend, host or connection changes.
+- No beta24 code is reintroduced.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta32 - Fix beta31 ShadowRoot context guard crash
 
 ### Deutsch

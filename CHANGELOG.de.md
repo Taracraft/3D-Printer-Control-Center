@@ -1,3 +1,28 @@
+## 5.0.0-beta10 - Buildplate Interaction + Primitive Objects
+
+### English
+- Kept the Bambu-style build plate dropdown open until the user clicks outside it.
+- Removed the visible grid/raster overlay from the Studio buildplate surface.
+- Added a live XYZ coordinate overlay while hovering the buildplate, formatted with one decimal place.
+- Added a moving XYZ axis cursor on the buildplate hover position.
+- Hardened empty-state handling: no object, no label and no stale filename are shown when no model/job is loaded.
+- Reworked Delete so the active job, mesh, preview, transform and plan state are cleared together.
+- Added a Bambu-style Object tile next to the printer/plate/sync tiles.
+- Added simple primitive object creation: cube, cylinder, rectangle, square and sphere.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Bambu-ähnliches Druckplatten-Dropdown bleibt offen, bis außerhalb geklickt wird.
+- Sichtbares Raster auf der Studio-Buildplate entfernt.
+- Live-XYZ-Koordinaten beim Überfahren der Buildplate ergänzt, mit einer Nachkommastelle.
+- Bewegliche XYZ-Achse an der Mausposition auf der Buildplate ergänzt.
+- Leerer Zustand gehärtet: ohne geladenes Modell/Job werden kein Objekt, kein Label und kein alter Dateiname angezeigt.
+- Löschen entfernt aktiven Job, Mesh, Vorschau, Transform- und Planstatus gemeinsam.
+- Bambu-ähnliche Objekt-Kachel neben Drucker-/Platten-/Sync-Kacheln ergänzt.
+- Einfache Grundkörper ergänzt: Würfel, Zylinder, Rechteck, Quadrat und Kugel.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta9 - Buildplate Selector Visual Fix
 
 ### English

@@ -1,3 +1,24 @@
+## 5.0.0-beta8 - Bambu Studio Buildplate Selector
+
+### English
+- Reworked the Studio build plate selector to match the Bambu Studio interaction pattern more closely.
+- Added a compact printer / plate / sync tile row in the left Studio project panel.
+- The active build plate tile now opens a light Bambu Studio-like dropdown with a checkmark on the selected plate.
+- Added Cool Plate/PLA Plate, Engineering Plate, Smooth PEI Plate / High Temp Plate, Textured PEI Plate and Bambu Cool Plate SuperTack options.
+- The central Studio buildplate now updates immediately with matching texture, grid, label/logo, front strip and plate-specific visual styling.
+- Stored the selected build plate in the active Studio job profile context.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Studio-Druckplattenauswahl näher am Bambu-Studio-Bedienmuster neu aufgebaut.
+- Kompakte Drucker-/Druckplatten-/Sync-Kachelzeile links im Studio-Projektpanel ergänzt.
+- Die aktive Druckplatten-Kachel öffnet nun ein helles Bambu-Studio-ähnliches Dropdown mit Haken bei der aktiven Platte.
+- Optionen ergänzt: Cool Plate/PLA Plate, Engineering Plate, Smooth PEI Plate / High Temp Plate, Textured PEI Plate und Bambu Cool Plate SuperTack.
+- Die zentrale Studio-Buildplate übernimmt sofort Textur, Grid, Label/Logo, Frontstreifen und plattenspezifische Optik.
+- Die ausgewählte Druckplatte wird im Profilkontext des aktiven Studio-Jobs gespeichert.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta7 - Morning Final Studio Polish
 
 ### English

@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta7*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta8*/
 (() => {
-  const VERSION = "5.0.0-beta7";
+  const VERSION = "5.0.0-beta8";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta7",
+        version: "5.0.0-beta8",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta7";
+  const STUDIO_VERSION = "5.0.0-beta8";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -4881,7 +4881,7 @@
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta7 Morning Final Studio Polish bereit. UTF-8-Sanitizer, Import-Assistent, Druckplatten-Kacheln, stabiles Kontextmenü und persistentes Löschen sind aktiv. Echtes Slicen und Direktdruck bleiben deaktiviert.";
+      this._status = "beta8 Bambu Studio Buildplate Selector bereit. Druckplattenauswahl links arbeitet jetzt als Bambu-Studio-Kachel mit Dropdown; die Studio-Buildplate übernimmt Textur, Logo, Grid und Beschriftung der gewählten Platte.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -4944,7 +4944,7 @@
       this.ensureStudioMeshLoaded(false);
       this.consumeStudioHandoff(null);
 
-      // Beta7: Home Assistant pushes frequent hass updates.
+      // Beta8: Home Assistant pushes frequent hass updates.
       // Do not redraw the entire Studio card while a transform input is being edited; suppressing full hass-update renders prevents cursor jumps.
       if (first || !this.shadowRoot?.childElementCount) {
         this.render();
@@ -6039,7 +6039,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta7: no full render on every keystroke.
+      // Beta8: no full render on every keystroke.
       // This keeps cursor position and selected text intact in mobile and desktop browsers.
     }
 
@@ -6054,7 +6054,7 @@
       this.updateModelPreview();
       this.scheduleActiveJobSave();
 
-      // Beta7: render is intentionally skipped while editing to avoid cursor jumps.
+      // Beta8: render is intentionally skipped while editing to avoid cursor jumps.
     }
 
     handleClick(event) {
@@ -6443,7 +6443,7 @@
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta7 Morning Final Studio Polish</div>
+                  <div class="plate-label">Buildplate - beta8 Bambu Studio Buildplate Selector</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   ${this._studioModelImageUrl ? html`
@@ -9440,6 +9440,286 @@
     PCC_BETA7_STUDIO_CLASS.prototype._pccBeta7ClickWrapped = true;
   }
 
+
+  const PCC_BETA8_BUILD_PLATES = [
+    {
+      id: "cool_plate",
+      name: "Cool Plate/PLA Plate",
+      short: "Cool Plate / PLA",
+      label: "Bambu Cool Plate / PLA Plate",
+      surface: "cool",
+      logo: "Bambu Cool Plate",
+      footer: "PLA / PETG",
+      badge: "COOL",
+      tint: "#9edfff"
+    },
+    {
+      id: "engineering_plate",
+      name: "Engineering Plate",
+      short: "Engineering Plate",
+      label: "Bambu Engineering Plate",
+      surface: "engineering",
+      logo: "Bambu Engineering Plate",
+      footer: "ENGINEERING",
+      badge: "ENG",
+      tint: "#b8bcc4"
+    },
+    {
+      id: "smooth_pei_high_temp",
+      name: "Smooth PEI Plate / High Temp Plate",
+      short: "Smooth PEI / High Temp",
+      label: "Bambu Smooth PEI Plate / High Temp Plate",
+      surface: "smooth",
+      logo: "Bambu Smooth PEI Plate / High Temp Plate",
+      footer: "PLA / PETG / ABS / TPU / PC",
+      badge: "HOT SURFACE",
+      tint: "#d8c061"
+    },
+    {
+      id: "textured_pei",
+      name: "Textured PEI Plate",
+      short: "Textured PEI",
+      label: "Bambu Textured PEI Plate",
+      surface: "textured",
+      logo: "Bambu Textured PEI Plate",
+      footer: "PLA / PETG",
+      badge: "TEXTURED",
+      tint: "#c99f45"
+    },
+    {
+      id: "bambu_cool_plate_supertack",
+      name: "Bambu Cool Plate SuperTack",
+      short: "Cool Plate SuperTack",
+      label: "Bambu Cool Plate SuperTack",
+      surface: "supertack",
+      logo: "Bambu Cool Plate (SuperTack)",
+      footer: "GLUE STICK CAN HELP",
+      badge: "SUPER TACK",
+      tint: "#8bd46a"
+    }
+  ];
+
+  function pccBeta8Esc(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[char]));
+  }
+
+  function pccBeta8PlateById(id) {
+    const wanted = String(id || "").trim();
+    return PCC_BETA8_BUILD_PLATES.find((plate) => plate.id === wanted) ||
+      PCC_BETA8_BUILD_PLATES.find((plate) => plate.id === "smooth_pei_high_temp") ||
+      PCC_BETA8_BUILD_PLATES[0];
+  }
+
+  function pccBeta8PlateClass(plate) {
+    return `pcc-beta8-plate-${String(plate?.surface || "smooth")}`;
+  }
+
+  const PCC_BETA8_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA8_PREV_CLEANUP = PCC_BETA8_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+
+  PCC_BETA8_STUDIO_CLASS.prototype.beta8CurrentPlate = function beta8CurrentPlate() {
+    const job = this._activeJob || {};
+    const profile = job.profile_context || {};
+
+    const id =
+      this._studioBuildPlate ||
+      profile?.build_plate?.id ||
+      profile?.build_plate_id ||
+      job?.build_plate_id ||
+      "smooth_pei_high_temp";
+
+    return pccBeta8PlateById(id);
+  };
+
+  PCC_BETA8_STUDIO_CLASS.prototype.beta8SetPlate = function beta8SetPlate(id) {
+    const plate = pccBeta8PlateById(id);
+    this._studioBuildPlate = plate.id;
+
+    if (this._activeJob) {
+      this._activeJob.profile_context = this._activeJob.profile_context || {};
+      this._activeJob.profile_context.build_plate = {
+        id: plate.id,
+        name: plate.name,
+        short: plate.short,
+        label: plate.label,
+        surface: plate.surface
+      };
+      this._activeJob.profile_context.build_plate_id = plate.id;
+      this._activeJob.build_plate = plate.name;
+      this._activeJob.build_plate_id = plate.id;
+
+      try {
+        this.scheduleActiveJobSave?.();
+      } catch (_error) {}
+    }
+
+    this._status = `Druckplatte gewählt: ${plate.name}.`;
+    this.render();
+  };
+
+  PCC_BETA8_STUDIO_CLASS.prototype.beta8TogglePlateDropdown = function beta8TogglePlateDropdown(forceOpen=null) {
+    const root = this.shadowRoot;
+    const dropdown = root?.querySelector?.(".pcc-beta8-plate-dropdown");
+    if (!dropdown) return;
+
+    const open = forceOpen === null ? dropdown.hasAttribute("hidden") : Boolean(forceOpen);
+    if (open) dropdown.removeAttribute("hidden");
+    else dropdown.setAttribute("hidden", "");
+  };
+
+  PCC_BETA8_STUDIO_CLASS.prototype.beta8InstallBambuPlateSelector = function beta8InstallBambuPlateSelector() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const panels = [...root.querySelectorAll(".panel")];
+    const leftPanel = panels[0];
+    if (!leftPanel) return;
+
+    leftPanel.querySelectorAll(".beta7-buildplate-deck,.beta6-buildplate-switcher,.beta5-buildplate-switcher,.pcc-beta8-plate-selector").forEach((node) => node.remove());
+
+    const current = this.beta8CurrentPlate();
+
+    const selector = document.createElement("section");
+    selector.className = "pcc-beta8-plate-selector";
+    selector.innerHTML = `
+      <h3>Druckplatte</h3>
+      <div class="pcc-beta8-bambu-row">
+        <button class="pcc-beta8-device-card" type="button" title="Aktiver Drucker">
+          <span class="pcc-beta8-printer-thumb"></span>
+          <span>Bambu Lab A1</span>
+        </button>
+
+        <button class="pcc-beta8-active-plate-card" type="button" data-beta8-toggle-plate title="Druckplatte auswählen">
+          <span class="pcc-beta8-plate-thumb ${pccBeta8PlateClass(current)}">
+            <span class="pcc-beta8-thumb-grid"></span>
+          </span>
+          <span class="pcc-beta8-active-plate-label">${pccBeta8Esc(current.short)}</span>
+          <span class="pcc-beta8-caret">⌄</span>
+        </button>
+
+        <button class="pcc-beta8-sync-card" type="button" title="Sync Infos">
+          <span class="pcc-beta8-sync-icon">↻</span>
+          <span>Sync Infos</span>
+        </button>
+      </div>
+
+      <div class="pcc-beta8-plate-dropdown" hidden>
+        ${PCC_BETA8_BUILD_PLATES.map((plate) => `
+          <button class="pcc-beta8-plate-option ${plate.id === current.id ? "active" : ""}" type="button" data-beta8-plate="${pccBeta8Esc(plate.id)}">
+            <span class="pcc-beta8-check">${plate.id === current.id ? "✓" : ""}</span>
+            <span class="pcc-beta8-option-thumb ${pccBeta8PlateClass(plate)}">
+              <span class="pcc-beta8-thumb-grid"></span>
+            </span>
+            <span class="pcc-beta8-option-text">
+              <b>${pccBeta8Esc(plate.name)}</b>
+              <small>${pccBeta8Esc(plate.label)}</small>
+            </span>
+          </button>
+        `).join("")}
+      </div>
+    `;
+
+    const insertAfter = leftPanel.querySelector("h3") || leftPanel.firstElementChild;
+    if (insertAfter?.nextSibling) leftPanel.insertBefore(selector, insertAfter.nextSibling);
+    else leftPanel.insertBefore(selector, leftPanel.firstChild);
+
+    selector.querySelector("[data-beta8-toggle-plate]")?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      this.beta8TogglePlateDropdown();
+    });
+
+    for (const button of [...selector.querySelectorAll("[data-beta8-plate]")]) {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta8SetPlate(button.dataset.beta8Plate);
+      });
+    }
+
+    root.addEventListener("pointerdown", (event) => {
+      if (event.target?.closest?.(".pcc-beta8-plate-selector")) return;
+      const dropdown = root.querySelector(".pcc-beta8-plate-dropdown");
+      dropdown?.setAttribute?.("hidden", "");
+    }, {capture:true, once:true});
+  };
+
+  PCC_BETA8_STUDIO_CLASS.prototype.beta8ApplyBuildPlateSurface = function beta8ApplyBuildPlateSurface() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const plate = this.beta8CurrentPlate();
+    const buildplate = root.querySelector(".buildplate");
+    if (!buildplate) return;
+
+    buildplate.classList.remove(
+      "pcc-beta8-buildplate",
+      "pcc-beta8-plate-cool",
+      "pcc-beta8-plate-engineering",
+      "pcc-beta8-plate-smooth",
+      "pcc-beta8-plate-textured",
+      "pcc-beta8-plate-supertack"
+    );
+
+    buildplate.classList.add("pcc-beta8-buildplate", pccBeta8PlateClass(plate));
+    buildplate.dataset.beta8Plate = plate.id;
+
+    const label = root.querySelector(".plate-label");
+    if (label) label.textContent = `Buildplate – ${plate.name}`;
+
+    let skin = buildplate.querySelector(":scope > .pcc-beta8-buildplate-skin");
+    if (!skin) {
+      skin = document.createElement("div");
+      skin.className = "pcc-beta8-buildplate-skin";
+      buildplate.insertBefore(skin, buildplate.firstChild);
+    }
+
+    skin.innerHTML = `
+      <div class="pcc-beta8-grid-major"></div>
+      <div class="pcc-beta8-grid-minor"></div>
+      <div class="pcc-beta8-side-logo">${pccBeta8Esc(plate.logo)}</div>
+      <div class="pcc-beta8-front-strip">
+        <span class="pcc-beta8-front-icon">▦</span>
+        <span>${pccBeta8Esc(plate.footer)}</span>
+        <span class="pcc-beta8-front-badge">${pccBeta8Esc(plate.badge)}</span>
+      </div>
+      <div class="pcc-beta8-plate-number">01</div>
+      <div class="pcc-beta8-handle-top"></div>
+      <div class="pcc-beta8-corner-cut left"></div>
+      <div class="pcc-beta8-corner-cut right"></div>
+    `;
+
+    const model = root.querySelector(".model");
+    if (model) model.style.zIndex = "10";
+
+    const mesh = root.querySelector(".studio-mesh-canvas");
+    if (mesh) mesh.style.zIndex = "11";
+
+    const image = root.querySelector(".studio-model-image");
+    if (image) image.style.zIndex = "12";
+  };
+
+  PCC_BETA8_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
+    try {
+      if (typeof PCC_BETA8_PREV_CLEANUP === "function") {
+        PCC_BETA8_PREV_CLEANUP.call(this);
+      }
+    } catch (_error) {}
+
+    this.beta8InstallBambuPlateSelector?.();
+    this.beta8ApplyBuildPlateSurface?.();
+
+    try {
+      if (typeof pccBeta7SanitizeRoot === "function") pccBeta7SanitizeRoot(this.shadowRoot);
+    } catch (_error) {}
+  };
+
   if (!customElements.get("printer-control-center-studio-card")) {
     customElements.define("printer-control-center-studio-card", PrinterControlCenterStudioCard);
   }
@@ -9449,7 +9729,7 @@
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta7 Morning Final Studio Polish with global UTF-8 sanitizer, Studio import assistant, build plate cards, stable two-column context menu and persistent delete."
+      description: "v5 beta8 Bambu Studio Buildplate Selector with Bambu-style plate tile dropdown and live textured buildplate surface rendering."
     });
   }
 })();

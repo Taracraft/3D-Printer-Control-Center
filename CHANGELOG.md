@@ -1,3 +1,26 @@
+## 5.0.0-beta12 - Studio Flicker Guard
+
+### English
+- Added a Studio flicker guard for Home Assistant state refreshes.
+- Debounced Studio cleanup so selector, buildplate and object overlays are not rebuilt on every HA update.
+- Kept the build plate skin in place and only refreshes it when the selected plate actually changes.
+- Kept the printer/plate/object selector stable and only rerenders it when dropdown state or selected plate changes.
+- Added an interaction guard for active inputs, dropdowns and drag operations.
+- Suppressed stale job/object display when no model should be active.
+- Preserved the beta11 navigation cleanup and primitive mesh rendering.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Studio-Flicker-Guard für Home-Assistant-State-Refreshes ergänzt.
+- Studio-Cleanup wird entprellt, damit Selector, Buildplate und Objekt-Overlays nicht bei jedem HA-Update neu aufgebaut werden.
+- Buildplate-Skin bleibt im DOM und wird nur aktualisiert, wenn die ausgewählte Platte wirklich wechselt.
+- Drucker-/Platten-/Objektselector bleibt stabil und rendert nur neu, wenn Dropdownstatus oder Platte geändert werden.
+- Interaktionsschutz für aktive Eingabefelder, Dropdowns und Drag-Vorgänge ergänzt.
+- Alte Job-/Objektanzeigen werden unterdrückt, wenn kein Modell aktiv sein soll.
+- beta11-Navigationsbereinigung und Primitive-Mesh-Rendering bleiben erhalten.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta11 - Studio Navigation + Real Primitive Mesh
 
 ### English

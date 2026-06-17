@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta9*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta20*/
 (() => {
-  const VERSION = "5.0.0-beta9";
+  const VERSION = "5.0.0-beta20";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -69,7 +69,7 @@
     ["Externe Spule anzeigen", "Show external spool"],
     ["Diagnose anzeigen", "Show diagnostics"],
     ["S bis XL kann zusätzlich direkt innerhalb der Karte umgeschaltet werden.", "S to XL can also be changed directly inside the card."],
-    ["Dateien und Ordner durchsuchen â€¦", "Search files and folders â€¦"],
+    ["Dateien und Ordner durchsuchen …", "Search files and folders …"],
     ["Suche zurücksetzen", "Reset search"],
     ["Sichtbare auswählen", "Select visible"],
     ["Auswahl verschieben", "Move selection"],
@@ -137,8 +137,8 @@
     ["Umbenennen", "Rename"],
     ["Verschieben", "Move"],
     ["Löschen", "Delete"],
-    ["Drucken â€¦", "Print â€¦"],
-    ["Planen â€¦", "Schedule â€¦"],
+    ["Drucken …", "Print …"],
+    ["Planen …", "Schedule …"],
     ["In Bambu Studio öffnen (Original-3MF)", "Open in Bambu Studio (original 3MF)"],
     ["Modell-3MF herunterladen", "Download model 3MF"],
     ["Modell-STL herunterladen", "Download model STL"],
@@ -153,8 +153,8 @@
     ["Die unveränderte Original-3MF-Datei wird in Bambu Studio geöffnet. Dort kannst du den Druck kontrolliert starten.", "The unchanged original 3MF file is opened in Bambu Studio. You can start the print there after review."],
     ["In Bambu Studio öffnen", "Open in Bambu Studio"],
     ["Modell wurde zur 3D-Druck-Warteschlange hinzugefügt.", "Model was added to the 3D print queue."],
-    ["Warteschlange wird geladen â€¦", "Loading queue â€¦"],
-    ["Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen â€¦â€œ.", "No planned models yet. Open the gallery or use the existing â€œSchedule â€¦â€ item in the file manager."],
+    ["Warteschlange wird geladen …", "Loading queue …"],
+    ["Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen …â€œ.", "No planned models yet. Open the gallery or use the existing â€œSchedule …â€ item in the file manager."],
     ["Galerie öffnen", "Open gallery"],
     ["Persistente Planung für", "Persistent planning for"],
     ["Einträge", "items"],
@@ -171,7 +171,7 @@
     ["Stückzahl je Modell", "Quantity per model"],
     ["Zeitpunkt optional", "Optional time"],
     ["Markierte Modelle hinzufügen", "Add selected models"],
-    ["Galerie wird geladen â€¦", "Loading gallery â€¦"],
+    ["Galerie wird geladen …", "Loading gallery …"],
     ["Keine 3MF-Modelle in diesem Ordner gefunden.", "No 3MF models found in this folder."],
     ["Bambu Studio wird mit der unveränderten Original-3MF-Datei geöffnet.", "Bambu Studio opens the unchanged original 3MF file."],
     ["MakerWorld-Modell suchen oder einen Modell-Link öffnen. Die 3MF-Datei kann anschließend direkt in die Archivkarte hochgeladen werden.", "Search for a MakerWorld model or open a model link. The 3MF file can then be uploaded directly to the local archive card."],
@@ -191,7 +191,7 @@
     ["Native Live-Kamera", "Native live camera"],
     ["Native Kamera-Snapshot", "Native camera snapshot"],
     ["Modellvorschau", "Model preview"],
-    ["Native Live-Kamera startet â€¦", "Starting native live camera â€¦"],
+    ["Native Live-Kamera startet …", "Starting native live camera …"],
     ["Das 3D-Printer Control Center verbindet Home Assistant direkt mit TCP 6000. Keine externen Dienste erforderlich.", "3D-Printer Control Center connects Home Assistant directly to TCP 6000. No external services are required."],
     ["3D-Printer Control Center Live-Kamera", "3D-Printer Control Center live camera"],
     ["3D-Printer Control Center Kamera-Stream", "3D-Printer Control Center camera stream"],
@@ -208,7 +208,7 @@
     ["Upload-Ziel", "Upload target"],
     ["SD-Karte des Druckers", "Printer SD card"],
     ["Lokales Archiv", "local archive"],
-    ["Upload wird vorbereitet â€¦", "Preparing upload â€¦"],
+    ["Upload wird vorbereitet …", "Preparing upload …"],
     ["Dateien hochladen", "Upload files"],
     ["Diese Karte benötigt für die übersichtliche Dateimanager-Ansicht einen eigenen Abschnitt über die volle Dashboard-Breite.", "For a clear file-manager view, this card needs its own full-width dashboard section."],
     ["Warteschlange konnte nicht geladen werden", "Queue could not be loaded"],
@@ -227,9 +227,9 @@
     ["Zeitraffer", "Timelapse"],
     ["Hoch", "Up"],
     ["Nur .3mf-Dateien sind zulässig. Nicht verwendbar:", "Only .3mf files are allowed. Not usable:"],
-    ["wird vorbereitet â€¦", "is being prepared â€¦"],
-    ["wird auf die Drucker-SD-Karte geschrieben â€¦", "is being written to the printer SD card â€¦"],
-    ["wird im lokalen Archiv gespeichert â€¦", "is being saved to the local archive â€¦"],
+    ["wird vorbereitet …", "is being prepared …"],
+    ["wird auf die Drucker-SD-Karte geschrieben …", "is being written to the printer SD card …"],
+    ["wird im lokalen Archiv gespeichert …", "is being saved to the local archive …"],
     ["Datei", "File"],
     ["von", "of"],
     ["fehlgeschlagen", "failed"],
@@ -337,7 +337,7 @@
 
   function formatTemp(value) {
     const parsed = Number.parseFloat(value);
-    return Number.isFinite(parsed) ? `${parsed.toFixed(1)} Â°C` : "â€”";
+    return Number.isFinite(parsed) ? `${parsed.toFixed(1)} °C` : "â€”";
   }
 
   function formatRemaining(value) {
@@ -577,7 +577,7 @@
         this.emit();
       }
       if(source==="archive_zip"){
-        task.phase="processing";task.progress=97;task.details=[...(task.details||[]),"Upload vollständig empfangen.","ZIP wird entpackt und gegen das Archiv geprüft â€¦"];this.emit(true);
+        task.phase="processing";task.progress=97;task.details=[...(task.details||[]),"Upload vollständig empfangen.","ZIP wird entpackt und gegen das Archiv geprüft …"];this.emit(true);
       }
       return await this.hass.callWS({type:"printer_control_center/upload/finish",upload_id:task.uploadId});
     }
@@ -2187,7 +2187,7 @@
         <small>${esc(label)}</small>
         <strong>${esc(loaded ? material : "Leer")}</strong>
         <small>${esc(details || (loaded ? "geladen" : "â€”"))}</small>
-        ${active ? `<span class="slot-active">â— Aktiv</span>` : ""}
+        ${active ? `<span class="slot-active">● Aktiv</span>` : ""}
       </div>
     `;
   }
@@ -2257,7 +2257,7 @@
       return `
         <div class="media-empty">
           <div>
-            <strong>Native Live-Kamera startet â€¦</strong>
+            <strong>Native Live-Kamera startet …</strong>
             <small>Das 3D-Printer Control Center verbindet Home Assistant direkt mit TCP 6000. Keine externen Dienste erforderlich.</small>
           </div>
         </div>
@@ -2269,7 +2269,7 @@
         <img src="${esc(source.src)}" alt="${esc(source.label)}">
         <span class="media-label">${esc(source.label)}</span>
         ${source.mode === "preview" ? `<span class="media-task">${esc(task)}</span>` : ""}
-        ${native.stream ? `<button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">â†—</button>` : ""}
+        ${native.stream ? `<button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">↗</button>` : ""}
       </div>
     `;
   }
@@ -2522,9 +2522,9 @@
         <div class="toolbar">
           <button data-action="light">💡 Licht</button>
           <button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button>
-          <button data-action="camera-popout">â†— Großansicht</button>
+          <button data-action="camera-popout">↗ Großansicht</button>
           ${printControlButtons(status)}
-          <button data-action="refresh">â†» Aktualisieren</button>
+          <button data-action="refresh">↻ Aktualisieren</button>
         </div>`;
       const header=`
         <div class="row between">
@@ -2534,7 +2534,7 @@
               <h2>${esc(this._config.title)}</h2>
               <div class="printer-model" title="${esc(modelName)}">${esc(modelName)}</div>
               <div class="row">
-                <span class="badge ${online?"online":"offline"}">${online?"â— Online":"â— Offline"}</span>
+                <span class="badge ${online?"online":"offline"}">${online?"● Online":"● Offline"}</span>
                 <span class="badge">${esc(status)}</span>
                 <span class="badge">${progress}%</span>
               </div>
@@ -2633,7 +2633,7 @@
 
   class HeaderCard extends BaseCard {
     static getConfigElement(){return editorFor("header")} static getStubConfig(){return commonStub()}
-    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const o=isPrinterOnline(this._hass,m);this.shadowRoot.innerHTML=frame(this._config,`<div class="row"><img class="brand" src="${LOGO}"><div><h2>${esc(this._config.title)}</h2><div class="row"><span class="badge ${o?"online":"offline"}">${o?"â— Online":"â— Offline"}</span><span class="badge">${esc(stateValue(this._hass,m.printStatus))}</span></div></div></div>`)}
+    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const o=isPrinterOnline(this._hass,m);this.shadowRoot.innerHTML=frame(this._config,`<div class="row"><img class="brand" src="${LOGO}"><div><h2>${esc(this._config.title)}</h2><div class="row"><span class="badge ${o?"online":"offline"}">${o?"● Online":"● Offline"}</span><span class="badge">${esc(stateValue(this._hass,m.printStatus))}</span></div></div></div>`)}
   }
   class ProgressCard extends BaseCard {
     static getConfigElement(){return editorFor("progress")} static getStubConfig(){return {...commonStub(),title:"Druckfortschritt"}}
@@ -2645,7 +2645,7 @@
   }
   class ControlsCard extends BaseCard {
     static getConfigElement(){return editorFor("controls")} static getStubConfig(){return {...commonStub(),title:"Steuerung"}}
-    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const status=stateValue(this._hass,m.printStatus,"idle");this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="light">💡 Licht</button><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— Großansicht</button>${printControlButtons(status)}<button data-action="refresh">â†» Aktualisieren</button></div>`);this.bind(m)}
+    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const status=stateValue(this._hass,m.printStatus,"idle");this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="light">💡 Licht</button><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">↗ Großansicht</button>${printControlButtons(status)}<button data-action="refresh">↻ Aktualisieren</button></div>`);this.bind(m)}
   }
   class AmsCard extends BaseCard {
     static getConfigElement(){return editorFor("ams")} static getStubConfig(){return {...commonStub(),title:"AMS"}}
@@ -2661,7 +2661,7 @@
   }
   class MediaCard extends BaseCard {
     static getConfigElement(){return editorFor("media")} static getStubConfig(){return {...commonStub(),title:"Kamera / Modellvorschau",card_size:"l"}}
-    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const o=isPrinterOnline(this._hass,m),s=stateValue(this._hass,m.printStatus);this.shadowRoot.innerHTML=frame(this._config,`<div class="row between"><h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— Großansicht</button></div></div>${mediaHtml(this._hass,m,this._config,this.cameraVisible(),o,s)}`)}
+    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const o=isPrinterOnline(this._hass,m),s=stateValue(this._hass,m.printStatus);this.shadowRoot.innerHTML=frame(this._config,`<div class="row between"><h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">↗ Großansicht</button></div></div>${mediaHtml(this._hass,m,this._config,this.cameraVisible(),o,s)}`)}
   }
   class BrandCard extends BaseCard {
     static getConfigElement(){return editorFor("brand")} static getStubConfig(){return commonStub()}
@@ -2921,7 +2921,7 @@
     async exportGalleryZip(map){
       if(this._source!=="archive")return;
       const serial=encodeURIComponent(this.serial(map));
-      this._notice="Galerie-ZIP wird erstellt. Der Download startet im Hintergrund â€¦";
+      this._notice="Galerie-ZIP wird erstellt. Der Download startet im Hintergrund …";
       this.render();
       try{
         const response=await fetch(`/api/printer_control_center/archive_export/${serial}`,{headers:authHeaders(this._hass),credentials:"same-origin"});
@@ -3305,13 +3305,13 @@
           ${folder
             ? action("open-folder","Öffnen","📁")
             : `
-              ${action("print","Drucken â€¦","ðŸ–¨",!project)}
-              ${action("plan","Planen â€¦","ðŸ—“",!project)}
-              ${action("model-open","In Bambu Studio öffnen (Original-3MF)","â†—",!project)}
+              ${action("print","Drucken …","ðŸ–¨",!project)}
+              ${action("plan","Planen …","ðŸ—“",!project)}
+              ${action("model-open","In Bambu Studio öffnen (Original-3MF)","↗",!project)}
               ${action("studio-open","In 3D-Studio öffnen","[S]",!project)}
-              ${action("model-download","Modell-3MF herunterladen","â¬‡",!project)}
-              ${action("stl-download","Modell-STL herunterladen","â¬‡",!project)}
-              ${action("preview","3D-Vorschau","â—ˆ")}
+              ${action("model-download","Modell-3MF herunterladen","⬇",!project)}
+              ${action("stl-download","Modell-STL herunterladen","⬇",!project)}
+              ${action("preview","3D-Vorschau","◈")}
               <div class="archive-context-separator"></div>
               ${action("photos","Fotos ansehen","â–£",true)}
               ${action("add-project","Zu Projekt hinzufügen","ï¼‹",true)}
@@ -3617,7 +3617,7 @@
         body=`
           <p><strong>${esc(dialog.item?.name||"")}</strong></p>
           <p class="muted">Die unveränderte Original-3MF-Datei wird in Bambu Studio geöffnet. Dort kannst du den Druck kontrolliert starten.</p>
-          <button class="primary" data-dialog-project-open>â†— In Bambu Studio öffnen</button>
+          <button class="primary" data-dialog-project-open>↗ In Bambu Studio öffnen</button>
         `;
       }
 
@@ -3638,7 +3638,7 @@
           <div class="tc-dialog" data-dialog-panel>
             <div class="row between">
               <h3>${esc(title)}</h3>
-              <button data-dialog-close>âœ•</button>
+              <button data-dialog-close>✕</button>
             </div>
             ${body}
             <div class="toolbar">
@@ -3694,8 +3694,8 @@
                  <button data-dialog-type="rename" data-dialog-path="${esc(item.path)}">âœŽ Umbenennen</button>
                  <button data-context-button="${esc(item.path)}">â‹®</button>`
               : `
-                ${project?`<button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">ðŸ–¨ Drucken</button>`:`<button data-context-direct="download" data-context-path="${esc(item.path)}">â¬‡ Download</button>`}
-                <button data-preview-path="${esc(item.path)}">â—ˆ 3D-Vorschau</button>
+                ${project?`<button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">ðŸ–¨ Drucken</button>`:`<button data-context-direct="download" data-context-path="${esc(item.path)}">⬇ Download</button>`}
+                <button data-preview-path="${esc(item.path)}">◈ 3D-Vorschau</button>
                 <button data-context-button="${esc(item.path)}" title="Weitere Aktionen">â‹®</button>
               `
             }
@@ -3774,7 +3774,7 @@
             <aside class="archive-preview-toolbar">
               <div class="row between">
                 <h3>${esc(item.name)}</h3>
-                <button data-preview-close>âœ•</button>
+                <button data-preview-close>✕</button>
               </div>
               <small>${esc(item.path||"")}</small>
               <span class="badge">${esc(bytesLabel(item.size||0))}</span>
@@ -3782,24 +3782,24 @@
               <div class="archive-preview-controls">
                 <button data-preview-transform="zoom-out">-</button>
                 <button data-preview-transform="zoom-in">+</button>
-                <button data-preview-transform="rotate">â†»</button>
+                <button data-preview-transform="rotate">↻</button>
                 <button data-preview-transform="reset">âŸ²</button>
               </div>
 
               ${project?`
-                <button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">ðŸ–¨ Drucken â€¦</button>
-                <button data-context-direct="plan" data-context-path="${esc(item.path)}">ðŸ—“ Planen â€¦</button>
-                <button class="primary" data-context-direct="model-open" data-context-path="${esc(item.path)}">â†— In Bambu Studio öffnen (Original-3MF)</button>
+                <button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">ðŸ–¨ Drucken …</button>
+                <button data-context-direct="plan" data-context-path="${esc(item.path)}">ðŸ—“ Planen …</button>
+                <button class="primary" data-context-direct="model-open" data-context-path="${esc(item.path)}">↗ In Bambu Studio öffnen (Original-3MF)</button>
                 <button data-context-direct="studio-open" data-context-path="${esc(item.path)}">[S] In 3D-Studio öffnen</button>
-                <button data-context-direct="model-download" data-context-path="${esc(item.path)}">â¬‡ Modell-3MF herunterladen</button>
-                <button data-context-direct="stl-download" data-context-path="${esc(item.path)}">â¬‡ Modell-STL herunterladen</button>
+                <button data-context-direct="model-download" data-context-path="${esc(item.path)}">⬇ Modell-3MF herunterladen</button>
+                <button data-context-direct="stl-download" data-context-path="${esc(item.path)}">⬇ Modell-STL herunterladen</button>
               `:""}
 
-              ${project?"":`<button data-context-direct="download" data-context-path="${esc(item.path)}">â¬‡ Download</button>`}
+              ${project?"":`<button data-context-direct="download" data-context-path="${esc(item.path)}">⬇ Download</button>`}
               <button data-dialog-type="rename" data-dialog-path="${esc(item.path)}">âœŽ Umbenennen</button>
               <button data-dialog-type="move" data-dialog-path="${esc(item.path)}">â‡¢ Verschieben</button>
               <button class="danger" data-dialog-type="delete" data-dialog-path="${esc(item.path)}">🗑 Löschen</button>
-              <button data-preview-close>âœ• Vorschau schließen</button>
+              <button data-preview-close>✕ Vorschau schließen</button>
             </aside>
           </div>
         </div>
@@ -4029,7 +4029,7 @@
                 <span class="badge" title="Kein Zusatzhelfer erforderlich. Bambu Studio prüft selbst gehostete URLs absichtlich mit einem Herkunftsdialog.">HA-only - Original-3MF an Bambu Studio</span>
                 <button class="primary" data-action="choose-upload">â¬† 3MF hochladen</button>
                 ${this._source==="archive"?`<button data-action="gallery-export">â‡© Galerie-ZIP exportieren</button><button data-action="choose-zip-import">â‡§ Galerie-ZIP importieren</button>`:""}
-                <button data-action="template-refresh" title="3D-Drucker-Dateimanager/Galerie aktualisieren">â†» Aktualisieren</button>
+                <button data-action="template-refresh" title="3D-Drucker-Dateimanager/Galerie aktualisieren">↻ Aktualisieren</button>
               </div>
             </div>
 
@@ -4044,8 +4044,8 @@
                 </div>
 
                 <div class="archive-search-wrap">
-                  <input class="archive-search" data-archive-filter placeholder="Dateien und Ordner durchsuchen â€¦" value="${esc(this._filter)}">
-                  <button class="archive-search-reset" data-action="search-reset" title="Suche zurücksetzen" ${this._filter?"":"disabled"}>âœ•</button>
+                  <input class="archive-search" data-archive-filter placeholder="Dateien und Ordner durchsuchen …" value="${esc(this._filter)}">
+                  <button class="archive-search-reset" data-action="search-reset" title="Suche zurücksetzen" ${this._filter?"":"disabled"}>✕</button>
                 </div>
 
                 <select data-sort-mode title="Sortierung">
@@ -4088,7 +4088,7 @@
                   }</strong>
                   <small>${selectedCountForUpload
                     ? `${esc(bytesLabel(selectedBytes))} - ${esc(selectedNames.slice(0,3).join(", "))}${selectedNames.length>3?` - +${selectedNames.length-3} weitere`:""}`
-                    : "Upload wird vorbereitet â€¦"
+                    : "Upload wird vorbereitet …"
                   }</small>
                 </div>
                 <button class="primary" data-action="upload-selected" ${selectedCountForUpload&&!this._uploadActive?"":"disabled"}>
@@ -4125,7 +4125,7 @@
               <section class="archive-library-content">
                 ${this._error?`<p class="notice">${esc(this._error)}</p>`:""}
                 ${this._notice?`<p class="notice">${esc(this._notice)}</p>`:""}
-                ${this._loading?`<p class="muted">Lade Daten â€¦</p>`:""}
+                ${this._loading?`<p class="muted">Lade Daten …</p>`:""}
 
                 <div class="archive-grid">
                   ${items.map((item)=>this.itemHtml(item)).join("")||`<div class="archive-library-empty">Keine passenden Dateien oder Ordner vorhanden.</div>`}
@@ -4533,16 +4533,16 @@
         <section class="queue-picker-dialog">
           <div class="row between">
             <div><h2>Galerie - Modelle zur Warteschlange hinzufügen</h2><small>Mehrere Modelle markieren und gemeinsam übernehmen.</small></div>
-            <button data-queue-picker-close>âœ•</button>
+            <button data-queue-picker-close>✕</button>
           </div>
           <div class="toolbar">
             <button class="${this._pickerSource==="archive"?"primary":""}" data-queue-picker-source="archive">Lokales Archiv</button>
             <button class="${this._pickerSource==="sd"?"primary":""}" data-queue-picker-source="sd">SD-Karte</button>
             <button data-queue-picker-up ${canGoUp?"":"disabled"}>â†‘ Eine Ebene höher</button>
-            <button data-queue-picker-refresh>â†» Aktualisieren</button>
+            <button data-queue-picker-refresh>↻ Aktualisieren</button>
             <span class="badge">${esc(this._pickerFolder||(this._pickerSource==="sd"?"/":"Hauptordner"))}</span>
           </div>
-          ${this._pickerLoading?`<p class="muted">Galerie wird geladen â€¦</p>`:""}
+          ${this._pickerLoading?`<p class="muted">Galerie wird geladen …</p>`:""}
           <div class="queue-picker-grid">
             ${this._pickerItems.map((item)=>this.pickerItemHtml(item)).join("")||`<p class="muted">Keine 3MF-Modelle in diesem Ordner gefunden.</p>`}
           </div>
@@ -4658,7 +4658,7 @@
           <button class="queue-apply" data-queue-apply="${esc(item.id)}">âœ“ Auswahl übernehmen</button>
           <button data-queue-move="up" data-queue-id="${esc(item.id)}" title="Nach oben">â†‘ Nach oben</button>
           <button data-queue-move="down" data-queue-id="${esc(item.id)}" title="Nach unten">â†“ Nach unten</button>
-          <button class="primary queue-print" data-queue-studio="${esc(item.id)}">ðŸ–¨ Drucken â€¦</button>
+          <button class="primary queue-print" data-queue-studio="${esc(item.id)}">ðŸ–¨ Drucken …</button>
           <button data-queue-complete="${esc(item.id)}">âœ“ 1 erledigt</button>
           <button class="danger" data-queue-delete="${esc(item.id)}">🗑 Entfernen</button>
         </div>
@@ -4675,14 +4675,14 @@
       this.shadowRoot.innerHTML=frame(this._config,`
         <div class="row between">
           <div><h2>${esc(this._config.title||"3D-Druck-Warteschlange")}</h2><small>Persistente Planung für ${esc(this.serial(map))}</small></div>
-          <div class="toolbar"><button class="primary" data-queue-open-gallery>ï¼‹ Galerie öffnen</button><button data-queue-refresh>â†» Aktualisieren</button></div>
+          <div class="toolbar"><button class="primary" data-queue-open-gallery>ï¼‹ Galerie öffnen</button><button data-queue-refresh>↻ Aktualisieren</button></div>
         </div>
         <div class="row"><span class="badge">${this._queue.length} Einträge</span><span class="badge">${total} Druckdurchläufe</span></div>
         ${this._queueError?`<p class="notice">${esc(this._queueError)}</p>`:""}
         ${this._queueNotice?`<p class="notice">${esc(this._queueNotice)}</p>`:""}
-        ${this._queueLoading?`<p class="muted">Warteschlange wird geladen â€¦</p>`:""}
+        ${this._queueLoading?`<p class="muted">Warteschlange wird geladen …</p>`:""}
         ${this._queueToast?`<div class="queue-mini-toast" style="left:${Number(this._queueToastPosition?.left||18)}px;top:${Number(this._queueToastPosition?.top||92)}px">${esc(this._queueToast)}</div>`:""}
-        <div class="queue-list">${this._queue.map((item,index)=>this.rowHtml(item,index)).join("")||`<p class="muted">Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen â€¦â€œ.</p>`}</div>
+        <div class="queue-list">${this._queue.map((item,index)=>this.rowHtml(item,index)).join("")||`<p class="muted">Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen …â€œ.</p>`}</div>
       `,"archive-library-card");
       this.shadowRoot.querySelector("[data-queue-open-gallery]")?.addEventListener("click",()=>this.openPicker(map));
       this.shadowRoot.querySelector("[data-queue-refresh]")?.addEventListener("click",()=>this.loadQueue(map));
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta9",
+        version: "5.0.0-beta20",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta9";
+  const STUDIO_VERSION = "5.0.0-beta20";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -5932,7 +5932,7 @@
 
       await this.ensureStudioJobsLoaded(false);
       const targetJob = this.buildDryRunJob();
-      this._status = `Dry-Run-Plan wird geprueft: ${this.jobName(targetJob)} ...`;
+      this._status = `Dry-Run-Plan wird geprüft: ${this.jobName(targetJob)} ...`;
       this.render();
 
       try {
@@ -5964,7 +5964,7 @@
         this.applyActiveJob(mergedJob, {render:false, status:false});
         this._lastDryRun = patch;
         this._lastStudioPlan = patch.studio_plan;
-        this._status = `Dry-Run-Plan erfolgreich geprueft: ${this.jobName(mergedJob)}. Echtes Slicen und Direktdruck bleiben deaktiviert.`;
+        this._status = `Dry-Run-Plan erfolgreich geprüft: ${this.jobName(mergedJob)}. Echtes Slicen und Direktdruck bleiben deaktiviert.`;
       } catch (error) {
         this._lastDryRun = {
           status: "dry_run_incomplete",
@@ -6101,7 +6101,7 @@
       }
 
       if (action === "scale-up") {
-        this.adjustTransform("scale", 10, {status:"Skalierung erhoeht.", render:true});
+        this.adjustTransform("scale", 10, {status:"Skalierung erhöht.", render:true});
       }
 
       if (action === "mirror-x") {
@@ -6432,7 +6432,7 @@
                 <div class="profile-row"><span>Pfad</span><strong title="${escStudio(activePath)}">${escStudio(activePath || "kein Galeriepfad")}</strong></div>
                 <div class="profile-row"><span>Drucker</span><strong>${escStudio(labels.printer)}</strong></div>
                 <div class="profile-row"><span>Druckplatte</span><strong>${escStudio(labels.plate)}</strong></div>
-                <div class="profile-row"><span>Duese</span><strong>${escStudio(labels.nozzle)}</strong></div>
+                <div class="profile-row"><span>Düse</span><strong>${escStudio(labels.nozzle)}</strong></div>
                 <div class="profile-row"><span>Filament</span><strong>${escStudio(labels.filament)}</strong></div>
                 <div class="profile-row"><span>Prozess</span><strong>${escStudio(labels.process)}</strong></div>
                 <div class="profile-row"><span>Slicer</span><strong>planning_only</strong></div>
@@ -10381,6 +10381,309 @@
     try {
       if (typeof pccBeta7SanitizeRoot === "function") pccBeta7SanitizeRoot(this.shadowRoot);
     } catch (_error) {}
+  };
+
+const PCC_BETA20_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA20_PREV_CLEANUP = PCC_BETA20_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+  const PCC_BETA20_PREV_HANDLE_CLICK = PCC_BETA20_STUDIO_CLASS.prototype.handleClick;
+  const PCC_BETA20_PREV_RENDER_MESH = PCC_BETA20_STUDIO_CLASS.prototype.renderMeshCanvas;
+  const PCC_BETA20_PRIMITIVES = {
+    cube: {label:"Würfel", width:40, depth:40, height:40, type:"box"},
+    cuboid: {label:"Quader", width:80, depth:45, height:30, type:"box"},
+    cylinder: {label:"Zylinder", radius:22, height:55, type:"cylinder", segments:48},
+    first_layer: {label:"First Layer", width:120, depth:80, height:0.28, visualHeight:1.2, type:"box"}
+  };
+
+  function pccBeta20Point(x, y, z) { return [Number(x || 0), Number(y || 0), Number(z || 0)]; }
+
+  function pccBeta20BuildMesh(triangles, meta={}) {
+    const points = triangles.flat();
+    const min = [Infinity, Infinity, Infinity];
+    const max = [-Infinity, -Infinity, -Infinity];
+    for (const p of points) {
+      for (let i = 0; i < 3; i++) {
+        min[i] = Math.min(min[i], p[i]);
+        max[i] = Math.max(max[i], p[i]);
+      }
+    }
+    const center = [(min[0]+max[0])/2, (min[1]+max[1])/2, (min[2]+max[2])/2];
+    const size = Math.max(max[0]-min[0], max[1]-min[1], max[2]-min[2], 1);
+    return {triangles, min, max, center, size, meta};
+  }
+
+  function pccBeta20BoxMesh(width, depth, height, meta={}) {
+    const w = Math.max(0.1, Number(width || 40)) / 2;
+    const d = Math.max(0.1, Number(depth || 40)) / 2;
+    const h = Math.max(0.1, Number(height || 40));
+    const p = {
+      nwb:pccBeta20Point(-w,-d,0), neb:pccBeta20Point(w,-d,0), seb:pccBeta20Point(w,d,0), swb:pccBeta20Point(-w,d,0),
+      nwt:pccBeta20Point(-w,-d,h), net:pccBeta20Point(w,-d,h), set:pccBeta20Point(w,d,h), swt:pccBeta20Point(-w,d,h)
+    };
+    return pccBeta20BuildMesh([
+      [p.nwb,p.neb,p.seb],[p.nwb,p.seb,p.swb],
+      [p.nwt,p.swt,p.set],[p.nwt,p.set,p.net],
+      [p.nwb,p.nwt,p.net],[p.nwb,p.net,p.neb],
+      [p.neb,p.net,p.set],[p.neb,p.set,p.seb],
+      [p.seb,p.set,p.swt],[p.seb,p.swt,p.swb],
+      [p.swb,p.swt,p.nwt],[p.swb,p.nwt,p.nwb],
+    ], meta);
+  }
+
+  function pccBeta20CylinderMesh(radius, height, segments=48, meta={}) {
+    const r = Math.max(0.1, Number(radius || 22));
+    const h = Math.max(0.1, Number(height || 55));
+    const count = Math.max(12, Math.min(96, Number(segments || 48)));
+    const bottom = pccBeta20Point(0,0,0);
+    const top = pccBeta20Point(0,0,h);
+    const triangles = [];
+    for (let i = 0; i < count; i++) {
+      const a = (Math.PI * 2 * i) / count;
+      const b = (Math.PI * 2 * (i + 1)) / count;
+      const p1 = pccBeta20Point(Math.cos(a)*r, Math.sin(a)*r, 0);
+      const p2 = pccBeta20Point(Math.cos(b)*r, Math.sin(b)*r, 0);
+      const p3 = pccBeta20Point(Math.cos(a)*r, Math.sin(a)*r, h);
+      const p4 = pccBeta20Point(Math.cos(b)*r, Math.sin(b)*r, h);
+      triangles.push([bottom,p2,p1], [top,p3,p4], [p1,p2,p4], [p1,p4,p3]);
+    }
+    return pccBeta20BuildMesh(triangles, meta);
+  }
+
+  function pccBeta20PrimitiveMesh(kind) {
+    const spec = PCC_BETA20_PRIMITIVES[kind] || PCC_BETA20_PRIMITIVES.cube;
+    if (spec.type === "cylinder") {
+      return pccBeta20CylinderMesh(spec.radius, spec.height, spec.segments, {
+        primitive:kind, label:spec.label, width_mm:spec.radius*2, depth_mm:spec.radius*2, height_mm:spec.height
+      });
+    }
+    return pccBeta20BoxMesh(spec.width, spec.depth, spec.visualHeight || spec.height, {
+      primitive:kind, label:spec.label, width_mm:spec.width, depth_mm:spec.depth, height_mm:spec.height
+    });
+  }
+
+  function pccBeta20Dimensions(mesh, transform={}) {
+    const meta = mesh?.meta || {};
+    const scale = Math.max(0.05, toNumber(transform.scale,100)/100);
+    const sx = Math.max(0.05, toNumber(transform.sx,100)/100);
+    const sy = Math.max(0.05, toNumber(transform.sy,100)/100);
+    const sz = Math.max(0.05, toNumber(transform.sz,100)/100);
+    return {
+      width: Math.abs(Number(meta.width_mm || (mesh?.max?.[0]-mesh?.min?.[0]) || 0) * scale * sx),
+      depth: Math.abs(Number(meta.depth_mm || (mesh?.max?.[1]-mesh?.min?.[1]) || 0) * scale * sy),
+      height: Math.abs(Number(meta.height_mm || (mesh?.max?.[2]-mesh?.min?.[2]) || 0) * scale * sz)
+    };
+  }
+
+  function pccBeta20Mm(value) {
+    const n = Number(value || 0);
+    if (!Number.isFinite(n)) return "0 mm";
+    return `${(n < 10 ? n.toFixed(2) : n.toFixed(1)).replace(/\.?0+$/,"")} mm`;
+  }
+
+  PCC_BETA20_STUDIO_CLASS.prototype.beta20EnsureStyle = function beta20EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta20-studio-style")) return;
+    const style = document.createElement("style");
+    style.id = "pcc-beta20-studio-style";
+    style.textContent = `
+      .buildplate.pcc-beta9-buildplate{background:#303334!important;}
+      .buildplate.pcc-beta9-buildplate .pcc-beta9-buildplate-skin::before{background-image:none!important;}
+      .buildplate.mesh-loaded .model{opacity:.12!important;}
+      .buildplate .plate-help{display:none!important;}
+      .pcc-beta20-primitive-panel{margin:12px 0;padding:10px;border:1px solid rgba(0,169,214,.36);border-radius:12px;background:rgba(0,0,0,.18);}
+      .pcc-beta20-primitive-panel h3{margin:0 0 8px;font-size:14px;}
+      .pcc-beta20-primitive-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+      .pcc-beta20-primitive-grid .action{width:100%;min-height:32px;}
+      .pcc-beta20-dimensions{margin-top:8px;display:grid;gap:4px;color:var(--pcc-muted);font-size:11px;}
+      .pcc-beta20-render-badge{position:absolute;left:14px;top:34px;z-index:29;padding:4px 8px;border:1px solid rgba(255,68,68,.40);border-radius:999px;background:rgba(0,0,0,.42);color:rgba(255,230,230,.92);font-size:11px;pointer-events:none;}
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA20_STUDIO_CLASS.prototype.beta20InjectPrimitivePanel = function beta20InjectPrimitivePanel() {
+    const root = this.shadowRoot;
+    const leftPanel = root?.querySelector(".studio-grid > .panel");
+    if (!leftPanel) return;
+    let panel = leftPanel.querySelector(".pcc-beta20-primitive-panel");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.className = "pcc-beta20-primitive-panel";
+      const before = [...leftPanel.querySelectorAll("h3")].find((node) => String(node.textContent || "").includes("Studio-Jobs"));
+      leftPanel.insertBefore(panel, before || null);
+    }
+    const dims = this._studioMesh ? pccBeta20Dimensions(this._studioMesh, this._transform || defaultTransform()) : null;
+    panel.innerHTML = `
+      <h3>Primitive / Testkörper</h3>
+      <div class="pcc-beta20-primitive-grid">
+        <button class="action" data-action="primitive-cube">Würfel</button>
+        <button class="action" data-action="primitive-cuboid">Quader</button>
+        <button class="action" data-action="primitive-cylinder">Zylinder</button>
+        <button class="action" data-action="primitive-first-layer">First Layer</button>
+      </div>
+      <div class="pcc-beta20-dimensions">
+        <span>Breite: <b>${pccBeta20Mm(dims?.width || 0)}</b></span>
+        <span>Länge: <b>${pccBeta20Mm(dims?.depth || 0)}</b></span>
+        <span>Höhe: <b>${pccBeta20Mm(dims?.height || 0)}</b></span>
+      </div>
+    `;
+    root.querySelectorAll('button[data-action="snap-grid"]').forEach((button) => button.remove());
+  };
+
+  PCC_BETA20_STUDIO_CLASS.prototype.beta20AddPrimitive = function beta20AddPrimitive(kind) {
+    const cleanKind = String(kind || "cube").replace(/^primitive-/, "").replace(/-/g, "_");
+    const spec = PCC_BETA20_PRIMITIVES[cleanKind] || PCC_BETA20_PRIMITIVES.cube;
+    const mesh = pccBeta20PrimitiveMesh(cleanKind);
+    const now = new Date().toISOString();
+    this._studioMesh = mesh;
+    this._studioMeshError = "";
+    this._studioMeshUrl = "";
+    this._studioMeshJobId = `primitive:${cleanKind}:${now}`;
+    this._studioModelImageUrl = "";
+    this._transform = {...defaultTransform(), ...(this._transform || {}), x:0, y:0, z:0, rx:0, ry:0, rz:0, scale:100, sx:100, sy:100, sz:100, skewX:0, skewY:0};
+    const job = {
+      id:this._studioMeshJobId,
+      name:spec.label,
+      modelName:spec.label,
+      file_name:`${cleanKind}.primitive`,
+      filename:`${cleanKind}.primitive`,
+      file_path:"",
+      path:"",
+      source:"primitive",
+      origin:"primitive",
+      primitive:{kind:cleanKind, label:spec.label, width_mm:mesh.meta?.width_mm || 0, depth_mm:mesh.meta?.depth_mm || 0, height_mm:mesh.meta?.height_mm || 0},
+      model:{name:spec.label, source:"primitive", primitive:cleanKind},
+      transform:{...this._transform},
+      profile_context:this.buildProfileContext?.() || {},
+      real_slicing_enabled:false,
+      direct_print_enabled:false,
+      updated_at:now
+    };
+    this._activeJob = job;
+    this._activeJobId = job.id;
+    this._jobs = [job, ...(Array.isArray(this._jobs) ? this._jobs.filter((entry) => String(entry?.id) !== job.id) : [])].slice(0,12);
+    this._lastDryRun = null;
+    this._lastStudioPlan = null;
+    this._health = null;
+    this._studioMeshStatus = `Primitive Mesh geladen: ${spec.label}.`;
+    this._status = `Primitive erzeugt: ${spec.label}. Rote Markierungen zeigen Start und Ende der Objektmaße.`;
+    this.render();
+  };
+
+  PCC_BETA20_STUDIO_CLASS.prototype.beta20DrawRulers = function beta20DrawRulers(ctx, canvasWidth, canvasHeight, dpr) {
+    const mesh = this._studioMesh;
+    if (!mesh?.triangles?.length) return;
+    const t = this.clampTransform?.() || this._transform || defaultTransform();
+    const zoom = Math.max(0.25, Math.min(4, toNumber(this._viewZoom,1)));
+    const base = Math.min(canvasWidth, canvasHeight) * 0.34 * zoom * Math.max(0.05, toNumber(t.scale,100)/100);
+    const sx = Math.max(0.05, toNumber(t.sx,100)/100) * (Number(t.mx) === -1 ? -1 : 1);
+    const sy = Math.max(0.05, toNumber(t.sy,100)/100) * (Number(t.my) === -1 ? -1 : 1);
+    const sz = Math.max(0.05, toNumber(t.sz,100)/100) * (Number(t.mz) === -1 ? -1 : 1);
+    const rz = toNumber(t.rz,0) * Math.PI / 180;
+    const cos = Math.cos(rz);
+    const sin = Math.sin(rz);
+    const ox = canvasWidth / 2 + toNumber(t.x,0) * dpr;
+    const oy = canvasHeight / 2 + toNumber(t.y,0) * dpr;
+    const project = (p) => {
+      let x = ((p[0] - mesh.center[0]) / mesh.size) * sx;
+      let y = ((p[1] - mesh.center[1]) / mesh.size) * sy;
+      let z = ((p[2] - mesh.center[2]) / mesh.size) * sz;
+      const rx = x * cos - y * sin;
+      const ry = x * sin + y * cos;
+      return [ox + (rx - ry * 0.28) * base, oy + (ry * 0.48 - z * 0.72) * base];
+    };
+    const corners = [
+      [mesh.min[0],mesh.min[1],mesh.min[2]],[mesh.max[0],mesh.min[1],mesh.min[2]],[mesh.max[0],mesh.max[1],mesh.min[2]],[mesh.min[0],mesh.max[1],mesh.min[2]],
+      [mesh.min[0],mesh.min[1],mesh.max[2]],[mesh.max[0],mesh.min[1],mesh.max[2]],[mesh.max[0],mesh.max[1],mesh.max[2]],[mesh.min[0],mesh.max[1],mesh.max[2]]
+    ].map(project);
+    const minX = Math.min(...corners.map((p) => p[0]));
+    const maxX = Math.max(...corners.map((p) => p[0]));
+    const minY = Math.min(...corners.map((p) => p[1]));
+    const maxY = Math.max(...corners.map((p) => p[1]));
+    const dims = pccBeta20Dimensions(mesh, t);
+    const clamp = (v, low, high) => Math.max(low, Math.min(high, v));
+    const rx1 = clamp(minX, 52*dpr, canvasWidth - 52*dpr);
+    const rx2 = clamp(maxX, 52*dpr, canvasWidth - 52*dpr);
+    const ry1 = clamp(minY, 52*dpr, canvasHeight - 52*dpr);
+    const ry2 = clamp(maxY, 52*dpr, canvasHeight - 52*dpr);
+    const bottom = canvasHeight - 34*dpr;
+    const left = 38*dpr;
+    const right = canvasWidth - 38*dpr;
+    const drawLine = (x1,y1,x2,y2,color,width=1) => {
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(1, width*dpr);
+      ctx.moveTo(x1,y1);
+      ctx.lineTo(x2,y2);
+      ctx.stroke();
+    };
+    ctx.save();
+    ctx.font = `${Math.round(11*dpr)}px Arial`;
+    ctx.fillStyle = "rgba(255,255,255,.84)";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    drawLine(52*dpr,bottom,canvasWidth-52*dpr,bottom,"rgba(255,255,255,.34)");
+    drawLine(rx1,bottom-10*dpr,rx1,bottom+10*dpr,"rgba(255,80,80,.95)",2);
+    drawLine(rx2,bottom-10*dpr,rx2,bottom+10*dpr,"rgba(255,80,80,.95)",2);
+    ctx.fillText(`Breite ${pccBeta20Mm(dims.width)}`, (rx1+rx2)/2, bottom-18*dpr);
+    drawLine(left,52*dpr,left,canvasHeight-52*dpr,"rgba(255,255,255,.34)");
+    drawLine(left-10*dpr,ry1,left+10*dpr,ry1,"rgba(255,80,80,.95)",2);
+    drawLine(left-10*dpr,ry2,left+10*dpr,ry2,"rgba(255,80,80,.95)",2);
+    ctx.save(); ctx.translate(left+18*dpr,(ry1+ry2)/2); ctx.rotate(-Math.PI/2); ctx.fillText(`Länge ${pccBeta20Mm(dims.depth)}`,0,0); ctx.restore();
+    drawLine(right,52*dpr,right,canvasHeight-52*dpr,"rgba(255,255,255,.34)");
+    drawLine(right-10*dpr,ry1,right+10*dpr,ry1,"rgba(255,80,80,.95)",2);
+    drawLine(right-10*dpr,ry2,right+10*dpr,ry2,"rgba(255,80,80,.95)",2);
+    ctx.save(); ctx.translate(right-18*dpr,(ry1+ry2)/2); ctx.rotate(-Math.PI/2); ctx.fillText(`Höhe ${pccBeta20Mm(dims.height)}`,0,0); ctx.restore();
+    ctx.restore();
+  };
+
+  PCC_BETA20_STUDIO_CLASS.prototype.renderMeshCanvas = function beta20RenderMeshCanvas() {
+    if (typeof PCC_BETA20_PREV_RENDER_MESH === "function") {
+      PCC_BETA20_PREV_RENDER_MESH.call(this);
+    }
+    const canvas = this.shadowRoot?.querySelector(".studio-mesh-canvas");
+    const ctx = canvas?.getContext?.("2d");
+    if (!canvas || !ctx || !this._studioMesh?.triangles?.length) return;
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    this.beta20DrawRulers(ctx, canvas.width || 0, canvas.height || 0, dpr);
+    const badge = this.shadowRoot?.querySelector(".pcc-beta20-render-badge");
+    if (badge) {
+      const dims = pccBeta20Dimensions(this._studioMesh, this._transform || defaultTransform());
+      badge.textContent = `Mesh ${this._studioMesh.triangles.length} Dreiecke · ${pccBeta20Mm(dims.width)} × ${pccBeta20Mm(dims.depth)} × ${pccBeta20Mm(dims.height)}`;
+    }
+  };
+
+  PCC_BETA20_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function cleanupBetaStudioUi() {
+    try {
+      if (typeof PCC_BETA20_PREV_CLEANUP === "function") PCC_BETA20_PREV_CLEANUP.call(this);
+    } catch (_error) {}
+    this.beta20EnsureStyle();
+    this.beta20InjectPrimitivePanel();
+    const buildplate = this.shadowRoot?.querySelector(".buildplate");
+    if (buildplate && !buildplate.querySelector(".pcc-beta20-render-badge")) {
+      const badge = document.createElement("div");
+      badge.className = "pcc-beta20-render-badge";
+      badge.textContent = "3D-Mesh bereit";
+      buildplate.appendChild(badge);
+    }
+    this.shadowRoot?.querySelectorAll('button[data-action="snap-grid"]').forEach((button) => button.remove());
+    this.queueMeshRender?.();
+  };
+
+  PCC_BETA20_STUDIO_CLASS.prototype.handleClick = function handleClick(event) {
+    const action = event.target?.dataset?.action;
+    if (String(action || "").startsWith("primitive-")) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.beta20AddPrimitive(String(action).replace("primitive-",""));
+      return;
+    }
+    if (action === "snap-grid") {
+      event.preventDefault();
+      event.stopPropagation();
+      this._status = "Raster ist in beta20 ausgeblendet; Maßlineale bleiben aktiv.";
+      this.render();
+      return;
+    }
+    return PCC_BETA20_PREV_HANDLE_CLICK.call(this, event);
   };
 
   if (!customElements.get("printer-control-center-studio-card")) {

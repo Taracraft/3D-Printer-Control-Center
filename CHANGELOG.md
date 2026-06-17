@@ -1,3 +1,26 @@
+## 5.0.0-beta20 - Studio 3D mesh primitives and rulers
+
+### English
+- Keeps the confirmed beta9 Bambu-style Studio buildplate selector as the active base.
+- Adds additive Studio primitives: cube, cuboid, cylinder and first-layer test body.
+- Generates real triangle meshes for primitive objects and renders them through the existing Studio mesh canvas.
+- Adds measurement rulers for width, length and height, with subtle red start/end markers based on the currently rendered object bounds.
+- Removes the Studio raster/grid overlay while keeping the selected beta9 buildplate skin and plate selection intact.
+- Keeps the existing STL/geometry mesh loading path for gallery/imported models.
+- No camera, dashboard or printer connection changes.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Behält die bestätigte beta9-Bambu-Studio-Druckplattenauswahl als aktive Basis.
+- Ergänzt additive Studio-Primitive: Würfel, Quader, Zylinder und First-Layer-Testkörper.
+- Erzeugt echte Dreiecks-Meshes für Primitive und rendert sie über den bestehenden Studio-Mesh-Canvas.
+- Ergänzt Maßlineale für Breite, Länge und Höhe mit dezenten roten Start-/Endmarkern anhand der aktuell gerenderten Objektgrenzen.
+- Entfernt das Studio-Raster/Grid, ohne die gewählte beta9-Buildplate-Oberfläche oder Druckplattenauswahl zu verändern.
+- Behält den vorhandenen STL-/Geometrie-Mesh-Ladepfad für Galerie-/Importmodelle.
+- Keine Kamera-, Dashboard- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta19 - Stable camera snapshot and UTF-8 cleanup
 
 ### English

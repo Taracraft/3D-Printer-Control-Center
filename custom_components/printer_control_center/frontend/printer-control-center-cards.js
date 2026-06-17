@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta28*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta29*/
 (() => {
-  const VERSION = "5.0.0-beta28";
+  const VERSION = "5.0.0-beta29";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta28",
+        version: "5.0.0-beta29",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta28";
+  const STUDIO_VERSION = "5.0.0-beta29";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -13686,6 +13686,460 @@ const PCC_BETA28_STUDIO_CLASS = customElements.get("printer-control-center-studi
 
     if (this.shadowRoot?.querySelector(".pcc-beta27-import-modal")) {
       this.beta28PolishImportPopup();
+    }
+  };
+
+const PCC_BETA29_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA29_PREV_CLEANUP = PCC_BETA29_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+  const PCC_BETA29_PREV_OPEN_IMPORT = PCC_BETA29_STUDIO_CLASS.prototype.openBeta7ImportAssistant;
+  const PCC_BETA29_PREV_IMPORT_PLAN = PCC_BETA29_STUDIO_CLASS.prototype.beta7ImportPlan;
+
+  function pccBeta29IsPrimitiveJob(job) {
+    const source = String(job?.source || job?.origin || job?.model?.source || "").trim();
+    const primitive = String(job?.primitive?.kind || job?.primitive_kind || job?.model?.primitive_kind || "").trim();
+    return source === "primitive" || Boolean(primitive);
+  }
+
+  function pccBeta29Transform(instance) {
+    instance._transform = {...defaultTransform(), ...(instance._transform || {})};
+    return instance._transform;
+  }
+
+  PCC_BETA29_STUDIO_CLASS.prototype.beta29EnsureStyle = function beta29EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta29-menu-import-mouse-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta29-menu-import-mouse-style";
+    style.textContent = `
+      .studio-shell{position:relative!important;}
+
+      .pcc-beta28-toolbar{
+        min-height:32px!important;
+        height:32px!important;
+        margin:0 0 6px!important;
+      }
+
+      .pcc-beta28-import-main{
+        height:31px!important;
+        min-width:76px!important;
+        padding:0 8px!important;
+        font-size:11px!important;
+      }
+
+      .pcc-beta28-main{
+        width:32px!important;
+        height:31px!important;
+      }
+
+      .pcc-beta28-menu-body{
+        top:32px!important;
+        min-width:168px!important;
+        max-width:230px!important;
+        max-height:260px!important;
+        overflow:auto!important;
+        padding:5px!important;
+      }
+
+      .pcc-beta28-menu-action{
+        min-height:28px!important;
+        grid-template-columns:22px 1fr!important;
+        gap:6px!important;
+        padding:3px 7px!important;
+        font-size:12px!important;
+      }
+
+      .pcc-beta28-menu-wrap.open > .pcc-beta28-menu-body{
+        display:grid!important;
+      }
+
+      .pcc-beta27-import-modal{
+        position:absolute!important;
+        inset:42px auto auto 50%!important;
+        transform:translateX(-50%)!important;
+        width:min(640px,calc(100% - 28px))!important;
+        height:auto!important;
+        max-height:min(58vh,500px)!important;
+        z-index:760!important;
+        display:block!important;
+        padding:0!important;
+        margin:0!important;
+        background:transparent!important;
+        border:0!important;
+        backdrop-filter:none!important;
+      }
+
+      .pcc-beta27-import-dialog{
+        width:100%!important;
+        max-height:min(58vh,500px)!important;
+        overflow:auto!important;
+        padding:10px!important;
+        border:1px solid rgba(0,169,214,.70)!important;
+        border-radius:8px!important;
+        background:linear-gradient(180deg,rgba(13,20,25,.99),rgba(5,10,14,.99))!important;
+        box-shadow:0 18px 42px rgba(0,0,0,.58)!important;
+      }
+
+      .pcc-beta27-import-close{
+        position:absolute!important;
+        right:8px!important;
+        top:8px!important;
+        width:28px!important;
+        height:26px!important;
+        border-radius:5px!important;
+        padding:0!important;
+      }
+
+      .pcc-beta27-import-dialog h1,
+      .pcc-beta27-import-dialog h2,
+      .pcc-beta27-import-dialog h3{
+        font-size:17px!important;
+        margin:0 36px 8px 0!important;
+        line-height:1.2!important;
+      }
+
+      .pcc-beta27-import-dialog p,
+      .pcc-beta27-import-dialog div,
+      .pcc-beta27-import-dialog span,
+      .pcc-beta27-import-dialog label{
+        font-size:12px!important;
+        line-height:1.28!important;
+      }
+
+      .pcc-beta27-import-dialog button{
+        min-height:26px!important;
+        padding:3px 8px!important;
+        border-radius:6px!important;
+        font-size:12px!important;
+        line-height:1.2!important;
+      }
+
+      .pcc-beta27-import-dialog input,
+      .pcc-beta27-import-dialog select{
+        min-height:26px!important;
+        border-radius:6px!important;
+        font-size:12px!important;
+      }
+
+      .pcc-beta29-import-grid{
+        display:grid!important;
+        grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important;
+        gap:6px!important;
+      }
+
+      .buildplate.pcc-beta29-dragging .studio-mesh-canvas{
+        cursor:grabbing!important;
+      }
+
+      .buildplate .studio-mesh-canvas{
+        cursor:grab!important;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA29_STUDIO_CLASS.prototype.beta29CloseAllMenus = function beta29CloseAllMenus(except=null) {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".pcc-beta28-menu-wrap.open").forEach((wrap) => {
+      if (except && wrap === except) return;
+      wrap.classList.remove("open");
+      wrap.querySelector(".pcc-beta28-main")?.classList.remove("active");
+    });
+  };
+
+  PCC_BETA29_STUDIO_CLASS.prototype.beta28ToggleMenu = function beta29ToggleMenu(wrap) {
+    if (!wrap) return;
+    const wasOpen = wrap.classList.contains("open");
+    this.beta29CloseAllMenus(wrap);
+
+    if (wasOpen) {
+      wrap.classList.remove("open");
+      wrap.querySelector(".pcc-beta28-main")?.classList.remove("active");
+    } else {
+      wrap.classList.add("open");
+      wrap.querySelector(".pcc-beta28-main")?.classList.add("active");
+    }
+  };
+
+  PCC_BETA29_STUDIO_CLASS.prototype.beta28CloseMenus = function beta29CloseMenus() {
+    this.beta29CloseAllMenus();
+  };
+
+  PCC_BETA29_STUDIO_CLASS.prototype.beta29PatchToolbarEvents = function beta29PatchToolbarEvents() {
+    const root = this.shadowRoot;
+    const oldToolbar = root?.querySelector(".pcc-beta28-toolbar");
+    if (!root || !oldToolbar) return;
+
+    if (oldToolbar.dataset.beta29Rebuilt === "1") return;
+
+    const toolbar = oldToolbar.cloneNode(true);
+    toolbar.dataset.beta29Rebuilt = "1";
+    oldToolbar.replaceWith(toolbar);
+
+    toolbar.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+    }, {capture:true});
+
+    toolbar.addEventListener("click", (event) => {
+      const menuButton = event.target?.closest?.("[data-beta28-menu]");
+      if (menuButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta28ToggleMenu(menuButton.closest(".pcc-beta28-menu-wrap"));
+        return;
+      }
+
+      const colorButton = event.target?.closest?.("[data-beta28-color]");
+      if (colorButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta22SetObjectColor?.(colorButton.dataset.beta28Color);
+        this.beta28SyncColor?.();
+        this.queueMeshRender?.();
+        return;
+      }
+
+      const actionButton = event.target?.closest?.("[data-beta28-action]");
+      if (actionButton) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const action = String(actionButton.dataset.beta28Action || "");
+        const keepMenuOpen = !["open-import", "delete", "primitive-cube", "primitive-cuboid", "primitive-cylinder", "primitive-first-layer"].includes(action);
+
+        if (!keepMenuOpen) this.beta29CloseAllMenus();
+
+        this.beta28ApplyAction?.(action);
+        return;
+      }
+    }, {capture:true});
+
+    toolbar.addEventListener("input", (event) => {
+      const input = event.target?.closest?.(".pcc-beta28-color");
+      if (!input) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.beta22SetObjectColor?.(input.value);
+      this.beta28SyncColor?.();
+      this.queueMeshRender?.();
+    }, {capture:true});
+
+    root.addEventListener("pointerdown", (event) => {
+      if (event.target?.closest?.(".pcc-beta28-toolbar")) return;
+      if (event.target?.closest?.(".pcc-beta27-import-modal")) return;
+      if (event.target?.closest?.(".buildplate")) return;
+      this.beta29CloseAllMenus();
+    }, {capture:true});
+  };
+
+  PCC_BETA29_STUDIO_CLASS.prototype.beta29BindStableMouse = function beta29BindStableMouse() {
+    const root = this.shadowRoot;
+    const buildplate = root?.querySelector(".buildplate");
+    const canvas = root?.querySelector(".studio-mesh-canvas");
+    if (!root || !buildplate || !canvas || buildplate.dataset.beta29MouseBound === "1") return;
+
+    buildplate.dataset.beta29MouseBound = "1";
+
+    const blockContext = (event) => {
+      if (!event.target?.closest?.(".buildplate")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this._studioContextMenu = null;
+    };
+
+    root.addEventListener("contextmenu", blockContext, {capture:true});
+    buildplate.addEventListener("contextmenu", blockContext, {capture:true});
+    canvas.addEventListener("contextmenu", blockContext, {capture:true});
+
+    const state = {active:false, button:-1, x:0, y:0, pointerId:null};
+
+    const moveHandler = (event) => {
+      if (!state.active) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const dx = event.clientX - state.x;
+      const dy = event.clientY - state.y;
+      state.x = event.clientX;
+      state.y = event.clientY;
+
+      const t = pccBeta29Transform(this);
+
+      if (state.button === 0) {
+        t.rz = toNumber(t.rz, 0) + dx * 0.32;
+        t.rx = toNumber(t.rx, 0) - dy * 0.22;
+      } else if (state.button === 2) {
+        t.x = toNumber(t.x, 0) + dx;
+        t.y = toNumber(t.y, 0) + dy;
+      }
+
+      if (this._activeJob) this._activeJob.transform = {...t};
+      this.queueMeshRender?.();
+    };
+
+    const upHandler = (event) => {
+      if (!state.active) return;
+
+      event.preventDefault?.();
+      event.stopPropagation?.();
+
+      state.active = false;
+      state.button = -1;
+      state.pointerId = null;
+      buildplate.classList.remove("pcc-beta29-dragging");
+
+      window.removeEventListener("pointermove", moveHandler, true);
+      window.removeEventListener("pointerup", upHandler, true);
+      window.removeEventListener("pointercancel", upHandler, true);
+
+      try { canvas.releasePointerCapture(event.pointerId); } catch (_error) {}
+    };
+
+    canvas.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 && event.button !== 2) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      state.active = true;
+      state.button = event.button;
+      state.x = event.clientX;
+      state.y = event.clientY;
+      state.pointerId = event.pointerId;
+
+      buildplate.classList.add("pcc-beta29-dragging");
+
+      try { canvas.setPointerCapture(event.pointerId); } catch (_error) {}
+
+      window.addEventListener("pointermove", moveHandler, true);
+      window.addEventListener("pointerup", upHandler, true);
+      window.addEventListener("pointercancel", upHandler, true);
+    }, {capture:true});
+  };
+
+  PCC_BETA29_STUDIO_CLASS.prototype.openBeta7ImportAssistant = function beta29OpenImportAssistant(...args) {
+    this._pccBeta29ImportOpen = true;
+    this._pccBeta27ImportOpen = true;
+
+    let result;
+    if (typeof PCC_BETA29_PREV_OPEN_IMPORT === "function") {
+      result = PCC_BETA29_PREV_OPEN_IMPORT.apply(this, args);
+    }
+
+    const promote = () => {
+      this.beta27PromoteImportAssistant?.();
+      this.beta28PolishImportPopup?.();
+      this.beta29PolishImportPopup?.();
+    };
+
+    requestAnimationFrame(promote);
+    window.setTimeout(promote, 60);
+    window.setTimeout(promote, 180);
+    window.setTimeout(promote, 420);
+
+    return result;
+  };
+
+  PCC_BETA29_STUDIO_CLASS.prototype.beta29PolishImportPopup = function beta29PolishImportPopup() {
+    const root = this.shadowRoot;
+    const modal = root?.querySelector(".pcc-beta27-import-modal");
+    const dialog = root?.querySelector(".pcc-beta27-import-dialog");
+    if (!modal || !dialog) return;
+
+    modal.dataset.beta29Stable = "1";
+    dialog.dataset.beta29Stable = "1";
+
+    dialog.querySelectorAll("h1,h2,h3").forEach((heading) => {
+      if (String(heading.textContent || "").includes("Studio-Import")) {
+        heading.textContent = "Studio-Import";
+      }
+    });
+
+    dialog.querySelectorAll("button").forEach((button) => {
+      const txt = String(button.textContent || "").trim();
+      if (txt === "Auswahl ins Studio übernehmen") button.textContent = "Ins Studio übernehmen";
+      if (txt === "Eine Ebene hoch") button.textContent = "Hoch";
+      if (txt === "Aktualisieren") button.textContent = "Neu laden";
+    });
+
+    const folderArea = [...dialog.querySelectorAll("div,section")]
+      .find((node) => {
+        const text = String(node.textContent || "");
+        return text.includes("Bad Bad Ordner") || text.includes("Deko Deko Ordner") || text.includes("Drucker Drucker Ordner");
+      });
+
+    if (folderArea) folderArea.classList.add("pcc-beta29-import-grid");
+  };
+
+  PCC_BETA29_STUDIO_CLASS.prototype.beta7ImportPlan = async function beta29ImportPlan(plan) {
+    const beforeJobs = Array.isArray(this._jobs) ? [...this._jobs] : [];
+    const beforeActive = this._activeJob || null;
+
+    if (typeof PCC_BETA29_PREV_IMPORT_PLAN === "function") {
+      await PCC_BETA29_PREV_IMPORT_PLAN.call(this, plan);
+    }
+
+    const afterActive = this._activeJob || null;
+
+    this._pccBeta29PlateObjects = Array.isArray(this._pccBeta29PlateObjects) ? this._pccBeta29PlateObjects : [];
+
+    for (const job of [...beforeJobs, beforeActive, afterActive]) {
+      if (!job) continue;
+      const id = String(job.id || job.file_path || job.path || job.name || "");
+      if (!id) continue;
+      if (!this._pccBeta29PlateObjects.some((item) => String(item.id || item.file_path || item.path || item.name || "") === id)) {
+        this._pccBeta29PlateObjects.push(job);
+      }
+    }
+
+    if (Array.isArray(this._jobs)) {
+      const merged = [...this._jobs];
+      for (const job of this._pccBeta29PlateObjects) {
+        const id = String(job.id || job.file_path || job.path || job.name || "");
+        if (!id) continue;
+        if (!merged.some((item) => String(item.id || item.file_path || item.path || item.name || "") === id)) merged.push(job);
+      }
+      this._jobs = merged;
+    }
+
+    this._pccBeta29ImportOpen = true;
+    this._pccBeta27ImportOpen = true;
+
+    window.setTimeout(() => {
+      this.ensureStudioMeshLoaded?.(true);
+      this.beta29PolishImportPopup?.();
+    }, 0);
+  };
+
+  PCC_BETA29_STUDIO_CLASS.prototype.handleContextMenu = function beta29HandleContextMenu(event) {
+    if (event.target?.closest?.(".buildplate")) {
+      event.preventDefault();
+      event.stopPropagation();
+      this._studioContextMenu = null;
+    }
+  };
+
+  PCC_BETA29_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function beta29CleanupBetaStudioUi(...args) {
+    if (typeof PCC_BETA29_PREV_CLEANUP === "function") {
+      PCC_BETA29_PREV_CLEANUP.apply(this, args);
+    }
+
+    this.beta29EnsureStyle();
+    this.beta29PatchToolbarEvents();
+    this.beta29BindStableMouse();
+
+    this.shadowRoot?.querySelectorAll(".context-menu,.pcc-context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
+
+    if (this._pccBeta29ImportOpen || this.shadowRoot?.querySelector(".pcc-beta27-import-modal")) {
+      this._pccBeta29ImportOpen = true;
+      requestAnimationFrame(() => {
+        this.beta27PromoteImportAssistant?.();
+        this.beta28PolishImportPopup?.();
+        this.beta29PolishImportPopup?.();
+      });
     }
   };
 

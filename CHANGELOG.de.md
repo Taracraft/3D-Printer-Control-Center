@@ -1,3 +1,26 @@
+## 5.0.0-beta29 - Studio menu, import and mouse stability
+
+### Deutsch
+- Behält die aktuelle Studio-Basis ohne Rollback.
+- Stabilisiert die kompakten Toolbar-Menüs: ein Menü gleichzeitig, wiederholte Aktionen schließen das Menü nicht.
+- Macht das Import-Popup kompakter, scrollbar und stabil im Studio-Frame.
+- Entfernt das CAD-Studio-Rechtsklickmenü und nutzt Rechtsklick-Ziehen zum Verschieben.
+- Stabilisiert Linksklick-Ziehen zum Drehen über window-weite Pointer-Events.
+- Hält Import-Popup und Objekt-/Jobliste stabil, auch wenn bereits ein Objekt auf der Platte liegt.
+- Keine Kamera-, Dashboard-, Backend- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Keeps the current Studio base without rollback.
+- Stabilizes compact toolbar menus: one menu at a time and repeated actions no longer close the menu.
+- Makes the import popup more compact, scrollable and stable inside the Studio frame.
+- Removes the CAD Studio right-click context menu and uses right-drag for moving the object.
+- Stabilizes left-drag rotation using window-wide pointer events.
+- Keeps the import popup and object/job list stable even when an object is already on the plate.
+- No camera, dashboard, backend or connection changes.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta28 - Polished compact Studio toolbar and import popup
 
 ### Deutsch

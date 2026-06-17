@@ -1,3 +1,28 @@
+## 5.0.0-beta34 - Clean Studio UI final fix
+
+### Deutsch
+- Behält die sichtbare beta33/beta30-Studio-Basis.
+- Setzt die ursprünglich geplante beta31/beta32-Bereinigung ohne den kaputten ShadowRoot-/DOM-Crash um.
+- Entfernt zusätzliche Text-Navigationsbuttons wie Verschieben, Drehen, Skalieren, Zoom, Rot, Scale, Spiegel, Zerr, Duplizieren, Zentrieren und Flach legen.
+- Entfernt Studio-Fußzeilen wie Dry-Run-, STL-Mesh- und Plan-Hinweise.
+- Entfernt das CAD-Studio-Rechtsklickmenü erneut und hart.
+- Poliert den Import-Dialog kompakt und scrollbar im Studio-Frame.
+- Benennt den finalen Import-Button in „Objekt importieren“ um und ergänzt ihn bei gewähltem Importobjekt.
+- Keine Kamera-, Dashboard-, Backend-, Host- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Keeps the visible beta33/beta30 Studio base.
+- Implements the originally intended beta31/beta32 cleanup without the broken ShadowRoot/DOM crash.
+- Removes extra text navigation buttons such as move, rotate, scale, zoom, mirror, skew, duplicate, center and lay flat.
+- Removes Studio footer/status rows such as Dry-Run, STL mesh and plan messages.
+- Removes the CAD Studio right-click context menu again and aggressively.
+- Polishes the import dialog as a compact scrollable in-frame popup.
+- Renames the final import action to “Objekt importieren” and adds it when an import item is selected.
+- No camera, dashboard, backend, host or connection changes.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta33 - Emergency restore Studio view
 
 ### Deutsch

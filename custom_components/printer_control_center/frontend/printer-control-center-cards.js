@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta33*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta34*/
 (() => {
-  const VERSION = "5.0.0-beta33";
+  const VERSION = "5.0.0-beta34";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta33",
+        version: "5.0.0-beta34",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta33";
+  const STUDIO_VERSION = "5.0.0-beta34";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -14925,6 +14925,385 @@ const PCC_BETA30_STUDIO_CLASS = customElements.get("printer-control-center-studi
         this.beta30PolishImportPopup?.();
       });
     }
+  };
+
+const PCC_BETA34_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA34_PREV_CLEANUP = PCC_BETA34_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+  const PCC_BETA34_PREV_OPEN_IMPORT = PCC_BETA34_STUDIO_CLASS.prototype.openBeta7ImportAssistant;
+  const PCC_BETA34_PREV_IMPORT_PLAN = PCC_BETA34_STUDIO_CLASS.prototype.beta7ImportPlan;
+
+  PCC_BETA34_STUDIO_CLASS.prototype.beta34EnsureStyle = function beta34EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta34-clean-studio-ui-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta34-clean-studio-ui-style";
+    style.textContent = `
+      .studio-shell{position:relative!important;}
+
+      .pcc-beta22-top-toolbar,
+      .pcc-beta23-top-toolbar,
+      .pcc-beta26-toolbar,
+      .pcc-beta28-toolbar{
+        display:none!important;
+        pointer-events:none!important;
+      }
+
+      .pcc-beta34-hidden,
+      .pcc-beta34-footer-hidden,
+      .studio-context,
+      .beta4-floating-context,
+      .pcc-context-menu,
+      .context-menu,
+      .gallery-context-menu,
+      [data-context-menu]{
+        display:none!important;
+        pointer-events:none!important;
+      }
+
+      .studio-shell .status,
+      .studio-shell .plan-note,
+      .studio-shell .plan-summary,
+      .studio-shell .studio-status,
+      .studio-shell .studio-footer,
+      .studio-shell .studio-log,
+      .studio-shell [data-studio-plan-details-panel],
+      .studio-shell [data-studio-health-panel]{
+        display:none!important;
+        pointer-events:none!important;
+      }
+
+      .pcc-beta27-import-modal{
+        position:absolute!important;
+        inset:42px auto auto 50%!important;
+        transform:translateX(-50%)!important;
+        width:min(620px,calc(100% - 32px))!important;
+        height:auto!important;
+        max-height:min(56vh,480px)!important;
+        z-index:900!important;
+        display:block!important;
+        padding:0!important;
+        margin:0!important;
+        background:transparent!important;
+        border:0!important;
+        backdrop-filter:none!important;
+      }
+
+      .pcc-beta27-import-dialog{
+        width:100%!important;
+        max-height:min(56vh,480px)!important;
+        overflow:auto!important;
+        padding:10px!important;
+        border:1px solid rgba(0,169,214,.70)!important;
+        border-radius:8px!important;
+        background:linear-gradient(180deg,rgba(13,20,25,.99),rgba(5,10,14,.99))!important;
+        box-shadow:0 18px 42px rgba(0,0,0,.58)!important;
+      }
+
+      .pcc-beta27-import-close{
+        position:absolute!important;
+        right:8px!important;
+        top:8px!important;
+        width:28px!important;
+        height:26px!important;
+        border-radius:5px!important;
+        padding:0!important;
+      }
+
+      .pcc-beta27-import-dialog h1,
+      .pcc-beta27-import-dialog h2,
+      .pcc-beta27-import-dialog h3{
+        font-size:17px!important;
+        margin:0 36px 8px 0!important;
+        line-height:1.2!important;
+      }
+
+      .pcc-beta27-import-dialog p,
+      .pcc-beta27-import-dialog div,
+      .pcc-beta27-import-dialog span,
+      .pcc-beta27-import-dialog label{
+        font-size:12px!important;
+        line-height:1.28!important;
+      }
+
+      .pcc-beta27-import-dialog button{
+        min-height:26px!important;
+        padding:3px 8px!important;
+        border-radius:6px!important;
+        font-size:12px!important;
+        line-height:1.2!important;
+      }
+
+      .pcc-beta34-import-primary{
+        display:inline-flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        min-width:136px!important;
+        background:rgba(0,120,155,.92)!important;
+        color:#fff!important;
+        border-color:rgba(0,210,255,.75)!important;
+        font-weight:800!important;
+      }
+
+      .pcc-beta34-import-grid{
+        display:grid!important;
+        grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important;
+        gap:6px!important;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA34_STUDIO_CLASS.prototype.beta34CleanTextNavigation = function beta34CleanTextNavigation() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const remove = new Set([
+      "Verschieben", "Drehen", "Skalieren",
+      "Zoom -", "Zoom +",
+      "Rot -45", "Rot +45",
+      "Scale -", "Scale +",
+      "Spiegel X", "Spiegel Y", "Spiegel Z",
+      "Zerr X -", "Zerr X +",
+      "Duplizieren", "Zentrieren", "Flach legen",
+      "Links", "Rechts", "Nach hinten", "Nach vorne",
+      "Z höher", "Z tiefer",
+      "Modell neu laden", "Reset"
+    ]);
+
+    root.querySelectorAll("button").forEach((button) => {
+      if (button.closest(".pcc-beta30-toolbar")) return;
+      if (button.closest(".pcc-beta27-import-modal")) return;
+      if (button.closest(".pcc-beta9-plate-selector")) return;
+      if (button.closest(".pcc-beta20-primitive-panel")) return;
+
+      const text = String(button.textContent || "").trim().replace(/\s+/g, " ");
+      if (remove.has(text)) {
+        button.classList.add("pcc-beta34-hidden");
+        button.remove();
+      }
+    });
+
+    root.querySelectorAll("div,span,small").forEach((node) => {
+      if (node.closest(".pcc-beta27-import-modal")) return;
+      const text = String(node.textContent || "").trim();
+      if (text === "object Object" || text === "[object Object]" || text === "Object Object") {
+        node.classList.add("pcc-beta34-hidden");
+        node.remove();
+      }
+    });
+  };
+
+  PCC_BETA34_STUDIO_CLASS.prototype.beta34RemoveFooters = function beta34RemoveFooters() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const badTexts = [
+      "Noch kein Dry-Run",
+      "Dry-Run",
+      "STL-Mesh nicht geladen",
+      "Kein STL-/Geometrie-Link",
+      "Modellbild-Fallback aktiv",
+      "Studio-Job aus Galerie",
+      "planning_only"
+    ];
+
+    root.querySelectorAll("div,p,small,section,article,footer").forEach((node) => {
+      if (node.closest(".pcc-beta27-import-modal")) return;
+      if (node.closest(".pcc-beta9-plate-selector")) return;
+      if (node.closest(".pcc-beta20-primitive-panel")) return;
+      if (node.closest(".pcc-beta30-toolbar")) return;
+
+      const text = String(node.textContent || "").trim();
+      if (!text || text.length > 260) return;
+
+      if (badTexts.some((bad) => text.includes(bad))) {
+        node.classList.add("pcc-beta34-footer-hidden");
+        node.remove();
+      }
+    });
+  };
+
+  PCC_BETA34_STUDIO_CLASS.prototype.beta34KillContextMenus = function beta34KillContextMenus() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".studio-context,.beta4-floating-context,.pcc-context-menu,.context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
+
+    if (this._pccBeta34ContextKilled === true) return;
+    this._pccBeta34ContextKilled = true;
+
+    const handler = (event) => {
+      if (!event.target?.closest?.(".buildplate")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this._studioContextMenu = null;
+      root.querySelectorAll(".studio-context,.beta4-floating-context,.pcc-context-menu,.context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
+    };
+
+    root.addEventListener("contextmenu", handler, {capture:true});
+    root.addEventListener("pointerdown", (event) => {
+      if (event.button === 2 && event.target?.closest?.(".buildplate")) {
+        this._studioContextMenu = null;
+        root.querySelectorAll(".studio-context,.beta4-floating-context,.pcc-context-menu,.context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
+      }
+    }, {capture:true});
+  };
+
+  PCC_BETA34_STUDIO_CLASS.prototype.handleContextMenu = function beta34HandleContextMenu(event) {
+    if (event.target?.closest?.(".buildplate")) {
+      event.preventDefault();
+      event.stopPropagation();
+      this._studioContextMenu = null;
+      this.shadowRoot?.querySelectorAll(".studio-context,.beta4-floating-context,.pcc-context-menu,.context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
+    }
+  };
+
+  PCC_BETA34_STUDIO_CLASS.prototype.openBeta7ImportAssistant = function beta34OpenImportAssistant(...args) {
+    this._pccBeta34ImportOpen = true;
+    this._pccBeta30ImportOpen = true;
+    this._pccBeta27ImportOpen = true;
+
+    let result;
+    if (typeof PCC_BETA34_PREV_OPEN_IMPORT === "function") {
+      result = PCC_BETA34_PREV_OPEN_IMPORT.apply(this, args);
+    }
+
+    const polish = () => {
+      this.beta27PromoteImportAssistant?.();
+      this.beta34PolishImportPopup?.();
+    };
+
+    requestAnimationFrame(polish);
+    window.setTimeout(polish, 60);
+    window.setTimeout(polish, 180);
+    window.setTimeout(polish, 420);
+
+    return result;
+  };
+
+  PCC_BETA34_STUDIO_CLASS.prototype.beta34PolishImportPopup = function beta34PolishImportPopup() {
+    const root = this.shadowRoot;
+    const modal = root?.querySelector(".pcc-beta27-import-modal");
+    const dialog = root?.querySelector(".pcc-beta27-import-dialog");
+    if (!modal || !dialog) return;
+
+    modal.dataset.beta34Stable = "1";
+    dialog.dataset.beta34Stable = "1";
+
+    dialog.querySelectorAll("h1,h2,h3").forEach((heading) => {
+      if (String(heading.textContent || "").includes("Studio-Import")) heading.textContent = "Studio-Import";
+    });
+
+    dialog.querySelectorAll("button").forEach((button) => {
+      const txt = String(button.textContent || "").trim();
+
+      if (txt === "Auswahl ins Studio übernehmen" || txt === "Ins Studio übernehmen") {
+        button.textContent = "Objekt importieren";
+        button.classList.add("pcc-beta34-import-primary");
+        button.dataset.beta34ImportObject = "1";
+      }
+
+      if (txt === "Eine Ebene hoch") button.textContent = "Hoch";
+      if (txt === "Aktualisieren") button.textContent = "Neu laden";
+    });
+
+    if (dialog.dataset.beta34ClickBound !== "1") {
+      dialog.dataset.beta34ClickBound = "1";
+      dialog.addEventListener("click", (event) => {
+        const button = event.target?.closest?.("[data-beta34-extra-import-object],[data-beta34-import-object]");
+        if (!button) return;
+        event.preventDefault();
+        event.stopPropagation();
+        this.beta7ImportSelected?.();
+      }, {capture:true});
+    }
+
+    const state = this._beta7Import;
+    const selected = Boolean(state?.selected || state?.selectedItem || state?.plan || state?.path);
+    if (selected && !dialog.querySelector("[data-beta34-extra-import-object]")) {
+      const footer = document.createElement("div");
+      footer.style.display = "flex";
+      footer.style.justifyContent = "flex-end";
+      footer.style.gap = "8px";
+      footer.style.marginTop = "8px";
+      footer.innerHTML = `<button class="pcc-beta34-import-primary" data-beta34-extra-import-object="1" type="button">Objekt importieren</button>`;
+      dialog.appendChild(footer);
+    }
+
+    const folderArea = [...dialog.querySelectorAll("div,section")]
+      .find((node) => {
+        const text = String(node.textContent || "");
+        return text.includes("Bad Bad Ordner") || text.includes("Deko Deko Ordner") || text.includes("Drucker Drucker Ordner");
+      });
+
+    if (folderArea) folderArea.classList.add("pcc-beta34-import-grid");
+  };
+
+  PCC_BETA34_STUDIO_CLASS.prototype.beta7ImportPlan = async function beta34ImportPlan(plan) {
+    const beforeJobs = Array.isArray(this._jobs) ? [...this._jobs] : [];
+    const beforeActive = this._activeJob || null;
+
+    if (typeof PCC_BETA34_PREV_IMPORT_PLAN === "function") {
+      await PCC_BETA34_PREV_IMPORT_PLAN.call(this, plan);
+    }
+
+    const afterActive = this._activeJob || null;
+    this._pccBeta34PlateObjects = Array.isArray(this._pccBeta34PlateObjects) ? this._pccBeta34PlateObjects : [];
+
+    for (const job of [...beforeJobs, beforeActive, afterActive]) {
+      if (!job) continue;
+      const id = String(job.id || job.file_path || job.path || job.name || job.modelName || "");
+      if (!id) continue;
+      if (!this._pccBeta34PlateObjects.some((item) => String(item.id || item.file_path || item.path || item.name || item.modelName || "") === id)) {
+        this._pccBeta34PlateObjects.push(job);
+      }
+    }
+
+    if (Array.isArray(this._jobs)) {
+      const merged = [...this._jobs];
+      for (const job of this._pccBeta34PlateObjects) {
+        const id = String(job.id || job.file_path || job.path || job.name || job.modelName || "");
+        if (!id) continue;
+        if (!merged.some((item) => String(item.id || item.file_path || item.path || item.name || item.modelName || "") === id)) merged.push(job);
+      }
+      this._jobs = merged;
+    }
+
+    this._pccBeta34ImportOpen = true;
+    this._pccBeta30ImportOpen = true;
+    this._pccBeta27ImportOpen = true;
+
+    window.setTimeout(() => {
+      this.ensureStudioMeshLoaded?.(true);
+      this.beta34PolishImportPopup?.();
+      this.beta34RemoveFooters?.();
+      this.render?.();
+    }, 0);
+  };
+
+  PCC_BETA34_STUDIO_CLASS.prototype.beta34FinalCleanup = function beta34FinalCleanup() {
+    this.beta34EnsureStyle();
+    this.beta34CleanTextNavigation();
+    this.beta34RemoveFooters();
+    this.beta34KillContextMenus();
+
+    try { this.beta9ApplyBuildplateVisual?.(); } catch (_error) {}
+
+    if (this._pccBeta34ImportOpen || this.shadowRoot?.querySelector(".pcc-beta27-import-modal")) {
+      requestAnimationFrame(() => this.beta34PolishImportPopup());
+    }
+  };
+
+  PCC_BETA34_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function beta34CleanupBetaStudioUi(...args) {
+    if (typeof PCC_BETA34_PREV_CLEANUP === "function") {
+      try { PCC_BETA34_PREV_CLEANUP.apply(this, args); } catch (_error) {}
+    }
+
+    this.beta34FinalCleanup();
+
+    requestAnimationFrame(() => this.beta34FinalCleanup());
+    window.setTimeout(() => this.beta34FinalCleanup(), 80);
   };
 
   if (!customElements.get("printer-control-center-studio-card")) {

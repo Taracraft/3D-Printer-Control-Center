@@ -1,3 +1,24 @@
+## 5.0.0-beta38 - Emergency restore CAD Studio after beta37 blank page
+
+### Deutsch
+- Entfernt beta37 aus dem aktiven Studio-Code.
+- Stellt den letzten sichtbaren CAD-Studio-Stand auf Basis beta36 wieder her.
+- Behebt damit die leere 3D-Studio-/CAD-Vorschau-Seite nach beta37.
+- Keine Kamera-, Dashboard-, Backend-, Host- oder Verbindungsänderungen.
+- Kein beta31/beta32-Code wird wieder eingeführt.
+- Kein beta24-Code wird wieder eingeführt.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Removes beta37 from the active Studio code.
+- Restores the last visible CAD Studio state based on beta36.
+- Fixes the blank 3D Studio / CAD Preview page after beta37.
+- No camera, dashboard, backend, host or connection changes.
+- No beta31/beta32 code is reintroduced.
+- No beta24 code is reintroduced.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta37 - Stable imported object and right drag
 
 ### Deutsch

@@ -1,3 +1,32 @@
+## 5.0.0-beta23 - Studio grid, mouse controls, gallery import and SVG toolbar icons
+
+### English
+- Keeps the beta9 plate selector, beta20 primitives/rulers, beta21 filled mesh renderer and beta22 top-toolbar/color base.
+- Corrects the First Layer primitive to the Bambu A1 build volume footprint of 256 x 256 mm.
+- Reintroduces a subtle buildplate grid in Studio.
+- Adds mouse controls: hold left mouse button to rotate the object, hold right mouse button to move it.
+- Disables the Studio right-click context menu completely.
+- Replaces text-like toolbar controls with inline SVG icon buttons.
+- Adds a Gallery import button to the top toolbar.
+- Filters non-renderable phantom gallery jobs unless a real STL/OBJ/mesh source is available.
+- Improves ruler readability with boxed labels for width, length and height.
+- No camera, dashboard or printer connection changes.
+- Real slicing and direct printing remain disabled.
+
+### Deutsch
+- Behält beta9-Druckplattenauswahl, beta20-Primitive/Lineale, beta21-gefülltes Mesh-Rendering und beta22-Top-Toolbar/Farbbasis.
+- Korrigiert das First-Layer-Primitive auf die Bambu-A1-Bettfläche von 256 x 256 mm.
+- Fügt im Studio wieder ein dezentes Buildplate-Raster ein.
+- Ergänzt Mausbedienung: linke Maustaste halten zum Drehen, rechte Maustaste halten zum Verschieben.
+- Deaktiviert das Studio-Rechtsklickmenü vollständig.
+- Ersetzt textartige Toolbar-Controls durch Inline-SVG-Icon-Buttons.
+- Ergänzt einen Galerie-Import-Button in der oberen Toolbar.
+- Filtert nicht renderbare Phantom-Galerie-Jobs, sofern keine echte STL-/OBJ-/Mesh-Quelle vorhanden ist.
+- Verbessert die Lesbarkeit der Lineale mit hinterlegten Labels für Breite, Länge und Höhe.
+- Keine Kamera-, Dashboard- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+
 ## 5.0.0-beta22 - Studio top toolbar and object color editing
 
 ### English

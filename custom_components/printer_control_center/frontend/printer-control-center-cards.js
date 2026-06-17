@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta19*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta9*/
 (() => {
-  const VERSION = "5.0.0-beta19";
+  const VERSION = "5.0.0-beta9";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -69,7 +69,7 @@
     ["Externe Spule anzeigen", "Show external spool"],
     ["Diagnose anzeigen", "Show diagnostics"],
     ["S bis XL kann zusätzlich direkt innerhalb der Karte umgeschaltet werden.", "S to XL can also be changed directly inside the card."],
-    ["Dateien und Ordner durchsuchen …", "Search files and folders …"],
+    ["Dateien und Ordner durchsuchen â€¦", "Search files and folders â€¦"],
     ["Suche zurücksetzen", "Reset search"],
     ["Sichtbare auswählen", "Select visible"],
     ["Auswahl verschieben", "Move selection"],
@@ -83,7 +83,7 @@
     ["SD-Karte", "SD card"],
     ["Hauptordner", "Root folder"],
     ["Neuer Ordner", "New folder"],
-    ["Name A–Z", "Name A–Z"],
+    ["Name Aâ€“Z", "Name Aâ€“Z"],
     ["Neueste zuerst", "Newest first"],
     ["Größte zuerst", "Largest first"],
     ["3MF hochladen", "Upload 3MF"],
@@ -137,8 +137,8 @@
     ["Umbenennen", "Rename"],
     ["Verschieben", "Move"],
     ["Löschen", "Delete"],
-    ["Drucken …", "Print …"],
-    ["Planen …", "Schedule …"],
+    ["Drucken â€¦", "Print â€¦"],
+    ["Planen â€¦", "Schedule â€¦"],
     ["In Bambu Studio öffnen (Original-3MF)", "Open in Bambu Studio (original 3MF)"],
     ["Modell-3MF herunterladen", "Download model 3MF"],
     ["Modell-STL herunterladen", "Download model STL"],
@@ -153,8 +153,8 @@
     ["Die unveränderte Original-3MF-Datei wird in Bambu Studio geöffnet. Dort kannst du den Druck kontrolliert starten.", "The unchanged original 3MF file is opened in Bambu Studio. You can start the print there after review."],
     ["In Bambu Studio öffnen", "Open in Bambu Studio"],
     ["Modell wurde zur 3D-Druck-Warteschlange hinzugefügt.", "Model was added to the 3D print queue."],
-    ["Warteschlange wird geladen …", "Loading queue …"],
-    ["Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen …â€œ.", "No planned models yet. Open the gallery or use the existing â€œSchedule …â€ item in the file manager."],
+    ["Warteschlange wird geladen â€¦", "Loading queue â€¦"],
+    ["Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen â€¦â€œ.", "No planned models yet. Open the gallery or use the existing â€œSchedule â€¦â€ item in the file manager."],
     ["Galerie öffnen", "Open gallery"],
     ["Persistente Planung für", "Persistent planning for"],
     ["Einträge", "items"],
@@ -171,7 +171,7 @@
     ["Stückzahl je Modell", "Quantity per model"],
     ["Zeitpunkt optional", "Optional time"],
     ["Markierte Modelle hinzufügen", "Add selected models"],
-    ["Galerie wird geladen …", "Loading gallery …"],
+    ["Galerie wird geladen â€¦", "Loading gallery â€¦"],
     ["Keine 3MF-Modelle in diesem Ordner gefunden.", "No 3MF models found in this folder."],
     ["Bambu Studio wird mit der unveränderten Original-3MF-Datei geöffnet.", "Bambu Studio opens the unchanged original 3MF file."],
     ["MakerWorld-Modell suchen oder einen Modell-Link öffnen. Die 3MF-Datei kann anschließend direkt in die Archivkarte hochgeladen werden.", "Search for a MakerWorld model or open a model link. The 3MF file can then be uploaded directly to the local archive card."],
@@ -191,7 +191,7 @@
     ["Native Live-Kamera", "Native live camera"],
     ["Native Kamera-Snapshot", "Native camera snapshot"],
     ["Modellvorschau", "Model preview"],
-    ["Native Live-Kamera startet …", "Starting native live camera …"],
+    ["Native Live-Kamera startet â€¦", "Starting native live camera â€¦"],
     ["Das 3D-Printer Control Center verbindet Home Assistant direkt mit TCP 6000. Keine externen Dienste erforderlich.", "3D-Printer Control Center connects Home Assistant directly to TCP 6000. No external services are required."],
     ["3D-Printer Control Center Live-Kamera", "3D-Printer Control Center live camera"],
     ["3D-Printer Control Center Kamera-Stream", "3D-Printer Control Center camera stream"],
@@ -208,7 +208,7 @@
     ["Upload-Ziel", "Upload target"],
     ["SD-Karte des Druckers", "Printer SD card"],
     ["Lokales Archiv", "local archive"],
-    ["Upload wird vorbereitet …", "Preparing upload …"],
+    ["Upload wird vorbereitet â€¦", "Preparing upload â€¦"],
     ["Dateien hochladen", "Upload files"],
     ["Diese Karte benötigt für die übersichtliche Dateimanager-Ansicht einen eigenen Abschnitt über die volle Dashboard-Breite.", "For a clear file-manager view, this card needs its own full-width dashboard section."],
     ["Warteschlange konnte nicht geladen werden", "Queue could not be loaded"],
@@ -227,9 +227,9 @@
     ["Zeitraffer", "Timelapse"],
     ["Hoch", "Up"],
     ["Nur .3mf-Dateien sind zulässig. Nicht verwendbar:", "Only .3mf files are allowed. Not usable:"],
-    ["wird vorbereitet …", "is being prepared …"],
-    ["wird auf die Drucker-SD-Karte geschrieben …", "is being written to the printer SD card …"],
-    ["wird im lokalen Archiv gespeichert …", "is being saved to the local archive …"],
+    ["wird vorbereitet â€¦", "is being prepared â€¦"],
+    ["wird auf die Drucker-SD-Karte geschrieben â€¦", "is being written to the printer SD card â€¦"],
+    ["wird im lokalen Archiv gespeichert â€¦", "is being saved to the local archive â€¦"],
     ["Datei", "File"],
     ["von", "of"],
     ["fehlgeschlagen", "failed"],
@@ -322,7 +322,7 @@
   const available = (item) =>
     Boolean(item) && !["unknown", "unavailable", ""].includes(String(item.state));
 
-  const stateValue = (hass, entityId, fallback = "—") => {
+  const stateValue = (hass, entityId, fallback = "â€”") => {
     const item = hass?.states?.[entityId];
     return available(item) ? item.state : fallback;
   };
@@ -337,7 +337,7 @@
 
   function formatTemp(value) {
     const parsed = Number.parseFloat(value);
-    return Number.isFinite(parsed) ? `${parsed.toFixed(1)} °C` : "—";
+    return Number.isFinite(parsed) ? `${parsed.toFixed(1)} Â°C` : "â€”";
   }
 
   function formatRemaining(value) {
@@ -395,7 +395,7 @@
   }
 
   function galleryDateLabel(value) {
-    if (value === null || value === undefined || value === "") return "—";
+    if (value === null || value === undefined || value === "") return "â€”";
     let date = null;
     if (typeof value === "number" || /^\d+(?:\.\d+)?$/.test(String(value))) {
       const numeric = Number(value);
@@ -473,7 +473,7 @@
       run();
     }
     snapshot(){return this.task?{...this.task,details:[...(this.task.details||[])]}:null}
-    speedLabel(task=this.task){return task?.speed?`${bytesLabel(task.speed)}/s`:"—"}
+    speedLabel(task=this.task){return task?.speed?`${bytesLabel(task.speed)}/s`:"â€”"}
     phaseLabel(task=this.task){
       const phase=task?.phase||"";
       return tr(({preparing:"Vorbereiten",uploading:"Hochladen",resuming:"Upload fortsetzen",processing:"Entpacken und gegenprüfen",verified:"Gegenprüfung erfolgreich",failed:"Fehler",cancelled:"Abgebrochen"})[phase]||phase);
@@ -577,7 +577,7 @@
         this.emit();
       }
       if(source==="archive_zip"){
-        task.phase="processing";task.progress=97;task.details=[...(task.details||[]),"Upload vollständig empfangen.","ZIP wird entpackt und gegen das Archiv geprüft …"];this.emit(true);
+        task.phase="processing";task.progress=97;task.details=[...(task.details||[]),"Upload vollständig empfangen.","ZIP wird entpackt und gegen das Archiv geprüft â€¦"];this.emit(true);
       }
       return await this.hass.callWS({type:"printer_control_center/upload/finish",upload_id:task.uploadId});
     }
@@ -806,7 +806,7 @@
 
   function displaySpeed(hass, map) {
     const selected = stateValue(hass, map.speed, "");
-    if (selected && selected !== "—") return selected;
+    if (selected && selected !== "â€”") return selected;
     return "standard";
   }
 
@@ -898,7 +898,7 @@
     if (/X1|X2|H2|P2/.test(family)) return "RTSPS / TCP 322";
     if (/A1|A2|P1/.test(family)) return "Chamber Image / TCP 6000";
 
-    return "—";
+    return "â€”";
   }
 
   function amsDisplayName(hass, map) {
@@ -2186,7 +2186,7 @@
         <span class="spool" style="--spool:${esc(color)}"></span>
         <small>${esc(label)}</small>
         <strong>${esc(loaded ? material : "Leer")}</strong>
-        <small>${esc(details || (loaded ? "geladen" : "—"))}</small>
+        <small>${esc(details || (loaded ? "geladen" : "â€”"))}</small>
         ${active ? `<span class="slot-active">â— Aktiv</span>` : ""}
       </div>
     `;
@@ -2205,256 +2205,39 @@
     ) || "";
   }
 
+  function cameraProxy(hass, map, config) {
+    const entityId = (
+      String(config?.camera_entity || "").trim()
+      || map.nativeCamera
+      || autoEntity(hass, "camera", map.prefix, ["native_live_camera", "camera", "kamera"])
+    );
 
-
-
-
-
-
-
-  function pccV5CameraDecisionText(hass, map, config, entityId) {
     const at = attrs(hass, entityId);
-    const state = hass?.states?.[entityId];
-
-    return [
-      config?.camera_entity,
-      config?.camera_url,
-      config?.camera_mode,
-      config?.camera_transport,
-      stateValue(hass, map?.cameraMode),
-      stateValue(hass, map?.cameraTransport),
-      stateValue(hass, map?.cameraPort),
-      pccV5CameraAttrText(state),
-      at.camera_mode,
-      at.camera_transport,
-      at.camera_label,
-      at.camera_port,
-      at.rtsp_transport,
-      at.rtsp_port,
-      at.transport,
-      at.entity_picture,
-      entityId
-    ].map((value) => pccV5CameraString(value).toLowerCase()).join(" ");
-  }
-
-  function pccV5CameraIsSnapshotOnly(hass, map, config, entityId) {
-    const text = pccV5CameraDecisionText(hass, map, config, entityId);
-
-    if (text.includes("rtsps")) return true;
-    if (text.includes("rtsp")) return true;
-    if (text.includes("camera_port 322")) return true;
-    if (text.includes("rtsp_port 322")) return true;
-    if (text.includes("tcp 322")) return true;
-    if (text.includes(":322")) return true;
-    if (text.includes("requires_lan_liveview true")) return true;
-
-    return false;
-  }
-
-  function pccV5CameraUrlWithToken(path, token) {
-    if (!path) return "";
-    if (!token) return path;
-    const sep = path.includes("?") ? "&" : "?";
-    return `${path}${sep}token=${encodeURIComponent(token)}`;
-  }
-
-function pccV5CameraString(value) {
-    return String(value === undefined || value === null ? "" : value).trim();
-  }
-
-  function pccV5CameraAttrText(state) {
-    const at = state?.attributes || {};
-    return [
-      state?.state,
-      at.friendly_name,
-      at.entity_picture,
-      at.access_token,
-      at.camera_mode,
-      at.camera_transport,
-      at.camera_label,
-      at.camera_port,
-      at.rtsp_transport,
-      at.rtsp_port,
-      at.transport,
-      at.requires_lan_liveview,
-      at.camera_available,
-      at.camera_connected
-    ].map((value) => pccV5CameraString(value).toLowerCase()).join(" ");
-  }
-
-  function pccV5CameraEntityScore(hass, entityId, state, map, config) {
-    const id = pccV5CameraString(entityId).toLowerCase();
-    const name = pccV5CameraString(state?.attributes?.friendly_name).toLowerCase();
-    const status = pccV5CameraString(state?.state).toLowerCase();
-    const prefix = pccV5CameraString(map?.prefix).toLowerCase();
-    const configured = pccV5CameraString(config?.camera_entity).toLowerCase();
-
-    if (!id.startsWith("camera.")) return -10000;
-
-    let score = 0;
-
-    if (configured && id === configured) score += 10000;
-    if (map?.nativeCamera && id === pccV5CameraString(map.nativeCamera).toLowerCase()) score += 9000;
-
-    if (id.includes("native_live_camera")) score += 500;
-    if (id.includes("native")) score += 220;
-    if (id.includes("live")) score += 180;
-    if (id.includes("chamber")) score += 140;
-    if (id.includes("bambu")) score += 120;
-    if (id.includes("printer")) score += 80;
-    if (id.includes("camera")) score += 40;
-
-    if (name.includes("native live")) score += 250;
-    if (name.includes("live camera")) score += 220;
-    if (name.includes("chamber")) score += 120;
-    if (name.includes("bambu")) score += 100;
-    if (name.includes("camera") || name.includes("kamera")) score += 60;
-
-    if (prefix && id.includes(prefix)) score += 180;
-
-    if (state?.attributes?.entity_picture) score += 300;
-    if (state?.attributes?.access_token) score += 80;
-
-    if (status === "streaming") score += 140;
-    if (status === "idle") score += 50;
-    if (status === "on") score += 40;
-
-    if (status === "unavailable" || status === "unknown" || status === "none") score -= 900;
-
-    return score;
-  }
-
-  function pccV5SelectBestCameraEntity(hass, map, config) {
-    const configured = pccV5CameraString(config?.camera_entity);
-    if (configured && hass?.states?.[configured]) return configured;
-
-    const mapped = pccV5CameraString(map?.nativeCamera);
-    if (mapped && hass?.states?.[mapped]) return mapped;
-
-    if (!hass?.states) return configured || mapped || "";
-
-    const candidates = Object.entries(hass.states)
-      .filter(([entityId]) => String(entityId).startsWith("camera."))
-      .map(([entityId, state]) => ({
-        entityId,
-        score: pccV5CameraEntityScore(hass, entityId, state, map, config)
-      }))
-      .filter((item) => item.score > 0)
-      .sort((a, b) => b.score - a.score);
-
-    return candidates[0]?.entityId || configured || mapped || "";
-  }
-
-  function pccV5CameraDecisionText(hass, map, config, entityId) {
-    const at = attrs(hass, entityId);
-    const state = hass?.states?.[entityId];
-
-    return [
-      config?.camera_entity,
-      config?.camera_url,
-      config?.camera_mode,
-      config?.camera_transport,
-      stateValue(hass, map?.cameraMode),
-      stateValue(hass, map?.cameraTransport),
-      stateValue(hass, map?.cameraPort),
-      pccV5CameraAttrText(state),
-      at.camera_mode,
-      at.camera_transport,
-      at.camera_label,
-      at.camera_port,
-      at.rtsp_transport,
-      at.rtsp_port,
-      at.transport,
-      at.entity_picture,
-      entityId
-    ].map((value) => pccV5CameraString(value).toLowerCase()).join(" ");
-  }
-
-  function pccV5CameraIsSnapshotOnly(hass, map, config, entityId) {
-    const text = pccV5CameraDecisionText(hass, map, config, entityId);
-
-    if (text.includes("rtsps")) return true;
-    if (text.includes("rtsp")) return true;
-    if (text.includes("camera_port 322")) return true;
-    if (text.includes("rtsp_port 322")) return true;
-    if (text.includes("tcp 322")) return true;
-    if (text.includes(":322")) return true;
-    if (text.includes("requires_lan_liveview true")) return true;
-
-    return false;
-  }
-
-  function pccV5CameraUrlWithToken(path, token) {
-    if (!path) return "";
-    if (!token) return path;
-    const sep = path.includes("?") ? "&" : "?";
-    return `${path}${sep}token=${encodeURIComponent(token)}`;
-  }
-
-function pccV5CameraCacheBuster(url) {
-    return url || "";
-  }
-
-
-function cameraProxy(hass, map, config) {
-    const entityId = pccV5SelectBestCameraEntity(hass, map, config);
-    const state = entityId ? hass?.states?.[entityId] : null;
-    const at = state?.attributes || attrs(hass, entityId);
-
-    const token = pccV5CameraString(at.access_token);
-    const entityPicture = pccV5CameraString(at.entity_picture);
-    const proxy = entityId ? pccV5CameraUrlWithToken(`/api/camera_proxy/${entityId}`, token) : "";
-
-    const still = entityPicture || proxy;
-    const snapshotOnly = pccV5CameraIsSnapshotOnly(hass, map, config, entityId);
-
-    const stream = entityId && token && !snapshotOnly
+    const token = String(at.access_token || "").trim();
+    const still = String(at.entity_picture || "").trim()
+      || (entityId && token ? `/api/camera_proxy/${entityId}?token=${encodeURIComponent(token)}` : "");
+    const stream = entityId && token
       ? `/api/camera_proxy_stream/${entityId}?token=${encodeURIComponent(token)}&interval=0.8`
       : "";
 
-    const primary = still || stream;
-
-    return {
-      entityId,
-      token,
-      still,
-      stream,
-      primary,
-      primaryType: still ? "snapshot" : "stream",
-      snapshotOnly: Boolean(snapshotOnly || still),
-      available: Boolean(entityId && primary),
-      state: pccV5CameraString(state?.state)
-    };
+    return { entityId, token, still, stream };
   }
 
-
-
-
-function mediaSource(hass, map, config, cameraVisible, online, status) {
-    const native = cameraProxy(hass, map, config);
-    const overrideUrl = pccV5CameraString(config?.camera_url);
+  function mediaSource(hass, map, config, cameraVisible, online, status) {
     const previewEntity = config?.preview_entity || autoEntity(hass, "image", map.prefix, ["cover_image", "titelbild", "model_preview", "bild_wahlen"]);
+    const overrideUrl = String(config?.camera_url || "").trim();
+    const native = cameraProxy(hass, map, config);
 
-    const cameraSource = overrideUrl || native.primary;
+    if (!online) return { src: DEFAULT_OFFLINE, label: "Drucker offline", mode: "offline" };
 
-    if (cameraSource) {
-      const sourceType = overrideUrl ? "override" : native.primaryType;
-      return {
-        src: sourceType === "snapshot" ? pccV5CameraCacheBuster(cameraSource) : cameraSource,
-        rawSrc: cameraSource,
-        label: sourceType === "stream" ? "Native Live-Kamera" : "Native Kamera-Snapshot",
-        mode: "live",
-        entityId: native.entityId,
-        sourceType
-      };
-    }
-
-    if (!online) {
-      return { src: DEFAULT_OFFLINE, label: "Drucker offline", mode: "offline", entityId: native.entityId };
+    if (cameraVisible) {
+      if (overrideUrl) return { src: overrideUrl, label: "Live-Kamera", mode: "live" };
+      if (native.stream) return { src: native.stream, label: "Native Live-Kamera", mode: "live" };
+      if (native.still) return { src: native.still, label: "Native Kamera-Snapshot", mode: "live" };
     }
 
     if (previewEntity && attrs(hass, previewEntity).entity_picture) {
-      return { src: attrs(hass, previewEntity).entity_picture, label: "Modellvorschau", mode: "preview", entityId: native.entityId };
+      return { src: attrs(hass, previewEntity).entity_picture, label: "Modellvorschau", mode: "preview" };
     }
 
     const printing = ["running", "pause", "printing", "prepare"].includes(String(status).toLowerCase());
@@ -2462,61 +2245,46 @@ function mediaSource(hass, map, config, cameraVisible, online, status) {
       src: printing ? DEFAULT_PREVIEW : DEFAULT_IDLE,
       label: printing ? "Modellvorschau" : "Kein aktiver Druckauftrag",
       mode: printing ? "preview" : "idle",
-      entityId: native.entityId
     };
   }
 
-
-
-
-function mediaHtml(hass, map, config, cameraVisible, online, status) {
+  function mediaHtml(hass, map, config, cameraVisible, online, status) {
     const source = mediaSource(hass, map, config, cameraVisible, online, status);
     const task = stateValue(hass, map.task, "Kein aktiver Druckauftrag");
     const native = cameraProxy(hass, map, config);
 
-    if (source.mode === "live" && source.src) {
+    if (online && cameraVisible && !source.src) {
       return `
-        <div class="media media-live" data-pcc-camera-entity="${esc(native.entityId || "")}" data-pcc-camera-mode="${esc(source.sourceType || "")}" data-pcc-camera-src="${esc(source.rawSrc || source.src || "")}">
-          <img src="${esc(source.src)}" alt="${esc(source.label)}">
-          <span class="media-label">${esc(source.label)}${native.entityId ? ` · ${esc(native.entityId)}` : ""}</span>
-          <button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">↗</button>
-        </div>
-      `;
-    }
-
-    if (native.entityId && !source.src) {
-      return `
-        <div class="media-empty" data-pcc-camera-entity="${esc(native.entityId)}">
+        <div class="media-empty">
           <div>
-            <strong>Native Live-Kamera gefunden</strong>
-            <small>${esc(native.entityId)} liefert noch kein Bild über Home Assistant.</small>
+            <strong>Native Live-Kamera startet â€¦</strong>
+            <small>Das 3D-Printer Control Center verbindet Home Assistant direkt mit TCP 6000. Keine externen Dienste erforderlich.</small>
           </div>
         </div>
       `;
     }
 
     return `
-      <div class="media ${source.mode === "preview" ? "media-preview" : ""}" data-pcc-camera-entity="${esc(native.entityId || "")}">
+      <div class="media ${source.mode === "preview" ? "media-preview" : ""}">
         <img src="${esc(source.src)}" alt="${esc(source.label)}">
         <span class="media-label">${esc(source.label)}</span>
         ${source.mode === "preview" ? `<span class="media-task">${esc(task)}</span>` : ""}
-        ${(native.still || native.stream) ? `<button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">↗</button>` : ""}
+        ${native.stream ? `<button class="media-popout" data-action="camera-popout" title="Kamera in Großansicht öffnen">â†—</button>` : ""}
       </div>
     `;
   }
 
-
-
-
-function openCameraPopup(hass, map, config) {
+  function openCameraPopup(hass, map, config) {
     const native = cameraProxy(hass, map, config);
-    const source = native.primary || native.still || native.stream;
-    if (!source) return;
+    if (!native.stream) return;
 
-    const title = esc(`3D-Printer Control Center Kamera · ${native.entityId || stateValue(hass, map.serial, map.prefix)}`);
-    const sourceHtml = esc(native.primaryType === "snapshot" ? pccV5CameraCacheBuster(source) : source);
+    const still = native.still || native.stream;
     const popup = window.open("", `printer-control-center-camera-${map.prefix}`, "width=1280,height=820,resizable=yes,scrollbars=no");
     if (!popup) return;
+
+    const streamHtml = esc(native.stream);
+    const stillJson = JSON.stringify(still);
+    const title = esc(`3D-Printer Control Center Live-Kamera - ${stateValue(hass, map.serial, map.prefix)}`);
 
     popup.document.open();
     popup.document.write(`<!doctype html>
@@ -2526,29 +2294,32 @@ function openCameraPopup(hass, map, config) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title}</title>
 <style>
-  :root{color-scheme:dark}
-  *{box-sizing:border-box}
-  body{margin:0;background:#05080c;color:#eaf7ff;font-family:Arial,sans-serif}
-  header{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 14px;background:#111922;border-bottom:1px solid #1a6584}
-  img{display:block;width:100vw;height:calc(100vh - 48px);object-fit:contain;background:#000}
-  .badge{padding:5px 10px;border-radius:999px;background:#007f4f;color:#d7fff0;font-weight:700;font-size:12px}
-  button{border:1px solid #1a8cad;border-radius:8px;background:#082630;color:#eaf7ff;padding:6px 10px;cursor:pointer}
+  :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#05080c;color:#eaf7ff;font-family:Arial,sans-serif}
+  header{display:flex;gap:7px;align-items:center;justify-content:space-between;padding:9px 14px;background:#111922;border-bottom:1px solid #1a6584}
+  .left,.right{display:flex;gap:6px;align-items:center}.live{padding:5px 9px;border-radius:999px;background:#007f4f;color:#d7fff0;font-weight:700}
+  button{cursor:pointer;border:1px solid #21799e;background:#15232c;color:#eaf7ff;padding:7px 10px;border-radius:8px}
+  main{height:calc(100vh - 58px);display:grid;place-items:center;background:#000}
+  img{display:block;max-width:100%;max-height:100%;object-fit:contain}
 </style>
 </head>
 <body>
 <header>
-  <strong>${title}</strong>
-  <span class="badge">${esc(native.primaryType === "snapshot" ? "Snapshot" : "Live")}</span>
-  <button onclick="window.location.reload()">Aktualisieren</button>
+  <div class="left"><strong>${title}</strong><span class="live">Live</span></div>
+  <div class="right">
+    <button id="snapshot">Schnappschuss</button>
+    <button id="fullscreen">Vollbild</button>
+    <button onclick="window.close()">Schließen</button>
+  </div>
 </header>
-<img src="${sourceHtml}" alt="${title}">
+<main><img id="stream" alt="3D-Printer Control Center Kamera-Stream" src="${streamHtml}"></main>
+<script>
+  document.getElementById("snapshot").addEventListener("click",()=>window.open(${stillJson} + (${stillJson}.includes("?") ? "&" : "?") + "t=" + Date.now(),"_blank","noopener"));
+  document.getElementById("fullscreen").addEventListener("click",()=>document.getElementById("stream").requestFullscreen?.());
+<\/script>
 </body>
 </html>`);
     popup.document.close();
   }
-
-
-
 
   function commonStub() {
     return {
@@ -2751,7 +2522,7 @@ function openCameraPopup(hass, map, config) {
         <div class="toolbar">
           <button data-action="light">💡 Licht</button>
           <button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button>
-          <button data-action="camera-popout">↗ Großansicht</button>
+          <button data-action="camera-popout">â†— Großansicht</button>
           ${printControlButtons(status)}
           <button data-action="refresh">â†» Aktualisieren</button>
         </div>`;
@@ -2874,7 +2645,7 @@ function openCameraPopup(hass, map, config) {
   }
   class ControlsCard extends BaseCard {
     static getConfigElement(){return editorFor("controls")} static getStubConfig(){return {...commonStub(),title:"Steuerung"}}
-    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const status=stateValue(this._hass,m.printStatus,"idle");this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="light">💡 Licht</button><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">↗ Großansicht</button>${printControlButtons(status)}<button data-action="refresh">â†» Aktualisieren</button></div>`);this.bind(m)}
+    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const status=stateValue(this._hass,m.printStatus,"idle");this.shadowRoot.innerHTML=frame(this._config,`<h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="light">💡 Licht</button><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— Großansicht</button>${printControlButtons(status)}<button data-action="refresh">â†» Aktualisieren</button></div>`);this.bind(m)}
   }
   class AmsCard extends BaseCard {
     static getConfigElement(){return editorFor("ams")} static getStubConfig(){return {...commonStub(),title:"AMS"}}
@@ -2890,7 +2661,7 @@ function openCameraPopup(hass, map, config) {
   }
   class MediaCard extends BaseCard {
     static getConfigElement(){return editorFor("media")} static getStubConfig(){return {...commonStub(),title:"Kamera / Modellvorschau",card_size:"l"}}
-    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const o=isPrinterOnline(this._hass,m),s=stateValue(this._hass,m.printStatus);this.shadowRoot.innerHTML=frame(this._config,`<div class="row between"><h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">↗ Großansicht</button></div></div>${mediaHtml(this._hass,m,this._config,this.cameraVisible(),o,s)}`)}
+    render(){if(!this._hass||!this._config)return;const m=this.map();if(!m)return this.empty();const o=isPrinterOnline(this._hass,m),s=stateValue(this._hass,m.printStatus);this.shadowRoot.innerHTML=frame(this._config,`<div class="row between"><h3>${esc(this._config.title)}</h3><div class="toolbar"><button data-action="toggle-camera">📷 Livebild ${this.cameraVisible()?"ausblenden":"anzeigen"}</button><button data-action="camera-popout">â†— Großansicht</button></div></div>${mediaHtml(this._hass,m,this._config,this.cameraVisible(),o,s)}`)}
   }
   class BrandCard extends BaseCard {
     static getConfigElement(){return editorFor("brand")} static getStubConfig(){return commonStub()}
@@ -3150,7 +2921,7 @@ function openCameraPopup(hass, map, config) {
     async exportGalleryZip(map){
       if(this._source!=="archive")return;
       const serial=encodeURIComponent(this.serial(map));
-      this._notice="Galerie-ZIP wird erstellt. Der Download startet im Hintergrund …";
+      this._notice="Galerie-ZIP wird erstellt. Der Download startet im Hintergrund â€¦";
       this.render();
       try{
         const response=await fetch(`/api/printer_control_center/archive_export/${serial}`,{headers:authHeaders(this._hass),credentials:"same-origin"});
@@ -3534,9 +3305,9 @@ function openCameraPopup(hass, map, config) {
           ${folder
             ? action("open-folder","Öffnen","📁")
             : `
-              ${action("print","Drucken …","🖨",!project)}
-              ${action("plan","Planen …","ðŸ—“",!project)}
-              ${action("model-open","In Bambu Studio öffnen (Original-3MF)","↗",!project)}
+              ${action("print","Drucken â€¦","ðŸ–¨",!project)}
+              ${action("plan","Planen â€¦","ðŸ—“",!project)}
+              ${action("model-open","In Bambu Studio öffnen (Original-3MF)","â†—",!project)}
               ${action("studio-open","In 3D-Studio öffnen","[S]",!project)}
               ${action("model-download","Modell-3MF herunterladen","â¬‡",!project)}
               ${action("stl-download","Modell-STL herunterladen","â¬‡",!project)}
@@ -3761,7 +3532,7 @@ function openCameraPopup(hass, map, config) {
             <span class="folder-option-tree-icon">${root?"âŒ‚":"â†³"}</span>
             <span class="folder-option-name">${esc(folder.name||caption)}</span>
           </span>
-          ${folder.path===(selectedPath||"")?"<span>✓</span>":""}
+          ${folder.path===(selectedPath||"")?"<span>âœ“</span>":""}
         </button>
       `;
     }
@@ -3846,7 +3617,7 @@ function openCameraPopup(hass, map, config) {
         body=`
           <p><strong>${esc(dialog.item?.name||"")}</strong></p>
           <p class="muted">Die unveränderte Original-3MF-Datei wird in Bambu Studio geöffnet. Dort kannst du den Druck kontrolliert starten.</p>
-          <button class="primary" data-dialog-project-open>↗ In Bambu Studio öffnen</button>
+          <button class="primary" data-dialog-project-open>â†— In Bambu Studio öffnen</button>
         `;
       }
 
@@ -3867,7 +3638,7 @@ function openCameraPopup(hass, map, config) {
           <div class="tc-dialog" data-dialog-panel>
             <div class="row between">
               <h3>${esc(title)}</h3>
-              <button data-dialog-close>✕</button>
+              <button data-dialog-close>âœ•</button>
             </div>
             ${body}
             <div class="toolbar">
@@ -3923,7 +3694,7 @@ function openCameraPopup(hass, map, config) {
                  <button data-dialog-type="rename" data-dialog-path="${esc(item.path)}">âœŽ Umbenennen</button>
                  <button data-context-button="${esc(item.path)}">â‹®</button>`
               : `
-                ${project?`<button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">🖨 Drucken</button>`:`<button data-context-direct="download" data-context-path="${esc(item.path)}">â¬‡ Download</button>`}
+                ${project?`<button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">ðŸ–¨ Drucken</button>`:`<button data-context-direct="download" data-context-path="${esc(item.path)}">â¬‡ Download</button>`}
                 <button data-preview-path="${esc(item.path)}">â—ˆ 3D-Vorschau</button>
                 <button data-context-button="${esc(item.path)}" title="Weitere Aktionen">â‹®</button>
               `
@@ -4003,7 +3774,7 @@ function openCameraPopup(hass, map, config) {
             <aside class="archive-preview-toolbar">
               <div class="row between">
                 <h3>${esc(item.name)}</h3>
-                <button data-preview-close>✕</button>
+                <button data-preview-close>âœ•</button>
               </div>
               <small>${esc(item.path||"")}</small>
               <span class="badge">${esc(bytesLabel(item.size||0))}</span>
@@ -4016,9 +3787,9 @@ function openCameraPopup(hass, map, config) {
               </div>
 
               ${project?`
-                <button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">🖨 Drucken …</button>
-                <button data-context-direct="plan" data-context-path="${esc(item.path)}">ðŸ—“ Planen …</button>
-                <button class="primary" data-context-direct="model-open" data-context-path="${esc(item.path)}">↗ In Bambu Studio öffnen (Original-3MF)</button>
+                <button class="primary" data-context-direct="print" data-context-path="${esc(item.path)}">ðŸ–¨ Drucken â€¦</button>
+                <button data-context-direct="plan" data-context-path="${esc(item.path)}">ðŸ—“ Planen â€¦</button>
+                <button class="primary" data-context-direct="model-open" data-context-path="${esc(item.path)}">â†— In Bambu Studio öffnen (Original-3MF)</button>
                 <button data-context-direct="studio-open" data-context-path="${esc(item.path)}">[S] In 3D-Studio öffnen</button>
                 <button data-context-direct="model-download" data-context-path="${esc(item.path)}">â¬‡ Modell-3MF herunterladen</button>
                 <button data-context-direct="stl-download" data-context-path="${esc(item.path)}">â¬‡ Modell-STL herunterladen</button>
@@ -4028,7 +3799,7 @@ function openCameraPopup(hass, map, config) {
               <button data-dialog-type="rename" data-dialog-path="${esc(item.path)}">âœŽ Umbenennen</button>
               <button data-dialog-type="move" data-dialog-path="${esc(item.path)}">â‡¢ Verschieben</button>
               <button class="danger" data-dialog-type="delete" data-dialog-path="${esc(item.path)}">🗑 Löschen</button>
-              <button data-preview-close>✕ Vorschau schließen</button>
+              <button data-preview-close>âœ• Vorschau schließen</button>
             </aside>
           </div>
         </div>
@@ -4268,17 +4039,17 @@ function openCameraPopup(hass, map, config) {
                   <button data-source="archive" class="${this._source==="archive"?"active":""}">â–£ Archiv</button>
                   <button data-source="sd" class="${this._source==="sd"?"active":""}">â–¤ SD-Karte</button>
                   <button data-folder="${this._source==="archive"?"":"/"}">âŒ‚ Hauptordner</button>
-                  ${this._folder&&this._folder!=="/"?`<button data-folder="${esc(this._parent)}">↑ Hoch</button>`:""}
+                  ${this._folder&&this._folder!=="/"?`<button data-folder="${esc(this._parent)}">â†‘ Hoch</button>`:""}
                   <button data-dialog-type="create">Ã¯Â¼â€¹ Neuer Ordner</button>
                 </div>
 
                 <div class="archive-search-wrap">
-                  <input class="archive-search" data-archive-filter placeholder="Dateien und Ordner durchsuchen …" value="${esc(this._filter)}">
-                  <button class="archive-search-reset" data-action="search-reset" title="Suche zurücksetzen" ${this._filter?"":"disabled"}>✕</button>
+                  <input class="archive-search" data-archive-filter placeholder="Dateien und Ordner durchsuchen â€¦" value="${esc(this._filter)}">
+                  <button class="archive-search-reset" data-action="search-reset" title="Suche zurücksetzen" ${this._filter?"":"disabled"}>âœ•</button>
                 </div>
 
                 <select data-sort-mode title="Sortierung">
-                  <option value="name" ${this._sortMode==="name"?"selected":""}>Name A–Z</option>
+                  <option value="name" ${this._sortMode==="name"?"selected":""}>Name Aâ€“Z</option>
                   <option value="newest" ${this._sortMode==="newest"?"selected":""}>Neueste zuerst</option>
                   <option value="size" ${this._sortMode==="size"?"selected":""}>Größte zuerst</option>
                 </select>
@@ -4317,7 +4088,7 @@ function openCameraPopup(hass, map, config) {
                   }</strong>
                   <small>${selectedCountForUpload
                     ? `${esc(bytesLabel(selectedBytes))} - ${esc(selectedNames.slice(0,3).join(", "))}${selectedNames.length>3?` - +${selectedNames.length-3} weitere`:""}`
-                    : "Upload wird vorbereitet …"
+                    : "Upload wird vorbereitet â€¦"
                   }</small>
                 </div>
                 <button class="primary" data-action="upload-selected" ${selectedCountForUpload&&!this._uploadActive?"":"disabled"}>
@@ -4354,7 +4125,7 @@ function openCameraPopup(hass, map, config) {
               <section class="archive-library-content">
                 ${this._error?`<p class="notice">${esc(this._error)}</p>`:""}
                 ${this._notice?`<p class="notice">${esc(this._notice)}</p>`:""}
-                ${this._loading?`<p class="muted">Lade Daten …</p>`:""}
+                ${this._loading?`<p class="muted">Lade Daten â€¦</p>`:""}
 
                 <div class="archive-grid">
                   ${items.map((item)=>this.itemHtml(item)).join("")||`<div class="archive-library-empty">Keine passenden Dateien oder Ordner vorhanden.</div>`}
@@ -4762,16 +4533,16 @@ function openCameraPopup(hass, map, config) {
         <section class="queue-picker-dialog">
           <div class="row between">
             <div><h2>Galerie - Modelle zur Warteschlange hinzufügen</h2><small>Mehrere Modelle markieren und gemeinsam übernehmen.</small></div>
-            <button data-queue-picker-close>✕</button>
+            <button data-queue-picker-close>âœ•</button>
           </div>
           <div class="toolbar">
             <button class="${this._pickerSource==="archive"?"primary":""}" data-queue-picker-source="archive">Lokales Archiv</button>
             <button class="${this._pickerSource==="sd"?"primary":""}" data-queue-picker-source="sd">SD-Karte</button>
-            <button data-queue-picker-up ${canGoUp?"":"disabled"}>↑ Eine Ebene höher</button>
+            <button data-queue-picker-up ${canGoUp?"":"disabled"}>â†‘ Eine Ebene höher</button>
             <button data-queue-picker-refresh>â†» Aktualisieren</button>
             <span class="badge">${esc(this._pickerFolder||(this._pickerSource==="sd"?"/":"Hauptordner"))}</span>
           </div>
-          ${this._pickerLoading?`<p class="muted">Galerie wird geladen …</p>`:""}
+          ${this._pickerLoading?`<p class="muted">Galerie wird geladen â€¦</p>`:""}
           <div class="queue-picker-grid">
             ${this._pickerItems.map((item)=>this.pickerItemHtml(item)).join("")||`<p class="muted">Keine 3MF-Modelle in diesem Ordner gefunden.</p>`}
           </div>
@@ -4884,11 +4655,11 @@ function openCameraPopup(hass, map, config) {
         </div>
         <div class="queue-actions">
           <label>Stückzahl <select data-queue-quantity="${esc(item.id)}">${this.quantityOptions(shownQuantity)}</select></label>
-          <button class="queue-apply" data-queue-apply="${esc(item.id)}">✓ Auswahl übernehmen</button>
-          <button data-queue-move="up" data-queue-id="${esc(item.id)}" title="Nach oben">↑ Nach oben</button>
-          <button data-queue-move="down" data-queue-id="${esc(item.id)}" title="Nach unten">↓ Nach unten</button>
-          <button class="primary queue-print" data-queue-studio="${esc(item.id)}">🖨 Drucken …</button>
-          <button data-queue-complete="${esc(item.id)}">✓ 1 erledigt</button>
+          <button class="queue-apply" data-queue-apply="${esc(item.id)}">âœ“ Auswahl übernehmen</button>
+          <button data-queue-move="up" data-queue-id="${esc(item.id)}" title="Nach oben">â†‘ Nach oben</button>
+          <button data-queue-move="down" data-queue-id="${esc(item.id)}" title="Nach unten">â†“ Nach unten</button>
+          <button class="primary queue-print" data-queue-studio="${esc(item.id)}">ðŸ–¨ Drucken â€¦</button>
+          <button data-queue-complete="${esc(item.id)}">âœ“ 1 erledigt</button>
           <button class="danger" data-queue-delete="${esc(item.id)}">🗑 Entfernen</button>
         </div>
       </article>`;
@@ -4909,9 +4680,9 @@ function openCameraPopup(hass, map, config) {
         <div class="row"><span class="badge">${this._queue.length} Einträge</span><span class="badge">${total} Druckdurchläufe</span></div>
         ${this._queueError?`<p class="notice">${esc(this._queueError)}</p>`:""}
         ${this._queueNotice?`<p class="notice">${esc(this._queueNotice)}</p>`:""}
-        ${this._queueLoading?`<p class="muted">Warteschlange wird geladen …</p>`:""}
+        ${this._queueLoading?`<p class="muted">Warteschlange wird geladen â€¦</p>`:""}
         ${this._queueToast?`<div class="queue-mini-toast" style="left:${Number(this._queueToastPosition?.left||18)}px;top:${Number(this._queueToastPosition?.top||92)}px">${esc(this._queueToast)}</div>`:""}
-        <div class="queue-list">${this._queue.map((item,index)=>this.rowHtml(item,index)).join("")||`<p class="muted">Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen …â€œ.</p>`}</div>
+        <div class="queue-list">${this._queue.map((item,index)=>this.rowHtml(item,index)).join("")||`<p class="muted">Noch keine geplanten Modelle. Öffne die Galerie oder nutze im Dateimanager den vorhandenen Menüpunkt â€žPlanen â€¦â€œ.</p>`}</div>
       `,"archive-library-card");
       this.shadowRoot.querySelector("[data-queue-open-gallery]")?.addEventListener("click",()=>this.openPicker(map));
       this.shadowRoot.querySelector("[data-queue-refresh]")?.addEventListener("click",()=>this.loadQueue(map));
@@ -5040,7 +4811,7 @@ function openCameraPopup(hass, map, config) {
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta19",
+        version: "5.0.0-beta9",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -5064,7 +4835,7 @@ function openCameraPopup(hass, map, config) {
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta19";
+  const STUDIO_VERSION = "5.0.0-beta9";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -5110,7 +4881,7 @@ function openCameraPopup(hass, map, config) {
       this._profileBank = null;
       this._profileBankLoaded = false;
       this._profileBankLoading = false;
-      this._status = "beta16 Camera Snapshot Authority bereit. Die Druckplattenauswahl wird jetzt im ShadowRoot als Bambu-Studio-Kachel mit stabilem Dropdown gerendert; die Buildplate übernimmt sichtbar Oberfläche, Kontur, Grid, Logo und Frontleiste.";
+      this._status = "beta9 Buildplate Selector Visual Fix bereit. Die Druckplattenauswahl wird jetzt im ShadowRoot als Bambu-Studio-Kachel mit stabilem Dropdown gerendert; die Buildplate übernimmt sichtbar Oberfläche, Kontur, Grid, Logo und Frontleiste.";
       this._transform = defaultTransform();
       this._viewZoom = 1;
       this._dragState = null;
@@ -6672,7 +6443,7 @@ function openCameraPopup(hass, map, config) {
 
               <main class="buildplate-wrap">
                 <div class="buildplate ${this._studioMesh ? "mesh-loaded" : ""}">
-                  <div class="plate-label">Buildplate - beta16 Camera Snapshot Authority</div>
+                  <div class="plate-label">Buildplate - beta9 Buildplate Selector Visual Fix</div>
                   <div class="plate-help">Drag: Modell ziehen<br>Ctrl/Alt + Mausrad: Zoom<br>Doppelklick: Position setzen<br>Pfeile/Q/E/+/-/G: Tastatur</div>
                   <canvas class="studio-mesh-canvas" title="Echtes STL-/Geometrie-Mesh"></canvas>
                   ${this._studioModelImageUrl ? html`
@@ -8748,10 +8519,10 @@ function openCameraPopup(hass, map, config) {
   ];
 
   const PCC_BETA7_TEXT_FIXES = [
-    ["Ãƒ"+"Â¤","ä"],["Ãƒ"+"Â¶","ö"],["Ãƒ"+"Â¼","ü"],["Ãƒ"+"Å“","Ü"],["Ãƒ"+"–","Ö"],["Ãƒ"+"Â„","Ä"],["Ãƒ"+"Å¸","ß"],
+    ["Ãƒ"+"Â¤","ä"],["Ãƒ"+"Â¶","ö"],["Ãƒ"+"Â¼","ü"],["Ãƒ"+"Å“","Ü"],["Ãƒ"+"â€“","Ö"],["Ãƒ"+"Â„","Ä"],["Ãƒ"+"Å¸","ß"],
     ["Ã"+"¼","ü"],["Ã"+"¶","ö"],["Ã"+"¤","ä"],["Ã"+"œ","Ü"],["Ã"+"–","Ö"],["Ã"+"„","Ä"],["Ã"+"Ÿ","ß"],
     ["Ã¢"+"â‚¬Å¾","„"],["Ã¢"+"â‚¬Å“","“"],["Ã¢"+"â‚¬Â","”"],["Ã¢"+"â‚¬Â¦","…"],["Ã¢"+"â‚¬â€œ","–"],["Ã¢"+"â‚¬â€�","—"],
-    ["Ã¢"+"—Â","●"],["Ã¢"+"â€ —","↗"],["Ã¢"+"â€ Â»","↻"],["Ã¢"+"â€ —","↗"],["Ã¢"+"â€ Â»","↻"],
+    ["Ã¢"+"â€”Â","●"],["Ã¢"+"â€ â€”","↗"],["Ã¢"+"â€ Â»","↻"],["Ã¢"+"â€ â€”","↗"],["Ã¢"+"â€ Â»","↻"],
     ["ðŸ"+"—‘","🗑"],["ðŸ"+"“","📁"],["ðŸ"+"“„","📄"],["ðŸ"+"“·","📷"],["ðŸ"+"’¡","💡"],
     ["Loe"+"schen","Löschen"],["Öffnen","Öffnen"],["öffnen","öffnen"],["Prüfen","Prüfen"],["prüfen","prüfen"],
     ["Zurück","Zurück"],["zurück","zurück"],["ausgewählt","ausgewählt"],["gewählt","gewählt"],
@@ -10621,7 +10392,7 @@ function openCameraPopup(hass, map, config) {
     window.customCards.push({
       type: "printer-control-center-studio-card",
       name: "3D-Studio / CAD-Vorschau",
-      description: "v5 beta16 Camera Snapshot Authority with stable Bambu-style plate dropdown and visible textured buildplate rendering."
+      description: "v5 beta9 Buildplate Selector Visual Fix with stable Bambu-style plate dropdown and visible textured buildplate rendering."
     });
   }
 })();

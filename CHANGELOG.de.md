@@ -1,3 +1,28 @@
+## 5.0.0-beta35 - Studio import popup and right-drag fix
+
+### Deutsch
+- Behält die sichtbare beta34/beta30-Studio-Basis.
+- Entfernt den unteren zusätzlichen Import-Button aus dem Studio-Import-Popup.
+- Ergänzt im kompakten Import-Popup oben einen primären Button „Objekt importieren“, sobald ein Objekt ausgewählt ist.
+- Macht das Import-Popup kompakter, scrollbar und kachelartiger ähnlich Galerie, aber kleiner.
+- Entfernt das CAD-Studio-Rechtsklickmenü erneut und hart.
+- Bindet Rechtsklick-Halten und Ziehen direkt auf der Buildplate zum Verschieben des aktiven Objekts.
+- Bindet Linksklick-Halten und Ziehen direkt auf der Buildplate zum Drehen des aktiven Objekts.
+- Keine Kamera-, Dashboard-, Backend-, Host- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Keeps the visible beta34/beta30 Studio base.
+- Removes the lower extra import button from the Studio import popup.
+- Adds a primary top action button “Objekt importieren” in the compact import popup once an object is selected.
+- Makes the import popup more compact, scrollable and card-like, similar to the gallery but smaller.
+- Removes the CAD Studio right-click context menu again and aggressively.
+- Binds right-button drag directly on the buildplate to move the active object.
+- Binds left-button drag directly on the buildplate to rotate the active object.
+- No camera, dashboard, backend, host or connection changes.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta34 - Clean Studio UI final fix
 
 ### Deutsch

@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta34*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta35*/
 (() => {
-  const VERSION = "5.0.0-beta34";
+  const VERSION = "5.0.0-beta35";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta34",
+        version: "5.0.0-beta35",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta34";
+  const STUDIO_VERSION = "5.0.0-beta35";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -15304,6 +15304,598 @@ const PCC_BETA34_STUDIO_CLASS = customElements.get("printer-control-center-studi
 
     requestAnimationFrame(() => this.beta34FinalCleanup());
     window.setTimeout(() => this.beta34FinalCleanup(), 80);
+  };
+
+const PCC_BETA35_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA35_PREV_CLEANUP = PCC_BETA35_STUDIO_CLASS.prototype.cleanupBetaStudioUi;
+  const PCC_BETA35_PREV_OPEN_IMPORT = PCC_BETA35_STUDIO_CLASS.prototype.openBeta7ImportAssistant;
+  const PCC_BETA35_PREV_IMPORT_PLAN = PCC_BETA35_STUDIO_CLASS.prototype.beta7ImportPlan;
+
+  function pccBeta35ToNumber(value, fallback=0) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function pccBeta35Transform(instance) {
+    const base = typeof defaultTransform === "function" ? defaultTransform() : {x:0,y:0,z:0,rx:0,ry:0,rz:0,scale:100,sx:100,sy:100,sz:100,skewX:0,skewY:0};
+    instance._transform = {...base, ...(instance._transform || {}), ...(instance._activeJob?.transform || {})};
+    return instance._transform;
+  }
+
+  PCC_BETA35_STUDIO_CLASS.prototype.beta35EnsureStyle = function beta35EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta35-import-popup-rightdrag-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta35-import-popup-rightdrag-style";
+    style.textContent = `
+      .studio-shell{position:relative!important;}
+
+      .studio-context,
+      .beta4-floating-context,
+      .pcc-context-menu,
+      .context-menu,
+      .gallery-context-menu,
+      [data-context-menu]{
+        display:none!important;
+        pointer-events:none!important;
+      }
+
+      .pcc-beta27-import-modal{
+        position:absolute!important;
+        inset:42px auto auto 50%!important;
+        transform:translateX(-50%)!important;
+        width:min(700px,calc(100% - 34px))!important;
+        height:auto!important;
+        max-height:min(62vh,540px)!important;
+        z-index:940!important;
+        display:block!important;
+        padding:0!important;
+        margin:0!important;
+        background:transparent!important;
+        border:0!important;
+        backdrop-filter:none!important;
+      }
+
+      .pcc-beta27-import-dialog{
+        width:100%!important;
+        max-height:min(62vh,540px)!important;
+        overflow:hidden!important;
+        display:flex!important;
+        flex-direction:column!important;
+        padding:0!important;
+        border:1px solid rgba(0,169,214,.72)!important;
+        border-radius:8px!important;
+        background:linear-gradient(180deg,rgba(13,20,25,.99),rgba(5,10,14,.99))!important;
+        box-shadow:0 18px 42px rgba(0,0,0,.58)!important;
+      }
+
+      .pcc-beta35-import-header{
+        position:sticky;
+        top:0;
+        z-index:3;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        padding:10px 12px 8px;
+        border-bottom:1px solid rgba(0,169,214,.32);
+        background:linear-gradient(180deg,rgba(18,28,34,.99),rgba(8,15,20,.99));
+      }
+
+      .pcc-beta35-import-title{
+        font-size:16px;
+        font-weight:800;
+        color:#fff;
+      }
+
+      .pcc-beta35-import-actions{
+        display:flex;
+        align-items:center;
+        gap:8px;
+      }
+
+      .pcc-beta35-import-primary{
+        min-height:28px!important;
+        min-width:132px!important;
+        display:inline-flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        padding:4px 10px!important;
+        border:1px solid rgba(0,210,255,.78)!important;
+        border-radius:6px!important;
+        background:rgba(0,120,155,.94)!important;
+        color:#fff!important;
+        font-size:12px!important;
+        font-weight:800!important;
+        cursor:pointer!important;
+      }
+
+      .pcc-beta35-import-primary:disabled{
+        opacity:.42!important;
+        cursor:not-allowed!important;
+      }
+
+      .pcc-beta27-import-close{
+        position:static!important;
+        width:28px!important;
+        height:26px!important;
+        border-radius:5px!important;
+        padding:0!important;
+        flex:0 0 auto!important;
+      }
+
+      .pcc-beta35-import-body{
+        overflow:auto!important;
+        padding:10px 12px 12px!important;
+        max-height:calc(min(62vh,540px) - 50px)!important;
+      }
+
+      .pcc-beta27-import-dialog > :not(.pcc-beta35-import-header):not(.pcc-beta35-import-body){
+        margin-left:12px!important;
+        margin-right:12px!important;
+      }
+
+      .pcc-beta35-import-body h1,
+      .pcc-beta35-import-body h2,
+      .pcc-beta35-import-body h3{
+        display:none!important;
+      }
+
+      .pcc-beta35-import-body p,
+      .pcc-beta35-import-body div,
+      .pcc-beta35-import-body span,
+      .pcc-beta35-import-body label{
+        font-size:12px!important;
+        line-height:1.25!important;
+      }
+
+      .pcc-beta35-import-body button{
+        min-height:25px!important;
+        padding:3px 8px!important;
+        border-radius:6px!important;
+        font-size:12px!important;
+        line-height:1.2!important;
+      }
+
+      .pcc-beta35-import-body input,
+      .pcc-beta35-import-body select{
+        min-height:25px!important;
+        border-radius:6px!important;
+        font-size:12px!important;
+      }
+
+      .pcc-beta35-import-card-grid{
+        display:grid!important;
+        grid-template-columns:repeat(auto-fill,minmax(132px,1fr))!important;
+        gap:8px!important;
+        align-items:stretch!important;
+        margin-top:8px!important;
+      }
+
+      .pcc-beta35-import-card{
+        min-height:92px!important;
+        display:flex!important;
+        flex-direction:column!important;
+        justify-content:space-between!important;
+        gap:5px!important;
+        padding:8px!important;
+        border:1px solid rgba(0,169,214,.32)!important;
+        border-radius:8px!important;
+        background:linear-gradient(180deg,rgba(12,24,28,.96),rgba(8,15,18,.96))!important;
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important;
+      }
+
+      .pcc-beta35-import-card:hover{
+        border-color:rgba(0,210,255,.72)!important;
+        background:linear-gradient(180deg,rgba(14,34,40,.98),rgba(8,18,22,.98))!important;
+      }
+
+      .pcc-beta35-import-card button{
+        width:100%!important;
+      }
+
+      .pcc-beta35-remove-extra{
+        display:none!important;
+      }
+
+      .buildplate,
+      .buildplate .studio-mesh-canvas{
+        user-select:none!important;
+        -webkit-user-select:none!important;
+      }
+
+      .buildplate .studio-mesh-canvas{
+        cursor:grab!important;
+      }
+
+      .buildplate.pcc-beta35-dragging .studio-mesh-canvas,
+      .buildplate.pcc-beta35-dragging{
+        cursor:grabbing!important;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA35_STUDIO_CLASS.prototype.beta35IsImportSelectionReady = function beta35IsImportSelectionReady() {
+    const state = this._beta7Import || this._studioImport || {};
+    const direct = Boolean(
+      state.selected ||
+      state.selectedItem ||
+      state.selectedFile ||
+      state.selectedModel ||
+      state.selectedPath ||
+      state.plan ||
+      state.prepared ||
+      state.link ||
+      state.model ||
+      state.file
+    );
+    if (direct) return true;
+
+    const dialog = this.shadowRoot?.querySelector(".pcc-beta27-import-dialog");
+    const text = String(dialog?.textContent || "");
+    if (!text.includes("Ausgewählt:")) return false;
+
+    const selectedLine = text.split("Ausgewählt:").slice(1).join(" ").trim();
+    return selectedLine.length > 2 && !selectedLine.startsWith("—") && !selectedLine.startsWith("-");
+  };
+
+  PCC_BETA35_STUDIO_CLASS.prototype.beta35EnsureImportShell = function beta35EnsureImportShell() {
+    const root = this.shadowRoot;
+    const dialog = root?.querySelector(".pcc-beta27-import-dialog");
+    if (!dialog) return;
+
+    dialog.querySelectorAll("[data-beta31-extra-import-object],[data-beta34-extra-import-object],[data-beta35-extra-import-object]").forEach((node) => {
+      node.closest("div")?.remove();
+      node.remove();
+    });
+
+    dialog.querySelectorAll(".pcc-beta31-import-primary,.pcc-beta34-import-primary").forEach((button) => {
+      if (button.dataset.beta35Primary === "1") return;
+      button.classList.add("pcc-beta35-remove-extra");
+    });
+
+    let header = dialog.querySelector(".pcc-beta35-import-header");
+    let body = dialog.querySelector(".pcc-beta35-import-body");
+
+    if (!header) {
+      header = document.createElement("div");
+      header.className = "pcc-beta35-import-header";
+      header.innerHTML = `
+        <div class="pcc-beta35-import-title">Studio-Import</div>
+        <div class="pcc-beta35-import-actions">
+          <button class="pcc-beta35-import-primary" data-beta35-import-object="1" type="button" disabled>Objekt importieren</button>
+          <button class="pcc-beta27-import-close" type="button" title="Schließen">×</button>
+        </div>
+      `;
+      dialog.insertBefore(header, dialog.firstChild);
+    }
+
+    if (!body) {
+      body = document.createElement("div");
+      body.className = "pcc-beta35-import-body";
+
+      const nodes = [...dialog.childNodes].filter((node) => node !== header && node.nodeType === 1);
+      for (const node of nodes) {
+        if (node.classList?.contains?.("pcc-beta35-import-body")) continue;
+        body.appendChild(node);
+      }
+      dialog.appendChild(body);
+    }
+
+    const oldCloseButtons = [...body.querySelectorAll("button")].filter((button) => String(button.textContent || "").trim() === "Schließen");
+    oldCloseButtons.forEach((button) => button.remove());
+
+    if (dialog.dataset.beta35ShellBound !== "1") {
+      dialog.dataset.beta35ShellBound = "1";
+
+      dialog.addEventListener("click", (event) => {
+        const close = event.target?.closest?.(".pcc-beta27-import-close");
+        if (close) {
+          event.preventDefault();
+          event.stopPropagation();
+          this.beta27CloseImportPopup?.();
+          this._pccBeta35ImportOpen = false;
+          return;
+        }
+
+        const importButton = event.target?.closest?.("[data-beta35-import-object]");
+        if (importButton) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (importButton.disabled) return;
+          this.beta7ImportSelected?.();
+          window.setTimeout(() => {
+            this.ensureStudioMeshLoaded?.(true);
+            this.queueMeshRender?.();
+            this.render?.();
+          }, 0);
+          return;
+        }
+
+        window.setTimeout(() => this.beta35PolishImportPopup(), 0);
+        window.setTimeout(() => this.beta35PolishImportPopup(), 120);
+      }, {capture:true});
+
+      dialog.addEventListener("input", () => window.setTimeout(() => this.beta35PolishImportPopup(), 0), {capture:true});
+      dialog.addEventListener("change", () => window.setTimeout(() => this.beta35PolishImportPopup(), 0), {capture:true});
+    }
+  };
+
+  PCC_BETA35_STUDIO_CLASS.prototype.beta35GridImportFolders = function beta35GridImportFolders() {
+    const dialog = this.shadowRoot?.querySelector(".pcc-beta27-import-dialog");
+    const body = dialog?.querySelector(".pcc-beta35-import-body");
+    if (!dialog || !body) return;
+
+    let cards = [];
+
+    body.querySelectorAll("button").forEach((button) => {
+      const text = String(button.textContent || "").trim();
+      if (text !== "Öffnen") return;
+
+      let card = button.parentElement;
+      for (let i = 0; i < 4 && card && card !== body; i++) {
+        const cardText = String(card.textContent || "").trim();
+        if (cardText.includes("Ordner") && cardText.length < 180) break;
+        card = card.parentElement;
+      }
+
+      if (!card || card === body || card.closest(".pcc-beta35-import-card-grid")) return;
+
+      const cardText = String(card.textContent || "").trim();
+      if (!cardText.includes("Ordner") || cardText.length > 220) return;
+
+      card.classList.add("pcc-beta35-import-card");
+      cards.push(card);
+    });
+
+    if (cards.length < 2) return;
+
+    const first = cards[0];
+    const wrapper = document.createElement("div");
+    wrapper.className = "pcc-beta35-import-card-grid";
+    first.parentElement.insertBefore(wrapper, first);
+
+    cards.forEach((card) => wrapper.appendChild(card));
+  };
+
+  PCC_BETA35_STUDIO_CLASS.prototype.beta35PolishImportPopup = function beta35PolishImportPopup() {
+    const root = this.shadowRoot;
+    const modal = root?.querySelector(".pcc-beta27-import-modal");
+    const dialog = root?.querySelector(".pcc-beta27-import-dialog");
+    if (!modal || !dialog) return;
+
+    modal.dataset.beta35Stable = "1";
+    dialog.dataset.beta35Stable = "1";
+
+    this.beta35EnsureImportShell();
+
+    const body = dialog.querySelector(".pcc-beta35-import-body") || dialog;
+
+    body.querySelectorAll("h1,h2,h3").forEach((heading) => {
+      if (String(heading.textContent || "").includes("Studio-Import")) heading.remove();
+    });
+
+    body.querySelectorAll("button").forEach((button) => {
+      const txt = String(button.textContent || "").trim();
+
+      if (txt === "Auswahl ins Studio übernehmen" || txt === "Ins Studio übernehmen") {
+        button.classList.add("pcc-beta35-remove-extra");
+        button.dataset.beta35LegacyImport = "1";
+      }
+
+      if (txt === "Eine Ebene hoch") button.textContent = "Hoch";
+      if (txt === "Aktualisieren") button.textContent = "Neu laden";
+    });
+
+    const ready = this.beta35IsImportSelectionReady();
+    const primary = dialog.querySelector("[data-beta35-import-object]");
+    if (primary) {
+      primary.disabled = !ready;
+      primary.textContent = ready ? "Objekt importieren" : "Objekt auswählen";
+      primary.dataset.beta35Primary = "1";
+    }
+
+    this.beta35GridImportFolders();
+  };
+
+  PCC_BETA35_STUDIO_CLASS.prototype.openBeta7ImportAssistant = function beta35OpenImportAssistant(...args) {
+    this._pccBeta35ImportOpen = true;
+    this._pccBeta34ImportOpen = true;
+    this._pccBeta30ImportOpen = true;
+    this._pccBeta27ImportOpen = true;
+
+    let result;
+    if (typeof PCC_BETA35_PREV_OPEN_IMPORT === "function") {
+      result = PCC_BETA35_PREV_OPEN_IMPORT.apply(this, args);
+    }
+
+    const polish = () => {
+      this.beta27PromoteImportAssistant?.();
+      this.beta35PolishImportPopup?.();
+    };
+
+    requestAnimationFrame(polish);
+    window.setTimeout(polish, 40);
+    window.setTimeout(polish, 120);
+    window.setTimeout(polish, 260);
+    window.setTimeout(polish, 520);
+
+    return result;
+  };
+
+  PCC_BETA35_STUDIO_CLASS.prototype.beta7ImportPlan = async function beta35ImportPlan(plan) {
+    const beforeJobs = Array.isArray(this._jobs) ? [...this._jobs] : [];
+    const beforeActive = this._activeJob || null;
+
+    if (typeof PCC_BETA35_PREV_IMPORT_PLAN === "function") {
+      await PCC_BETA35_PREV_IMPORT_PLAN.call(this, plan);
+    }
+
+    const afterActive = this._activeJob || null;
+    this._pccBeta35PlateObjects = Array.isArray(this._pccBeta35PlateObjects) ? this._pccBeta35PlateObjects : [];
+
+    for (const job of [...beforeJobs, beforeActive, afterActive]) {
+      if (!job) continue;
+      const id = String(job.id || job.file_path || job.path || job.name || job.modelName || "");
+      if (!id) continue;
+      if (!this._pccBeta35PlateObjects.some((item) => String(item.id || item.file_path || item.path || item.name || item.modelName || "") === id)) {
+        this._pccBeta35PlateObjects.push(job);
+      }
+    }
+
+    if (Array.isArray(this._jobs)) {
+      const merged = [...this._jobs];
+      for (const job of this._pccBeta35PlateObjects) {
+        const id = String(job.id || job.file_path || job.path || job.name || job.modelName || "");
+        if (!id) continue;
+        if (!merged.some((item) => String(item.id || item.file_path || item.path || item.name || item.modelName || "") === id)) merged.push(job);
+      }
+      this._jobs = merged;
+    }
+
+    window.setTimeout(() => {
+      this.ensureStudioMeshLoaded?.(true);
+      this.queueMeshRender?.();
+      this.render?.();
+    }, 0);
+  };
+
+  PCC_BETA35_STUDIO_CLASS.prototype.beta35BindRightDrag = function beta35BindRightDrag() {
+    const root = this.shadowRoot;
+    const buildplate = root?.querySelector(".buildplate");
+    if (!root || !buildplate || buildplate.dataset.beta35RightDragBound === "1") return;
+
+    buildplate.dataset.beta35RightDragBound = "1";
+
+    const removeMenus = () => {
+      this._studioContextMenu = null;
+      root.querySelectorAll(".studio-context,.beta4-floating-context,.pcc-context-menu,.context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
+    };
+
+    const blockContext = (event) => {
+      if (!event.target?.closest?.(".buildplate")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      removeMenus();
+    };
+
+    root.addEventListener("contextmenu", blockContext, {capture:true});
+    buildplate.addEventListener("contextmenu", blockContext, {capture:true});
+    window.addEventListener("contextmenu", (event) => {
+      if (!root.contains(event.target)) return;
+      if (!event.target?.closest?.(".buildplate")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      removeMenus();
+    }, true);
+
+    const state = {active:false, button:-1, x:0, y:0};
+
+    const moveHandler = (event) => {
+      if (!state.active) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const dx = event.clientX - state.x;
+      const dy = event.clientY - state.y;
+      state.x = event.clientX;
+      state.y = event.clientY;
+
+      const t = pccBeta35Transform(this);
+
+      if (state.button === 0) {
+        t.rz = pccBeta35ToNumber(t.rz, 0) + dx * 0.32;
+        t.rx = pccBeta35ToNumber(t.rx, 0) - dy * 0.22;
+      }
+
+      if (state.button === 2) {
+        t.x = pccBeta35ToNumber(t.x, 0) + dx;
+        t.y = pccBeta35ToNumber(t.y, 0) + dy;
+      }
+
+      if (this._activeJob) this._activeJob.transform = {...t};
+      this.queueMeshRender?.();
+      removeMenus();
+    };
+
+    const upHandler = (event) => {
+      if (!state.active) return;
+
+      event.preventDefault?.();
+      event.stopPropagation?.();
+
+      state.active = false;
+      state.button = -1;
+      buildplate.classList.remove("pcc-beta35-dragging");
+
+      window.removeEventListener("pointermove", moveHandler, true);
+      window.removeEventListener("pointerup", upHandler, true);
+      window.removeEventListener("pointercancel", upHandler, true);
+
+      removeMenus();
+    };
+
+    buildplate.addEventListener("pointerdown", (event) => {
+      if (event.target?.closest?.(".pcc-beta27-import-modal")) return;
+      if (event.target?.closest?.(".pcc-beta9-plate-selector")) return;
+      if (event.button !== 0 && event.button !== 2) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      state.active = true;
+      state.button = event.button;
+      state.x = event.clientX;
+      state.y = event.clientY;
+
+      buildplate.classList.add("pcc-beta35-dragging");
+      removeMenus();
+
+      try { buildplate.setPointerCapture(event.pointerId); } catch (_error) {}
+
+      window.addEventListener("pointermove", moveHandler, true);
+      window.addEventListener("pointerup", upHandler, true);
+      window.addEventListener("pointercancel", upHandler, true);
+    }, {capture:true});
+  };
+
+  PCC_BETA35_STUDIO_CLASS.prototype.handleContextMenu = function beta35HandleContextMenu(event) {
+    if (event.target?.closest?.(".buildplate")) {
+      event.preventDefault();
+      event.stopPropagation();
+      this._studioContextMenu = null;
+      this.shadowRoot?.querySelectorAll(".studio-context,.beta4-floating-context,.pcc-context-menu,.context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
+    }
+  };
+
+  PCC_BETA35_STUDIO_CLASS.prototype.beta35FinalCleanup = function beta35FinalCleanup() {
+    this.beta35EnsureStyle();
+
+    try { this.beta34CleanTextNavigation?.(); } catch (_error) {}
+    try { this.beta34RemoveFooters?.(); } catch (_error) {}
+    try { this.beta34KillContextMenus?.(); } catch (_error) {}
+
+    this.beta35BindRightDrag();
+
+    this.shadowRoot?.querySelectorAll("[data-beta31-extra-import-object],[data-beta34-extra-import-object],[data-beta35-extra-import-object],.studio-context,.beta4-floating-context,.pcc-context-menu,.context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
+
+    if (this._pccBeta35ImportOpen || this.shadowRoot?.querySelector(".pcc-beta27-import-modal")) {
+      requestAnimationFrame(() => this.beta35PolishImportPopup());
+    }
+  };
+
+  PCC_BETA35_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function beta35CleanupBetaStudioUi(...args) {
+    if (typeof PCC_BETA35_PREV_CLEANUP === "function") {
+      try { PCC_BETA35_PREV_CLEANUP.apply(this, args); } catch (_error) {}
+    }
+
+    this.beta35FinalCleanup();
+
+    requestAnimationFrame(() => this.beta35FinalCleanup());
+    window.setTimeout(() => this.beta35FinalCleanup(), 80);
   };
 
   if (!customElements.get("printer-control-center-studio-card")) {

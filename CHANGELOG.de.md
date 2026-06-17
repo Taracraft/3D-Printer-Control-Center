@@ -1,3 +1,28 @@
+## 5.0.0-beta37 - Stable imported object and right drag
+
+### Deutsch
+- Behält die sichtbare beta36-Studio-Basis.
+- Stabilisiert importierte Galerie-/Archiv-Objekte auf der Buildplate.
+- Blendet „Keine aktive Geometrie geladen“ aus, sobald ein aktiver Import-/Preview-Job vorhanden ist.
+- Hält den Preview-/Objekt-Fallback nach Render- und Cleanup-Zyklen sichtbar, statt ihn wieder zu verlieren.
+- Reduziert Springen/Flackern durch Wiederverwendung des vorhandenen Fallback-Objekts statt ständigem Neuaufbau.
+- Bindet Rechtsklick-/Linksklick-Ziehen robuster auf Buildplate und Fallback-Objekt.
+- Entfernt das CAD-Studio-Rechtsklickmenü weiterhin hart.
+- Keine Kamera-, Dashboard-, Backend-, Host- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Keeps the visible beta36 Studio base.
+- Stabilizes imported gallery/archive objects on the buildplate.
+- Hides “Keine aktive Geometrie geladen” as soon as an active import/preview job exists.
+- Keeps the preview/object fallback visible across render and cleanup cycles instead of losing it again.
+- Reduces jumping/flickering by reusing the existing fallback object rather than rebuilding it repeatedly.
+- Binds right-/left-button dragging more robustly on the buildplate and fallback object.
+- Continues to aggressively remove the CAD Studio right-click context menu.
+- No camera, dashboard, backend, host or connection changes.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta36 - Studio import render, toolbar menu and right-drag fix
 
 ### Deutsch

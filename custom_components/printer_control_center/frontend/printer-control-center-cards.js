@@ -1,6 +1,6 @@
-﻿/* 3D-Printer Control Center - HACS Release 5.0.0-beta39.1*/
+﻿/* 3D-Printer Control Center - HACS Release 5.0.0-beta39.2*/
 (() => {
-  const VERSION = "5.0.0-beta39.1";
+  const VERSION = "5.0.0-beta39.2";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta39.1",
+        version: "5.0.0-beta39.2",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta39.1";
+  const STUDIO_VERSION = "5.0.0-beta39.2";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {

@@ -1,4 +1,10 @@
-﻿## 5.0.0-beta39.1 - Frontend-Static-Route-Fix
+﻿## 5.0.0-beta39.2 - funktionierendes Init nach fehlgeschlagenem Route-Patch wiederhergestellt
+
+- Stellt __init__.py aus dem bekannten funktionierenden beta39-Commit e15f416 wieder her.
+- Entfernt die kaputte beta39.1-Static-Route-Einfügung, die in Home Assistant einen IndentationError verursacht hat.
+- Erhält die beta39-Studio-Frontend-Basis.
+- Keine Änderungen an Studio-/CAD-Objekten, Import, Maus, Kamera, Dashboard, Telemetrie, Host/IP oder Plattenwechsel.
+## 5.0.0-beta39.1 - Frontend-Static-Route-Fix
 
 - Erhält die wiederhergestellte beta39-Studio-Frontend-Basis.
 - Repariert die Home-Assistant-Static-Route für /printer_control_center/printer-control-center-cards.js.

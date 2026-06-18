@@ -1,4 +1,4 @@
-"""Studio worker dry-run helpers for Printer Control Center v5.
+﻿"""Studio worker dry-run helpers for Printer Control Center v5.
 
 Alpha16 adds profile-context validation for dry-run jobs.
 Alpha17 adds dry-run result visualization support in the Studio UI.
@@ -16,7 +16,7 @@ from typing import Any
 
 from .studio_plan import normalize_studio_plan
 
-WORKER_VERSION = "5.0.0-beta39"
+WORKER_VERSION = "5.0.0-beta40"
 
 
 def _utcnow() -> str:

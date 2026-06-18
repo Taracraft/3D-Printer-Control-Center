@@ -1,3 +1,14 @@
+﻿## 5.0.0-beta40 - Studio Objekt-/Import-/Maus-Recovery
+
+- Deaktiviert den fehlgeschlagenen beta39-Objektlayer optisch.
+- Entfernt sichtbare [object Object]-Artefakte aus der Studio-Ansicht.
+- Blendet das kaputte Farbmenü in der oberen Toolbar aus.
+- Ergänzt Rechtsklick-Ziehen zum Verschieben des aktiven Objekts.
+- Linksklick bleibt unverändert.
+- Frisch importierte Jobs bleiben bei kurzen Refreshes aktiv.
+- Importierte 3MF ohne renderbare Mesh-Geometrie erhalten einen sichtbaren Canvas-Proxy.
+- Import-Popup wird kompakter und galerieähnlicher.
+- Keine Änderungen an Kamera, Dashboard, Backend, Host/IP oder Plattenwechsel.
 ## 5.0.0-beta39 - Beta38 Studio toolbar, import and mouse stabilization
 
 ### Deutsch

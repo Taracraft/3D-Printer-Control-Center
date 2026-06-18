@@ -1,4 +1,10 @@
-﻿## 5.0.0-beta39 rollback - Restored known beta39 Studio baseline
+﻿## 5.0.0-beta39.1 - Frontend static route fix
+
+- Keeps the restored beta39 Studio frontend baseline intact.
+- Fixes the Home Assistant static frontend route for /printer_control_center/printer-control-center-cards.js.
+- Addresses the browser 404 that prevented printer-control-center-studio-card from being registered.
+- Does not change Studio/CAD object handling, import handling, mouse handling, camera, dashboard, backend telemetry, host/IP or buildplate switching.
+## 5.0.0-beta39 rollback - Restored known beta39 Studio baseline
 
 - Rolled the v5 Studio frontend back to the known beta39 baseline from commit e15f416.
 - Removes the beta40/beta41 frontend changes that broke the Studio custom element registration.

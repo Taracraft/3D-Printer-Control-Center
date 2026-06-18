@@ -1,4 +1,10 @@
-﻿## 5.0.0-beta39 Rollback - bekannte beta39-Studio-Basis wiederhergestellt
+﻿## 5.0.0-beta39.1 - Frontend-Static-Route-Fix
+
+- Erhält die wiederhergestellte beta39-Studio-Frontend-Basis.
+- Repariert die Home-Assistant-Static-Route für /printer_control_center/printer-control-center-cards.js.
+- Behebt den Browser-404, der verhindert hat, dass printer-control-center-studio-card registriert wird.
+- Keine Änderungen an Studio-/CAD-Objektlogik, Importlogik, Mauslogik, Kamera, Dashboard, Backend-Telemetrie, Host/IP oder Plattenwechsel.
+## 5.0.0-beta39 Rollback - bekannte beta39-Studio-Basis wiederhergestellt
 
 - Setzt das v5-Studio-Frontend auf die bekannte beta39-Basis aus Commit e15f416 zurück.
 - Entfernt die beta40/beta41-Frontendänderungen, die die Studio-Custom-Element-Registrierung gebrochen haben.

@@ -1,4 +1,11 @@
-﻿## 5.0.0-beta40 - Studio Objekt-/Import-/Maus-Recovery
+﻿## 5.0.0-beta41 - Emergency-Restore der Studio-Registrierung
+
+- Emergency-Restore des Studio-Frontends aus der letzten registrierenden beta39-Basis.
+- Entfernt den beta40-Fortsetzungspatch, der die Registrierung von printer-control-center-studio-card in Home Assistant gebrochen hat.
+- Stellt die sichtbare Studio-/CAD-Karte wieder her, statt auf dem kaputten beta40-Frontend weiter aufzubauen.
+- Keine Änderungen an Kamera, Dashboard, Backend-Logik, Host/IP, Telemetrie oder Plattenwechsel.
+- Import-/Objekt-/Maus-Fixes werden erst im nächsten geprüften Patch fortgesetzt, nachdem die Karte wieder sichtbar ist.
+## 5.0.0-beta40 - Studio Objekt-/Import-/Maus-Recovery
 
 - Deaktiviert den fehlgeschlagenen beta39-Objektlayer optisch.
 - Entfernt sichtbare [object Object]-Artefakte aus der Studio-Ansicht.

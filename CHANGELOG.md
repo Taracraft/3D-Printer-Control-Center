@@ -1,4 +1,11 @@
-﻿## 5.0.0-beta41 - Emergency Studio registration restore
+﻿## 5.0.0-beta39 rollback - Restored known beta39 Studio baseline
+
+- Rolled the v5 Studio frontend back to the known beta39 baseline from commit e15f416.
+- Removes the beta40/beta41 frontend changes that broke the Studio custom element registration.
+- Restores the previously visible Studio/CAD card state.
+- No camera, dashboard, backend logic, host/IP, telemetry or buildplate switching changes.
+- Further import/object/mouse work will restart from this beta39 baseline.
+## 5.0.0-beta41 - Emergency Studio registration restore
 
 - Emergency restore of the Studio frontend from the last registering beta39 baseline.
 - Removes the beta40 continuation patch that broke the printer-control-center-studio-card registration in Home Assistant.

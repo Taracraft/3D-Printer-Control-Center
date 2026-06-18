@@ -1,4 +1,11 @@
-﻿## 5.0.0-beta41 - Emergency-Restore der Studio-Registrierung
+﻿## 5.0.0-beta39 Rollback - bekannte beta39-Studio-Basis wiederhergestellt
+
+- Setzt das v5-Studio-Frontend auf die bekannte beta39-Basis aus Commit e15f416 zurück.
+- Entfernt die beta40/beta41-Frontendänderungen, die die Studio-Custom-Element-Registrierung gebrochen haben.
+- Stellt den zuvor sichtbaren Studio-/CAD-Kartenstand wieder her.
+- Keine Änderungen an Kamera, Dashboard, Backend-Logik, Host/IP, Telemetrie oder Plattenwechsel.
+- Weitere Import-/Objekt-/Mausarbeiten starten wieder von dieser beta39-Basis.
+## 5.0.0-beta41 - Emergency-Restore der Studio-Registrierung
 
 - Emergency-Restore des Studio-Frontends aus der letzten registrierenden beta39-Basis.
 - Entfernt den beta40-Fortsetzungspatch, der die Registrierung von printer-control-center-studio-card in Home Assistant gebrochen hat.

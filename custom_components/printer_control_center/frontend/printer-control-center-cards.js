@@ -1,6 +1,6 @@
-/* 3D-Printer Control Center - HACS Release 5.0.0-beta38*/
+/* 3D-Printer Control Center - HACS Release 5.0.0-beta39*/
 (() => {
-  const VERSION = "5.0.0-beta38";
+  const VERSION = "5.0.0-beta39";
   const LOGO = "/printer_control_center/logo-3d-printer-control-center.png";
   const DEFAULT_OFFLINE = "/printer_control_center/default-offline.png";
   const DEFAULT_IDLE = "/printer_control_center/default-idle.png";
@@ -4811,7 +4811,7 @@
     key: KEY,
     broadcast(job) {
       const payload = {
-        version: "5.0.0-beta38",
+        version: "5.0.0-beta39",
         updatedAt: new Date().toISOString(),
         job: job || null
       };
@@ -4835,7 +4835,7 @@
 
 /* v5 alpha22: Beta Foundation Studio frontend with persistent Gallery handoff. */
 (() => {
-  const STUDIO_VERSION = "5.0.0-beta38";
+  const STUDIO_VERSION = "5.0.0-beta39";
   const HANDOFF_KEY = window.PCC_STUDIO_HANDOFF_KEY || "printer_control_center_studio_handoff_alpha22";
 
   function pccUniqueFiles(files) {
@@ -16491,6 +16491,648 @@ const PCC_BETA36_STUDIO_CLASS = customElements.get("printer-control-center-studi
     requestAnimationFrame(() => this.beta36FinalCleanup());
     window.setTimeout(() => this.beta36FinalCleanup(), 80);
     window.setTimeout(() => this.beta36FinalCleanup(), 240);
+  };
+
+const PCC_BETA39_STUDIO_CLASS = customElements.get("printer-control-center-studio-card") || PrinterControlCenterStudioCard;
+  const PCC_BETA39_PREV_OPEN_IMPORT = PCC_BETA39_STUDIO_CLASS.prototype.openBeta7ImportAssistant;
+  const PCC_BETA39_PREV_IMPORT_PLAN = PCC_BETA39_STUDIO_CLASS.prototype.beta7ImportPlan;
+  const PCC_BETA39_PREV_ENSURE_MESH = PCC_BETA39_STUDIO_CLASS.prototype.ensureStudioMeshLoaded;
+  const PCC_BETA39_PREV_RENDER_MESH = PCC_BETA39_STUDIO_CLASS.prototype.renderMeshCanvas;
+
+  function pccBeta39Number(value, fallback=0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  function pccBeta39Transform(instance) {
+    instance._transform = {...defaultTransform(), ...(instance._transform || {})};
+    return instance._transform;
+  }
+
+  function pccBeta39ToolbarKey(wrap) {
+    const button = wrap?.querySelector?.("[data-beta30-menu],[data-beta28-menu]");
+    return String(button?.dataset?.beta30Menu || button?.dataset?.beta28Menu || button?.getAttribute?.("title") || "");
+  }
+
+  function pccBeta39PrimitiveKind(job) {
+    return String(job?.primitive?.kind || job?.primitive_kind || job?.model?.primitive_kind || job?.model?.primitive || "")
+      .trim()
+      .replace(/^primitive-/, "")
+      .replace(/-/g, "_");
+  }
+
+  function pccBeta39IsPrimitive(job) {
+    const source = String(job?.source || job?.origin || job?.model?.source || "").trim();
+    return source === "primitive" || Boolean(pccBeta39PrimitiveKind(job));
+  }
+
+  PCC_BETA39_STUDIO_CLASS.prototype.beta39EnsureStyle = function beta39EnsureStyle() {
+    const root = this.shadowRoot;
+    if (!root || root.querySelector("#pcc-beta39-beta38-studio-fix-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "pcc-beta39-beta38-studio-fix-style";
+    style.textContent = `
+      .studio-shell{position:relative!important;}
+
+      .pcc-beta22-top-toolbar,
+      .pcc-beta23-top-toolbar,
+      .pcc-beta26-toolbar,
+      .pcc-beta28-toolbar{
+        display:none!important;
+        pointer-events:none!important;
+      }
+
+      .studio-context,
+      .beta4-floating-context,
+      .pcc-context-menu,
+      .context-menu,
+      .gallery-context-menu,
+      [data-context-menu]{
+        display:none!important;
+        pointer-events:none!important;
+      }
+
+      .studio-shell .status,
+      .studio-shell .plan-note,
+      .studio-shell .plan-summary,
+      .studio-shell .studio-status,
+      .studio-shell .studio-footer,
+      .studio-shell .studio-log,
+      .studio-shell [data-studio-plan-details-panel],
+      .studio-shell [data-studio-health-panel]{
+        display:none!important;
+        pointer-events:none!important;
+      }
+
+      .pcc-beta30-toolbar{
+        position:sticky!important;
+        top:0!important;
+        z-index:820!important;
+        height:32px!important;
+        min-height:32px!important;
+        max-height:32px!important;
+        display:flex!important;
+        align-items:center!important;
+        gap:0!important;
+        margin:0 0 6px!important;
+        padding:0!important;
+        border-radius:0!important;
+        overflow:visible!important;
+      }
+
+      .pcc-beta30-import{
+        min-width:76px!important;
+        height:31px!important;
+        padding:0 8px!important;
+        border-radius:0!important;
+        font-size:11px!important;
+        font-weight:800!important;
+      }
+
+      .pcc-beta30-main{
+        width:32px!important;
+        height:31px!important;
+        border-radius:0!important;
+      }
+
+      .pcc-beta30-menu-wrap{
+        position:relative!important;
+      }
+
+      .pcc-beta30-menu-wrap.open > .pcc-beta30-menu-body{
+        display:grid!important;
+      }
+
+      .pcc-beta30-menu-body{
+        position:absolute!important;
+        top:32px!important;
+        left:0!important;
+        z-index:900!important;
+        min-width:168px!important;
+        max-width:230px!important;
+        max-height:260px!important;
+        overflow:auto!important;
+        padding:5px!important;
+        display:none;
+        grid-template-columns:1fr!important;
+        gap:3px!important;
+        border-radius:0!important;
+        border:1px solid rgba(0,169,214,.58)!important;
+        background:rgba(14,19,24,.99)!important;
+        box-shadow:0 16px 36px rgba(0,0,0,.44)!important;
+      }
+
+      .pcc-beta30-menu-action{
+        min-height:28px!important;
+        display:grid!important;
+        grid-template-columns:22px 1fr!important;
+        gap:6px!important;
+        align-items:center!important;
+        padding:3px 7px!important;
+        border-radius:0!important;
+        font-size:12px!important;
+        line-height:1.2!important;
+        white-space:nowrap!important;
+      }
+
+      .pcc-beta27-import-modal{
+        position:absolute!important;
+        inset:38px auto auto 50%!important;
+        transform:translateX(-50%)!important;
+        width:min(600px,calc(100% - 30px))!important;
+        height:auto!important;
+        max-height:min(54vh,460px)!important;
+        z-index:880!important;
+        display:block!important;
+        padding:0!important;
+        margin:0!important;
+        background:transparent!important;
+        border:0!important;
+        backdrop-filter:none!important;
+      }
+
+      .pcc-beta27-import-dialog{
+        width:100%!important;
+        max-height:min(54vh,460px)!important;
+        overflow:auto!important;
+        padding:10px!important;
+        border:1px solid rgba(0,169,214,.70)!important;
+        border-radius:8px!important;
+        background:linear-gradient(180deg,rgba(13,20,25,.99),rgba(5,10,14,.99))!important;
+        box-shadow:0 18px 42px rgba(0,0,0,.58)!important;
+      }
+
+      .pcc-beta27-import-close{
+        position:absolute!important;
+        right:8px!important;
+        top:8px!important;
+        width:28px!important;
+        height:26px!important;
+        border-radius:5px!important;
+        padding:0!important;
+      }
+
+      .pcc-beta27-import-dialog h1,
+      .pcc-beta27-import-dialog h2,
+      .pcc-beta27-import-dialog h3{
+        font-size:16px!important;
+        margin:0 36px 8px 0!important;
+        line-height:1.2!important;
+      }
+
+      .pcc-beta27-import-dialog p,
+      .pcc-beta27-import-dialog div,
+      .pcc-beta27-import-dialog span,
+      .pcc-beta27-import-dialog label{
+        font-size:12px!important;
+        line-height:1.28!important;
+      }
+
+      .pcc-beta27-import-dialog button{
+        min-height:26px!important;
+        padding:3px 8px!important;
+        border-radius:6px!important;
+        font-size:12px!important;
+        line-height:1.2!important;
+      }
+
+      .pcc-beta27-import-dialog input,
+      .pcc-beta27-import-dialog select{
+        min-height:26px!important;
+        border-radius:6px!important;
+        font-size:12px!important;
+      }
+
+      .pcc-beta35-import-body{
+        max-height:390px!important;
+        overflow:auto!important;
+      }
+
+      .pcc-beta35-import-card-grid,
+      .pcc-beta39-import-grid{
+        display:grid!important;
+        grid-template-columns:repeat(auto-fit,minmax(145px,1fr))!important;
+        gap:6px!important;
+      }
+
+      .buildplate .studio-mesh-canvas,
+      .buildplate .pcc-beta36-imported-image,
+      .buildplate .pcc-beta36-imported-placeholder{
+        cursor:grab!important;
+      }
+
+      .buildplate.pcc-beta39-dragging .studio-mesh-canvas,
+      .buildplate.pcc-beta39-dragging .pcc-beta36-imported-image,
+      .buildplate.pcc-beta39-dragging .pcc-beta36-imported-placeholder{
+        cursor:grabbing!important;
+      }
+    `;
+    root.appendChild(style);
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.beta39CloseToolbarMenus = function beta39CloseToolbarMenus(except=null) {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".pcc-beta30-menu-wrap.open,.pcc-beta28-menu-wrap.open").forEach((wrap) => {
+      if (except && wrap === except) return;
+      wrap.classList.remove("open");
+      wrap.querySelector(".pcc-beta30-main,.pcc-beta28-main")?.classList.remove("active");
+    });
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.beta39OpenToolbarMenu = function beta39OpenToolbarMenu(wrap) {
+    if (!wrap) return;
+    this.beta39CloseToolbarMenus(wrap);
+    wrap.classList.add("open");
+    wrap.querySelector(".pcc-beta30-main,.pcc-beta28-main")?.classList.add("active");
+    this._pccBeta39PinnedMenu = pccBeta39ToolbarKey(wrap);
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.beta39RestorePinnedMenu = function beta39RestorePinnedMenu() {
+    const key = String(this._pccBeta39PinnedMenu || "");
+    if (!key) return;
+
+    const wrap = [...(this.shadowRoot?.querySelectorAll(".pcc-beta30-menu-wrap,.pcc-beta28-menu-wrap") || [])]
+      .find((node) => pccBeta39ToolbarKey(node) === key);
+
+    if (wrap) this.beta39OpenToolbarMenu(wrap);
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.beta39BindToolbar = function beta39BindToolbar() {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    if (typeof this.beta30InstallToolbar === "function") {
+      try { this.beta30InstallToolbar(); } catch (_error) {}
+    }
+
+    root.querySelectorAll(".pcc-beta26-toolbar,.pcc-beta28-toolbar,.pcc-beta22-top-toolbar,.pcc-beta23-top-toolbar").forEach((node) => node.remove());
+
+    const oldToolbar = root.querySelector(".pcc-beta30-toolbar");
+    if (!oldToolbar) return;
+
+    if (oldToolbar.dataset.beta39Bound !== "1") {
+      const toolbar = oldToolbar.cloneNode(true);
+      toolbar.dataset.beta39Bound = "1";
+      oldToolbar.replaceWith(toolbar);
+
+      toolbar.addEventListener("pointerdown", (event) => {
+        event.stopPropagation();
+      }, {capture:true});
+
+      toolbar.addEventListener("click", (event) => {
+        const menuButton = event.target?.closest?.("[data-beta30-menu],[data-beta28-menu]");
+        if (menuButton) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          const wrap = menuButton.closest(".pcc-beta30-menu-wrap,.pcc-beta28-menu-wrap");
+          const wasOpen = wrap?.classList?.contains?.("open");
+
+          this.beta39CloseToolbarMenus();
+
+          if (!wasOpen && wrap) this.beta39OpenToolbarMenu(wrap);
+          else this._pccBeta39PinnedMenu = "";
+
+          return;
+        }
+
+        const colorButton = event.target?.closest?.("[data-beta30-color],[data-beta28-color]");
+        if (colorButton) {
+          event.preventDefault();
+          event.stopPropagation();
+          this.beta22SetObjectColor?.(colorButton.dataset.beta30Color || colorButton.dataset.beta28Color);
+          this.queueMeshRender?.();
+          this.beta39RestorePinnedMenu();
+          return;
+        }
+
+        const actionButton = event.target?.closest?.("[data-beta30-action],[data-beta28-action]");
+        if (actionButton) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          const action = String(actionButton.dataset.beta30Action || actionButton.dataset.beta28Action || "");
+          const wrap = actionButton.closest(".pcc-beta30-menu-wrap,.pcc-beta28-menu-wrap");
+          const key = pccBeta39ToolbarKey(wrap);
+
+          if (action === "open-import") {
+            this.beta39CloseToolbarMenus();
+            this.openBeta7ImportAssistant?.();
+            return;
+          }
+
+          if (action === "delete") {
+            this.beta39CloseToolbarMenus();
+            this.deleteActiveJob?.();
+            return;
+          }
+
+          if (key) this._pccBeta39PinnedMenu = key;
+
+          if (action.startsWith("primitive-")) {
+            this.beta21SetPrimitiveActive?.(action.replace("primitive-", ""));
+          } else if (typeof this.beta30ApplyAction === "function") {
+            this.beta30ApplyAction(action);
+          } else if (typeof this.beta28ApplyAction === "function") {
+            this.beta28ApplyAction(action);
+          } else {
+            this.beta22ApplyToolbarAction?.(action);
+          }
+
+          window.setTimeout(() => this.beta39RestorePinnedMenu(), 0);
+          window.setTimeout(() => this.beta39RestorePinnedMenu(), 80);
+          return;
+        }
+      }, {capture:true});
+
+      root.addEventListener("pointerdown", (event) => {
+        if (event.target?.closest?.(".pcc-beta30-toolbar,.pcc-beta28-toolbar")) return;
+        if (event.target?.closest?.(".pcc-beta27-import-modal")) return;
+        if (event.target?.closest?.(".buildplate")) return;
+        this._pccBeta39PinnedMenu = "";
+        this.beta39CloseToolbarMenus();
+      }, {capture:true});
+    }
+
+    this.beta39RestorePinnedMenu();
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.beta39RemoveContextMenus = function beta39RemoveContextMenus() {
+    this._studioContextMenu = null;
+    this.shadowRoot?.querySelectorAll(".studio-context,.beta4-floating-context,.pcc-context-menu,.context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.beta39ApplyVisualTransform = function beta39ApplyVisualTransform() {
+    const root = this.shadowRoot;
+    const t = pccBeta39Transform(this);
+    const transform = `translate(-50%,-50%) translate(${pccBeta39Number(t.x)}px,${pccBeta39Number(t.y)}px) rotateX(${pccBeta39Number(t.rx)}deg) rotateZ(${pccBeta39Number(t.rz)}deg) scale(${pccBeta39Number(t.scale,100)/100})`;
+    root?.querySelectorAll(".pcc-beta36-imported-image,.pcc-beta36-imported-placeholder").forEach((node) => {
+      node.style.transform = transform;
+    });
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.beta39BindMouse = function beta39BindMouse() {
+    const root = this.shadowRoot;
+    const buildplate = root?.querySelector(".buildplate");
+    if (!root || !buildplate || buildplate.dataset.beta39MouseBound === "1") return;
+
+    buildplate.dataset.beta39MouseBound = "1";
+
+    const blockContext = (event) => {
+      if (!event.target?.closest?.(".buildplate")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.beta39RemoveContextMenus();
+    };
+
+    root.addEventListener("contextmenu", blockContext, {capture:true});
+    buildplate.addEventListener("contextmenu", blockContext, {capture:true});
+    window.addEventListener("contextmenu", blockContext, true);
+
+    const state = {active:false, button:-1, x:0, y:0};
+
+    const moveHandler = (event) => {
+      if (!state.active) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const dx = event.clientX - state.x;
+      const dy = event.clientY - state.y;
+      state.x = event.clientX;
+      state.y = event.clientY;
+
+      const t = pccBeta39Transform(this);
+
+      if (state.button === 0) {
+        t.rz = pccBeta39Number(t.rz) + dx * 0.32;
+        t.rx = pccBeta39Number(t.rx) - dy * 0.22;
+      } else if (state.button === 2) {
+        t.x = pccBeta39Number(t.x) + dx;
+        t.y = pccBeta39Number(t.y) + dy;
+      }
+
+      if (this._activeJob) this._activeJob.transform = {...t};
+      this.beta39ApplyVisualTransform();
+      this.queueMeshRender?.();
+      this.beta39RemoveContextMenus();
+    };
+
+    const upHandler = (event) => {
+      if (!state.active) return;
+
+      event.preventDefault?.();
+      event.stopPropagation?.();
+
+      state.active = false;
+      state.button = -1;
+      buildplate.classList.remove("pcc-beta39-dragging");
+
+      window.removeEventListener("pointermove", moveHandler, true);
+      window.removeEventListener("pointerup", upHandler, true);
+      window.removeEventListener("pointercancel", upHandler, true);
+
+      this.beta39RemoveContextMenus();
+    };
+
+    buildplate.addEventListener("pointerdown", (event) => {
+      if (event.target?.closest?.(".pcc-beta27-import-modal")) return;
+      if (event.target?.closest?.(".pcc-beta9-plate-selector")) return;
+      if (event.target?.closest?.(".pcc-beta30-toolbar")) return;
+      if (event.button !== 0 && event.button !== 2) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      state.active = true;
+      state.button = event.button;
+      state.x = event.clientX;
+      state.y = event.clientY;
+
+      buildplate.classList.add("pcc-beta39-dragging");
+      this.beta39RemoveContextMenus();
+
+      try { buildplate.setPointerCapture(event.pointerId); } catch (_error) {}
+
+      window.addEventListener("pointermove", moveHandler, true);
+      window.addEventListener("pointerup", upHandler, true);
+      window.addEventListener("pointercancel", upHandler, true);
+    }, {capture:true});
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.openBeta7ImportAssistant = function beta39OpenImportAssistant(...args) {
+    this._pccBeta39ImportOpen = true;
+    this._pccBeta35ImportOpen = true;
+    this._pccBeta34ImportOpen = true;
+    this._pccBeta30ImportOpen = true;
+    this._pccBeta27ImportOpen = true;
+
+    let result;
+    if (typeof PCC_BETA39_PREV_OPEN_IMPORT === "function") {
+      result = PCC_BETA39_PREV_OPEN_IMPORT.apply(this, args);
+    }
+
+    const polish = () => {
+      this.beta27PromoteImportAssistant?.();
+      this.beta35PolishImportPopup?.();
+      this.beta39PolishImportPopup?.();
+    };
+
+    requestAnimationFrame(polish);
+    window.setTimeout(polish, 40);
+    window.setTimeout(polish, 120);
+    window.setTimeout(polish, 260);
+    window.setTimeout(polish, 520);
+
+    return result;
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.beta39PolishImportPopup = function beta39PolishImportPopup() {
+    const root = this.shadowRoot;
+    const modal = root?.querySelector(".pcc-beta27-import-modal");
+    const dialog = root?.querySelector(".pcc-beta27-import-dialog");
+    if (!modal || !dialog) return;
+
+    modal.dataset.beta39Stable = "1";
+    dialog.dataset.beta39Stable = "1";
+
+    dialog.querySelectorAll("h1,h2,h3").forEach((heading) => {
+      if (String(heading.textContent || "").includes("Studio-Import")) heading.textContent = "Studio-Import";
+    });
+
+    dialog.querySelectorAll("button").forEach((button) => {
+      const txt = String(button.textContent || "").trim();
+      if (txt === "Auswahl ins Studio übernehmen" || txt === "Ins Studio übernehmen") button.textContent = "Objekt importieren";
+      if (txt === "Eine Ebene hoch") button.textContent = "Hoch";
+      if (txt === "Aktualisieren") button.textContent = "Neu laden";
+    });
+
+    const body = dialog.querySelector(".pcc-beta35-import-body") || dialog;
+    const folderArea = [...body.querySelectorAll("div,section")]
+      .find((node) => {
+        const text = String(node.textContent || "");
+        return text.includes("Ordner") && text.length < 1200;
+      });
+
+    if (folderArea) folderArea.classList.add("pcc-beta39-import-grid");
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.beta7ImportPlan = async function beta39ImportPlan(plan) {
+    const beforeJobs = Array.isArray(this._jobs) ? [...this._jobs] : [];
+    const beforeActive = this._activeJob || null;
+
+    if (typeof PCC_BETA39_PREV_IMPORT_PLAN === "function") {
+      await PCC_BETA39_PREV_IMPORT_PLAN.call(this, plan);
+    }
+
+    const afterActive = this._activeJob || null;
+    this._pccBeta39PlateObjects = Array.isArray(this._pccBeta39PlateObjects) ? this._pccBeta39PlateObjects : [];
+
+    for (const job of [...beforeJobs, beforeActive, afterActive]) {
+      if (!job) continue;
+      const id = String(job.id || job.file_path || job.path || job.name || job.modelName || "");
+      if (!id) continue;
+      if (!this._pccBeta39PlateObjects.some((item) => String(item.id || item.file_path || item.path || item.name || item.modelName || "") === id)) {
+        this._pccBeta39PlateObjects.push(job);
+      }
+    }
+
+    if (Array.isArray(this._jobs)) {
+      const merged = [...this._jobs];
+      for (const job of this._pccBeta39PlateObjects) {
+        const id = String(job.id || job.file_path || job.path || job.name || job.modelName || "");
+        if (!id) continue;
+        if (!merged.some((item) => String(item.id || item.file_path || item.path || item.name || item.modelName || "") === id)) merged.push(job);
+      }
+      this._jobs = merged;
+    }
+
+    this._pccBeta39ImportOpen = true;
+    this._pccBeta35ImportOpen = true;
+    this._pccBeta27ImportOpen = true;
+
+    window.setTimeout(() => {
+      this.ensureStudioMeshLoaded?.(true);
+      this.queueMeshRender?.();
+      this.beta35PolishImportPopup?.();
+      this.beta39PolishImportPopup?.();
+    }, 0);
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.ensureStudioMeshLoaded = async function beta39EnsureStudioMeshLoaded(force=false) {
+    if (pccBeta39IsPrimitive(this._activeJob) && typeof this.beta30EnsurePrimitiveMesh === "function") {
+      this.beta30EnsurePrimitiveMesh();
+      this.queueMeshRender?.();
+      return;
+    }
+
+    if (typeof PCC_BETA39_PREV_ENSURE_MESH === "function") {
+      await PCC_BETA39_PREV_ENSURE_MESH.call(this, force);
+    }
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.renderMeshCanvas = function beta39RenderMeshCanvas(...args) {
+    if (this._pccBeta39Rendering) return;
+    this._pccBeta39Rendering = true;
+    try {
+      if (typeof PCC_BETA39_PREV_RENDER_MESH === "function") {
+        PCC_BETA39_PREV_RENDER_MESH.apply(this, args);
+      }
+      this.beta36RenderActiveJobFallback?.();
+      this.beta39ApplyVisualTransform();
+    } finally {
+      this._pccBeta39Rendering = false;
+    }
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.handleContextMenu = function beta39HandleContextMenu(event) {
+    if (event.target?.closest?.(".buildplate")) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.beta39RemoveContextMenus();
+    }
+  };
+
+  PCC_BETA39_STUDIO_CLASS.prototype.cleanupBetaStudioUi = function beta39CleanupBetaStudioUi() {
+    this.beta39EnsureStyle();
+
+    try { this.beta9EnsureStyle?.(); } catch (_error) {}
+    try { this.beta9InstallSelector?.(); } catch (_error) {}
+    try { this.beta9ApplyBuildplateVisual?.(); } catch (_error) {}
+    try { this.beta20EnsureStyle?.(); } catch (_error) {}
+    try { this.beta20InjectPrimitivePanel?.(); } catch (_error) {}
+    try { this.beta21EnsureStyle?.(); } catch (_error) {}
+    try { this.beta21SyncBuildplateState?.(); } catch (_error) {}
+    try { this.beta22EnsureStyle?.(); } catch (_error) {}
+    try { this.beta22HideRightInspector?.(); } catch (_error) {}
+    try { this.beta22RemoveBottomMessages?.(); } catch (_error) {}
+    try { this.beta34CleanTextNavigation?.(); } catch (_error) {}
+    try { this.beta34RemoveFooters?.(); } catch (_error) {}
+
+    this.beta36HideSecondImportButton?.();
+    this.beta39RemoveContextMenus();
+    this.beta39BindToolbar();
+    this.beta39BindMouse();
+
+    const root = this.shadowRoot;
+    root?.querySelectorAll(".pcc-beta22-top-toolbar,.pcc-beta23-top-toolbar,.pcc-beta26-toolbar,.pcc-beta28-toolbar,.studio-context,.beta4-floating-context,.pcc-context-menu,.context-menu,.gallery-context-menu,[data-context-menu]").forEach((node) => node.remove());
+
+    if (this._activeJob) {
+      this.beta36RenderActiveJobFallback?.();
+      this.beta39ApplyVisualTransform();
+    }
+
+    if (this._pccBeta39ImportOpen || root?.querySelector(".pcc-beta27-import-modal")) {
+      this._pccBeta39ImportOpen = true;
+      requestAnimationFrame(() => {
+        this.beta27PromoteImportAssistant?.();
+        this.beta35PolishImportPopup?.();
+        this.beta39PolishImportPopup?.();
+      });
+    }
   };
 
   if (!customElements.get("printer-control-center-studio-card")) {

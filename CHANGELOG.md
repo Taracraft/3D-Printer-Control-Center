@@ -1,3 +1,28 @@
+## 5.0.0-beta39 - Beta38 Studio toolbar, import and mouse stabilization
+
+### Deutsch
+- Baut gezielt auf der sichtbaren beta38-/beta36-Restore-Basis auf.
+- Kein Rollback und keine Reaktivierung von beta37, beta31 oder beta24.
+- Stabilisiert die vorhandene beta30-Toolbar direkt gegen die beta38-DOM-Struktur.
+- Toolbar-Menüs öffnen mit einem Klick, es bleibt nur ein Menü offen und wiederholte Aktionen schließen das Menü nicht.
+- Der Studio-Import bleibt kompakt, scrollbar und im Studio-Frame.
+- Import kann auf vorhandene Objekte angewendet werden, ohne das Popup sofort zu verlieren.
+- Das CAD-Rechtsklickmenü bleibt entfernt; Rechtsklick-Ziehen bewegt, Linksklick-Ziehen dreht.
+- Keine Kamera-, Dashboard-, Backend-, Host- oder Verbindungsänderungen.
+- Echtes Slicen und Direktdruck bleiben deaktiviert.
+
+### English
+- Builds directly on the visible beta38/beta36 restore base.
+- No rollback and no beta37, beta31 or beta24 reactivation.
+- Stabilizes the existing beta30 toolbar directly against the beta38 DOM structure.
+- Toolbar menus open with one click, only one menu stays open and repeated actions do not close the menu.
+- Studio import stays compact, scrollable and inside the Studio frame.
+- Import can be used while objects are already on the plate without immediately losing the popup.
+- The CAD right-click menu remains removed; right-drag moves and left-drag rotates.
+- No camera, dashboard, backend, host or connection changes.
+- Real slicing and direct printing remain disabled.
+
+
 ## 5.0.0-beta38 - Emergency restore CAD Studio after beta37 blank page
 
 ### Deutsch

@@ -1,4 +1,4 @@
-﻿{
+{
   "domain": "printer_control_center",
   "name": "3D-Printer Control Center",
   "codeowners": [
@@ -16,5 +16,5 @@
   "requirements": [
     "paho-mqtt==2.1.0"
   ],
-  "version": "5.0.0-beta39.2"
+  "version": "5.0.0-beta38"
 }

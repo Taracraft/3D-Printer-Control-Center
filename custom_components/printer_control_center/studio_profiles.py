@@ -1,4 +1,4 @@
-﻿"""Persistent Studio profile and filament bank for Printer Control Center v5.
+"""Persistent Studio profile and filament bank for Printer Control Center v5.
 
 This module intentionally stores local Home Assistant Studio data only.
 It does not depend on ha-bambulab, bambu_lab or any external Bambu integration.
@@ -16,7 +16,7 @@ from homeassistant.helpers.storage import Store
 STORAGE_VERSION = 1
 STORAGE_KEY = "printer_control_center.studio_profiles"
 
-BANK_VERSION = "5.0.0-beta39.2"
+BANK_VERSION = "5.0.0-beta38"
 
 
 DEFAULT_PROFILE_BANK: dict[str, Any] = {

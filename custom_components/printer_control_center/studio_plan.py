@@ -1,4 +1,4 @@
-﻿"""Structured Studio plan helpers for Printer Control Center v5.
+"""Structured Studio plan helpers for Printer Control Center v5.
 
 Alpha18 introduces a shared planning structure for persistent Studio jobs.
 Alpha19 makes the Studio job UI consume studio_plan as primary status data.
@@ -13,7 +13,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
 
-PLAN_VERSION = "5.0.0-beta39.2"
+PLAN_VERSION = "5.0.0-beta38"
 
 
 def _utcnow() -> str:

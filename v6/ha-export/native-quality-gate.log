@@ -1,0 +1,37 @@
+started=2026-09-08T09:42:12+02:00
+root=/config/3D-Studio/v6
+node=v24.18.1
+npm=11.12.1
+python=Python 3.14.7
+pytest=pytest 9.0.3
+phase=npm-ci
+
+added 3 packages in 810ms
+phase=typescript
+
+> ultimate-3d-printing-studio-v6-frontend@6.0.0-beta3 typecheck
+> tsc --project tsconfig.json --noEmit
+
+frontend/direct-print-panel-next.ts(5,8): error TS2307: Cannot find module './direct-print-transfer-events.js' or its corresponding type declarations.
+frontend/global-job-popup-v3.ts(3,45): error TS2307: Cannot find module './print-speed-control.js' or its corresponding type declarations.
+frontend/global-job-popup-v3.ts(16,100): error TS2307: Cannot find module './slicer-telemetry.js' or its corresponding type declarations.
+frontend/global-job-popup-v3.ts(19,90): error TS2307: Cannot find module './print-live-telemetry.js' or its corresponding type declarations.
+frontend/global-job-popup-v3.ts(20,90): error TS2307: Cannot find module './slice-activity-events.js' or its corresponding type declarations.
+frontend/global-job-popup-v3.ts(21,122): error TS2307: Cannot find module './studio-operation-events.js' or its corresponding type declarations.
+frontend/global-job-popup-v3.ts(519,51): error TS2339: Property 'doneOnlyWhenJobEnds' does not exist on type 'Readonly<{ key: string; label: string; currentLabel: string; detail?: string; }>'.
+frontend/job-activity-store.ts(2,3): error TS2305: Module '"./slicing-api.js"' has no exported member 'cancelSliceJob'.
+frontend/job-activity-store.ts(119,7): error TS2322: Type 'Readonly<{ id: string; status: SliceJobStatus; backend?: "server"; backend_name?: string; model_file?: string; output_file?: string; output_filename?: string; output_size_bytes?: number; ... 18 more ...; engine_result?: Readonly<...>; }> | null' is not assignable to type 'Readonly<{ id: string; status: SliceJobStatus; backend?: "server"; backend_name?: string; model_file?: string; output_file?: string; output_filename?: string; output_size_bytes?: number; ... 18 more ...; engine_result?: Readonly<...>; }>'.
+  Type 'null' is not assignable to type 'Readonly<{ id: string; status: SliceJobStatus; backend?: "server"; backend_name?: string; model_file?: string; output_file?: string; output_filename?: string; output_size_bytes?: number; ... 18 more ...; engine_result?: Readonly<...>; }>'.
+frontend/plate-slice-api.ts(2,30): error TS2305: Module '"./ha-api-transport.js"' has no exported member 'authenticatedUpload'.
+frontend/plate-slice-api.ts(2,70): error TS2305: Module '"./ha-api-transport.js"' has no exported member 'AuthenticatedUploadProgress'.
+frontend/slicer-workspace-v2.ts(7,10): error TS2305: Module '"./slicing-api.js"' has no exported member 'cancelSliceJob'.
+frontend/slicer-workspace-v2.ts(273,253): error TS2339: Property 'worker' does not exist on type 'Readonly<{ id: string; name: string; mode: string; capabilities: Readonly<{ geometry_preview: boolean; layer_preview: boolean; plan_persistence: boolean; gcode_generation: boolean; gcode_3mf_artifact?: boolean; job_cancellation?: boolean; direct_print: boolean; detailed_gcode_analysis?: boolean; prime_tower_safety_g...'.
+frontend/slicer-workspace-v3.ts(16,3): error TS2305: Module '"./slicing-api.js"' has no exported member 'cancelSliceJob'.
+frontend/slicer-workspace-v3.ts(359,253): error TS2339: Property 'worker' does not exist on type 'Readonly<{ id: string; name: string; mode: string; capabilities: Readonly<{ geometry_preview: boolean; layer_preview: boolean; plan_persistence: boolean; gcode_generation: boolean; gcode_3mf_artifact?: boolean; job_cancellation?: boolean; direct_print: boolean; detailed_gcode_analysis?: boolean; prime_tower_safety_g...'.
+frontend/studio-mega-workspace-v2.ts(3,88): error TS2307: Cannot find module './slice-activity-events.js' or its corresponding type declarations.
+frontend/studio-mega-workspace-v2.ts(4,94): error TS2307: Cannot find module './studio-operation-events.js' or its corresponding type declarations.
+frontend/studio-mega-workspace-v2.ts(1670,7): error TS2353: Object literal may only specify known properties, and 'topCollapsed' does not exist in type 'Readonly<{ mode: "colors" | "prepare" | "preview"; tool: "scale" | "select" | "translate" | "rotate"; axis: "x" | "y" | "z" | "free"; activePlate: number; plates: readonly Readonly<{ name: string; width: number; ... 4 more ...; jobId: string; }>[]; ... 9 more ...; profileBar: string; }>'.
+frontend/studio-mega-workspace.ts(514,67): error TS2345: Argument of type 'string' is not assignable to parameter of type 'Readonly<{ adhesion_mode: AdhesionMode; brim_width_mm: number; raft_layers: number; support_mode: SupportMode; support_build_plate_only: boolean; support_threshold_angle: number; layer_height_mm: number | null; outer_wall_speed_mm_s: number | null; inner_wall_speed_mm_s: number | null; }>'.
+exit_code=2
+phase=typescript
+finished=2026-09-08T09:42:17+02:00

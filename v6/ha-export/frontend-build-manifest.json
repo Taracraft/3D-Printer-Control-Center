@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "product": "Ultimate 3D Printing Studio V6",
+  "version": "6.0.0-beta3",
+  "build": {
+    "bundler": "esbuild",
+    "bundler_version": "0.25.12",
+    "format": "esm",
+    "platform": "browser",
+    "target": "es2022",
+    "minified": false,
+    "sourcemap": false,
+    "entry_point": "frontend/v6-entry.ts",
+    "bundled_input_count": 91
+  },
+  "architecture": {
+    "active_workspace": "ultimate-3d-unified-studio",
+    "runtime_monkey_patches_allowed": false,
+    "nested_workspace_shells_allowed": false,
+    "webgl_canvas_authorities": 1
+  },
+  "policy": {
+    "runtime_monkey_patches_allowed": false,
+    "navigation_authorities": 1,
+    "card_registration_count": 1,
+    "required_markers": [
+      "ultimate-3d-studio-v6-card",
+      "ultimate-3d-studio",
+      "ultimate-3d-unified-studio",
+      "ultimate-3d-steuerung-workspace",
+      "ultimate-3d-system-workspace",
+      "ultimate-3d-studio-v6:gallery-library-cache-v1",
+      "openGalleryProject",
+      "gallery_asset_id"
+    ],
+    "forbidden_patterns_checked": [
+      "prototype.connectedCallback =",
+      "prototype.disconnectedCallback =",
+      "prototype._render =",
+      "__transformToolsPatched",
+      "__transformMountPatched",
+      "new MutationObserver",
+      "ultimate-3d-studio-status-patch",
+      "ultimate-3d-controls-confirmation-patch"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "dist/frontend/ultimate-3d-studio.js",
+      "size_bytes": 737526,
+      "sha256": "1c23afd7bac33739eebef7556993b884225be50d42b82ef9ba44357652d67a49"
+    },
+    {
+      "path": "dist/frontend/ultimate-3d-studio.css",
+      "size_bytes": 800,
+      "sha256": "e73c2b38d3d7875bc57b60a5c9422ef6fd2bca196a7e9296094b8ad6f64ace75"
+    }
+  ],
+  "manifest_path": "dist/frontend/frontend-build-manifest.json"
+}

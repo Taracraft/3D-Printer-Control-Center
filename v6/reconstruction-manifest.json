@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-10-02T09:25:00+02:00",
+  "source": {
+    "platform": "Home Assistant",
+    "config_path": "/config/www/3d-studio-v6",
+    "dashboard": "3d-studio-v6-test",
+    "dashboard_build": "20260713-984fed6c21df81f4"
+  },
+  "branch": "reconstruct/v6-from-ha-20261002",
+  "active_runtime": {
+    "js": "v6/ha-export/ultimate-3d-studio.js",
+    "css": "v6/ha-export/ultimate-3d-studio.css",
+    "build_manifest": "v6/ha-export/frontend-build-manifest.json",
+    "build_info": "v6/ha-export/ultimate-3d-studio-build.json",
+    "live_size_bytes": 601990,
+    "paint_layer_markers_present": false
+  },
+  "recovered_sources": [
+    {
+      "path": "v6/recovered-sources/ultimate-3d-studio.js.bak.20260925-accurate-paint-shapes",
+      "size_bytes": 866352,
+      "role": "paint shape source"
+    },
+    {
+      "path": "v6/recovered-sources/ultimate-3d-studio.js.bak.20260925-paint-region-selection",
+      "size_bytes": 909536,
+      "role": "paint region and selection source"
+    },
+    {
+      "path": "v6/recovered-sources/ultimate-3d-studio.js.bak.20260925-paint-shape-preview",
+      "size_bytes": 910443,
+      "role": "shape preview source"
+    },
+    {
+      "path": "v6/recovered-sources/ultimate-3d-studio.js.bak.20260925-text-tool",
+      "size_bytes": 917624,
+      "role": "text tool source"
+    },
+    {
+      "path": "v6/recovered-sources/ultimate-3d-studio.js.bak.20260930-support-filament",
+      "size_bytes": 585470,
+      "role": "support and filament source"
+    },
+    {
+      "path": "v6/recovered-sources/backup-20260920.js",
+      "size_bytes": 861461,
+      "role": "older complete runtime"
+    }
+  ],
+  "rules": [
+    "master remains unchanged",
+    "historical sources are not deployed directly",
+    "activation requires frontend and backend quality gates",
+    "HA remains the runtime; PC is only a local development clone"
+  ]
+}
